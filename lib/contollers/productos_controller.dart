@@ -14,11 +14,12 @@ class ProductosController {
     return IOClient(ioClient);
   }
 
+  //Agregar Producto
   Future<bool> addProducto(Productos prodcuto) async {
     final IOClient client = _createHttpClient();
     try {
       final response = await client.post(
-        Uri.parse(_authService.apiURL),
+        Uri.parse('${_authService.apiURL}/Productos'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -28,7 +29,8 @@ class ProductosController {
       if (response.statusCode == 201) {
         return true;
       } else {
-        print('Error al agregar producto: ${response.body}');
+        print(
+            'Error al agregar producto: ${response.statusCode} - ${response.body}');
         return false;
       }
     } catch (e) {
@@ -37,6 +39,37 @@ class ProductosController {
     }
   }
 
+  //Producto por ID
+  Future<Productos?> getProductoById(int idProdcuto) async {
+    final IOClient client = _createHttpClient();
+
+    try {
+      final response = await client.get(
+        Uri.parse('${_authService.apiURL}/Productos/$idProdcuto'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            json.decode(response.body) as Map<String, dynamic>;
+        return Productos.fromMap(jsonData);
+      } else if (response.statusCode == 404) {
+        print('Producto no encontrado con ID: $idProdcuto');
+        return null;
+      } else {
+        print(
+            'Error al obtener producto por ID: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error al obtener producto por ID: $e');
+      return null;
+    }
+  }
+
+  //Lista Productos
   Future<List<Productos>> listProductos() async {
     try {
       final IOClient client = _createHttpClient();
