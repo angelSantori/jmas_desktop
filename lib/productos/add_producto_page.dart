@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddProductoPage extends StatefulWidget {
   const AddProductoPage({super.key});
@@ -8,6 +11,8 @@ class AddProductoPage extends StatefulWidget {
 }
 
 class _AddProductoPageState extends State<AddProductoPage> {
+  final ProductosController _productosController = ProductosController();
+
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _costoController = TextEditingController();
   //final TextEditingController _unidadMedidaController = TextEditingController();
@@ -36,85 +41,58 @@ class _AddProductoPageState extends State<AddProductoPage> {
       _isLoading = true;
     });
 
-    try {
-      if (_descripcionController.text.isEmpty ||
-          _costoController.text.isEmpty ||
-          _existenciaController.text.isEmpty ||
-          _existenciaInicialController.text.isEmpty ||
-          _existenciaConFisController.text.isEmpty) {
-        setState(() {
-          _isLoading = false;
-        });
-        _showError('Por favor complete todos los campos.');
+    if (_formKey.currentState?.validate() ?? false) {
+      try {
+        final producto = Productos(
+          id_Producto: 0,
+          producto_Descripcion: _descripcionController.text,
+          producto_Costo: double.parse(_costoController.text),
+          producto_UMedida: _selectedUnidadMedida!,
+          producto_Precio1: double.parse(_precio1Controller.text),
+          producto_Precio2: double.parse(_precio2Controller.text),
+          producto_Precio3: double.parse(_precio3Controller.text),
+          producto_Existencia: double.parse(_existenciaController.text),
+          producto_ExistenciaInicial:
+              double.parse(_existenciaInicialController.text),
+          producto_ExistenciaConFis:
+              double.parse(_existenciaConFisController.text),
+          producto_QR64: "SinFoto",
+        );
+        final success = await _productosController.addProducto(producto);
+
+        if (success) {
+          showOk(context, 'Producto registrado exitosamente');
+          _formKey.currentState?.reset();
+          _clearForm();
+        } else {
+          showError(context, "Hubo un problema al registrar el producto.");
+        }
+      } catch (e) {
+        showAdvertence(
+            context, "Por favor complete todos los campos correctamente.");
       }
+    } else {
+      showAdvertence(
+          context, "Por favor completa todos los campos obligatorios.");
+    }
 
-      if (_formKey.currentState?.validate() ?? false) {}
-    } catch (e) {}
+    setState(() {
+      _isLoading = false;
+    });
   }
 
-  void _showError(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.error, color: Colors.red.shade900),
-              const SizedBox(width: 5),
-              const Text(
-                "Error",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showOk(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(
-                Icons.beenhere,
-                color: Colors.green.shade900,
-              ),
-              const SizedBox(width: 5),
-              const Text(
-                "Éxito",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
+  void _clearForm() {
+    _descripcionController.clear();
+    _costoController.clear();
+    _precio1Controller.clear();
+    _precio2Controller.clear();
+    _precio3Controller.clear();
+    _existenciaController.clear();
+    _existenciaInicialController.clear();
+    _existenciaConFisController.clear();
+    setState(() {
+      _selectedUnidadMedida = null;
+    });
   }
 
   @override
@@ -199,6 +177,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]')),
+                          ],
                         ),
                       ),
                     ],
@@ -278,6 +260,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]')),
+                          ],
                         ),
                       ),
                     ],
@@ -315,13 +301,17 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]')),
+                          ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 50),
 
-                  //Precio 1
+                  //Precio 3
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -352,6 +342,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]')),
+                          ],
                         ),
                       ),
                     ],
@@ -389,6 +383,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]')),
+                          ],
                         ),
                       ),
                     ],
@@ -427,6 +425,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]')),
+                          ],
                         ),
                       ),
                     ],
@@ -465,6 +467,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9.]')),
+                          ],
                         ),
                       ),
                     ],
@@ -473,7 +479,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
 
                   //Botón para enviar el formulario
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade900,
                         textStyle: const TextStyle(
@@ -487,6 +493,8 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
