@@ -136,7 +136,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Por facor ingresa una descripción';
+                              return 'Por favor ingresa una descripción';
                             }
                             return null;
                           },
