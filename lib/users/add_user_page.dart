@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddUserPage extends StatefulWidget {
   const AddUserPage({super.key});
@@ -8,20 +11,85 @@ class AddUserPage extends StatefulWidget {
 }
 
 class _AddUserPageState extends State<AddUserPage> {
+  final UsersController _usersController = UsersController();
+
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _userContactoController = TextEditingController();
   final TextEditingController _userAccessController = TextEditingController();
   final TextEditingController _userPasswordController = TextEditingController();
-
   final TextEditingController _passwordConfirmController =
       TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
+  bool _isSubmitted = false;
+  bool _isLoading = false;
+
   String? _selectedRol;
 
-  final List<String> _roles = ['Rol1', 'Rol2', 'Rol3', 'Rol4'];
+  final List<String> _roles = ['Admin', 'Sistemas', 'Gestion', 'Electro'];
 
   bool _isPasswordVisibles = false;
   bool _isConfirmPasswordVisible = false;
+
+  void _clearFOrm() {
+    _userNameController.clear();
+    _userContactoController.clear();
+    _userAccessController.clear();
+    _userPasswordController.clear();
+    _passwordConfirmController.clear();
+    setState(() {
+      _selectedRol = null;
+    });
+  }
+
+  void _submitForm() async {
+    setState(() {
+      _isSubmitted = true;
+      _isLoading = true;
+    });
+
+    if (_formKey.currentState?.validate() ?? false) {
+      if (_userPasswordController.text != _passwordConfirmController.text) {
+        showAdvertence(context, 'Contraseñas no coinciden');
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      try {
+        final user = Users(
+          id_User: 0,
+          user_Name: _userNameController.text,
+          user_Contacto: _userContactoController.text,
+          user_Access: _userAccessController.text,
+          user_Password: _userPasswordController.text,
+          user_Rol: _selectedRol,
+        );
+
+        final success = await _usersController.addUser(user, context);
+
+        if (success) {
+          showOk(context, 'Usuario registrado exitosamente.');
+          _formKey.currentState?.reset();
+          _clearFOrm();
+        } else {
+          showError(context, 'Hubo un problema al registrar al usuario.');
+        }
+      } catch (e) {
+        showAdvertence(
+            context, 'Por favor complete todos los campos correctamente.');
+      }
+    } else {
+      showAdvertence(
+          context, 'Por favor completa todos los campos obligatorios.');
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +101,7 @@ class _AddUserPageState extends State<AddUserPage> {
         child: Padding(
           padding: const EdgeInsets.only(left: 100, right: 100),
           child: Form(
+            key: _formKey,
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
@@ -54,10 +123,19 @@ class _AddUserPageState extends State<AddUserPage> {
                           decoration: InputDecoration(
                             labelText: 'Nombre del usuario',
                             focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade900)),
+                                borderSide: BorderSide(
+                                    color: _isSubmitted &&
+                                            _userNameController.text.isEmpty
+                                        ? Colors.red
+                                        : Colors.blue.shade900)),
                             border: const OutlineInputBorder(),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa un nombre.';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],
@@ -82,10 +160,22 @@ class _AddUserPageState extends State<AddUserPage> {
                           decoration: InputDecoration(
                             labelText: 'Contacto del usuario',
                             focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade900)),
+                                borderSide: BorderSide(
+                                    color: _isSubmitted &&
+                                            _userAccessController.text.isEmpty
+                                        ? Colors.red
+                                        : Colors.blue.shade900)),
                             border: const OutlineInputBorder(),
                           ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.deny(RegExp(r'\s'))
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa un contacto.';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],
@@ -110,10 +200,22 @@ class _AddUserPageState extends State<AddUserPage> {
                           decoration: InputDecoration(
                             labelText: 'Acceso del usuario',
                             focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade900)),
+                                borderSide: BorderSide(
+                                    color: _isSubmitted &&
+                                            _userAccessController.text.isEmpty
+                                        ? Colors.red
+                                        : Colors.blue.shade900)),
                             border: const OutlineInputBorder(),
                           ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.deny(RegExp(r'\s'))
+                          ],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa una clave de acceso.';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],
@@ -148,6 +250,12 @@ class _AddUserPageState extends State<AddUserPage> {
                             setState(() {
                               _selectedRol = value;
                             });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Por favor selecciona un rol de usuario.';
+                            }
+                            return null;
                           },
                         ),
                       )
@@ -185,10 +293,19 @@ class _AddUserPageState extends State<AddUserPage> {
                               },
                             ),
                             focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade900)),
+                                borderSide: BorderSide(
+                                    color: _isSubmitted &&
+                                            _userPasswordController.text.isEmpty
+                                        ? Colors.red
+                                        : Colors.blue.shade900)),
                             border: const OutlineInputBorder(),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor ingresa una contraseña.';
+                            }
+                            return null;
+                          },
                           obscureText: !_isPasswordVisibles,
                         ),
                       ),
@@ -227,10 +344,20 @@ class _AddUserPageState extends State<AddUserPage> {
                               },
                             ),
                             focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.blue.shade900)),
+                                borderSide: BorderSide(
+                                    color: _isSubmitted &&
+                                            _passwordConfirmController
+                                                .text.isEmpty
+                                        ? Colors.red
+                                        : Colors.blue.shade900)),
                             border: const OutlineInputBorder(),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor confirma la contraseña.';
+                            }
+                            return null;
+                          },
                           obscureText: !_isConfirmPasswordVisible,
                         ),
                       ),
@@ -240,7 +367,7 @@ class _AddUserPageState extends State<AddUserPage> {
 
                   //Botón para enviar formulario
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade900,
                       textStyle: const TextStyle(
@@ -248,12 +375,16 @@ class _AddUserPageState extends State<AddUserPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    child: const Text(
-                      'Guardar usuario',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : const Text(
+                            'Guardar usuario',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
 
                   const SizedBox(height: 50),
