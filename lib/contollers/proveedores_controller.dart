@@ -15,6 +15,59 @@ class ProveedoresController {
     return IOClient(ioClient);
   }
 
+  Future<bool> addProveedor(Proveedores proveedor) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.post(
+        Uri.parse('${_authService.apiURL}/Proveedores'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: proveedor.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print(
+            'Error al agregar proveedor: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al agregar proveedor: $e');
+      return false;
+    }
+  }
+
+  Future<Proveedores?> getProveedorById(int idProveedor) async {
+    final IOClient client = _createHttpClient();
+
+    try {
+      final response = await client.get(
+        Uri.parse('${_authService.apiURL}/Proveedores/$idProveedor'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            json.decode(response.body) as Map<String, dynamic>;
+        return Proveedores.fromMap(jsonData);
+      } else if (response.statusCode == 404) {
+        print('Proveedor no encontrado con ID: $idProveedor');
+        return null;
+      } else {
+        print(
+            'Error al obtener proveedor por ID: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error al obtener el proveedor por ID: $e');
+      return null;
+    }
+  }
+
   Future<List<Proveedores>> listProveedores() async {
     try {
       final IOClient client = _createHttpClient();
