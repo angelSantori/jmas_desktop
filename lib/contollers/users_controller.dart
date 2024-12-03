@@ -2,9 +2,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:http/io_client.dart';
 
 import 'package:jmas_desktop/service/auth_service.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class UsersController {
   final AuthService _authService = AuthService();
@@ -14,6 +16,63 @@ class UsersController {
     ioClient.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     return IOClient(ioClient);
+  }
+
+  Future<bool> addUser(Users user, BuildContext context) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.post(
+        Uri.parse('${_authService.apiURL}/Users'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: user.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else if (response.statusCode == 409) {
+        print(
+            'Error al agregar usuario: ${response.statusCode} - ${response.body}');
+        showError(context, 'ERROR: ${response.body}');
+        return false;
+      } else {
+        print(
+            'Error al agregar usuario ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al agregar cliente: $e');
+      return false;
+    }
+  }
+
+  Future<Users?> getUserById(int idUser) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.get(
+        Uri.parse('${_authService.apiURL}/Users/$idUser'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            json.decode(response.body) as Map<String, dynamic>;
+        return Users.fromMap(jsonData);
+      } else if (response.statusCode == 404) {
+        print('Usuario no encontrado con ID: $idUser');
+        return null;
+      } else {
+        print(
+            'Error al obtener proveedor por ID: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error al obtener usuario por ID: $e');
+      return null;
+    }
   }
 
   Future<List<Users>> listUsers() async {
@@ -43,12 +102,14 @@ class Users {
   String? user_Contacto;
   String? user_Access;
   String? user_Password;
+  String? user_Rol;
   Users({
     this.id_User,
     this.user_Name,
     this.user_Contacto,
     this.user_Access,
     this.user_Password,
+    this.user_Rol,
   });
 
   Users copyWith({
@@ -57,6 +118,7 @@ class Users {
     String? user_Contacto,
     String? user_Access,
     String? user_Password,
+    String? user_Rol,
   }) {
     return Users(
       id_User: id_User ?? this.id_User,
@@ -64,6 +126,7 @@ class Users {
       user_Contacto: user_Contacto ?? this.user_Contacto,
       user_Access: user_Access ?? this.user_Access,
       user_Password: user_Password ?? this.user_Password,
+      user_Rol: user_Rol ?? this.user_Rol,
     );
   }
 
@@ -74,6 +137,7 @@ class Users {
       'user_Contacto': user_Contacto,
       'user_Access': user_Access,
       'user_Password': user_Password,
+      'user_Rol': user_Rol,
     };
   }
 
@@ -87,6 +151,7 @@ class Users {
           map['user_Access'] != null ? map['user_Access'] as String : null,
       user_Password:
           map['user_Password'] != null ? map['user_Password'] as String : null,
+      user_Rol: map['user_Rol'] != null ? map['user_Rol'] as String : null,
     );
   }
 
@@ -97,7 +162,7 @@ class Users {
 
   @override
   String toString() {
-    return 'Users(id_User: $id_User, user_Name: $user_Name, user_Contacto: $user_Contacto, user_Access: $user_Access, user_Password: $user_Password)';
+    return 'Users(id_User: $id_User, user_Name: $user_Name, user_Contacto: $user_Contacto, user_Access: $user_Access, user_Password: $user_Password, user_Rol: $user_Rol)';
   }
 
   @override
@@ -108,7 +173,8 @@ class Users {
         other.user_Name == user_Name &&
         other.user_Contacto == user_Contacto &&
         other.user_Access == user_Access &&
-        other.user_Password == user_Password;
+        other.user_Password == user_Password &&
+        other.user_Rol == user_Rol;
   }
 
   @override
@@ -117,6 +183,7 @@ class Users {
         user_Name.hashCode ^
         user_Contacto.hashCode ^
         user_Access.hashCode ^
-        user_Password.hashCode;
+        user_Password.hashCode ^
+        user_Rol.hashCode;
   }
 }
