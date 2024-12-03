@@ -3,6 +3,7 @@ import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
+import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
 import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
@@ -52,6 +53,12 @@ class _HomePageState extends State<HomePage> {
   void _navigateToListProveedores() {
     setState(() {
       _currentPage = const ListProveedorPage();
+    });
+  }
+
+  void _navigateToAddProveedores() {
+    setState(() {
+      _currentPage = const AddProveedorPage();
     });
   }
 
@@ -219,7 +226,31 @@ class _HomePageState extends State<HomePage> {
                           ),
                           onTap: _navigateToListProveedores,
                         ),
-                      )
+                      ),
+
+                      //Add Proveedor
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16),
+                        child: ListTile(
+                          title: const Row(
+                            children: [
+                              Icon(
+                                Icons.people_alt_outlined,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Agregar Proveedor',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: _navigateToAddProveedores,
+                        ),
+                      ),
                     ],
                   ),
                 ),
