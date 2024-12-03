@@ -202,9 +202,9 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: _selectedUnidadMedida,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Unidad de Medida',
-                            border: const OutlineInputBorder(),
+                            border: OutlineInputBorder(),
                           ),
                           items: _unidadMedida.map((unidad) {
                             return DropdownMenuItem(
