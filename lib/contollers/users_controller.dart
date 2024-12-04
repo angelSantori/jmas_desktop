@@ -94,6 +94,40 @@ class UsersController {
       return [];
     }
   }
+
+  Future<bool> loginUser(
+      String userAccess, String userPassword, BuildContext context) async {
+    final IOClient client = _createHttpClient();
+
+    try {
+      final response = await client.post(
+        Uri.parse('${_authService.apiURL}/Users/Login'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: json
+            .encode({'userAccess': userAccess, 'userPassword': userPassword}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final token = data['token'] as String;
+
+        await _authService.saveToken(token);
+
+        return true;
+      } else if (response.statusCode == 401) {
+        return false;
+      } else {
+        print('Error en el login: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al intentar iniciar sesión: $e');
+      showError(context, 'Error de red $e');
+      return false;
+    }
+  }
 }
 
 class Users {
