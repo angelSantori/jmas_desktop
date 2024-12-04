@@ -5,6 +5,7 @@ import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
 import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
+import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 
@@ -16,6 +17,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final AuthService _authService = AuthService();
+
   Widget _currentPage = const Center(
     child: Text('Welcome to home Page!'),
   );
@@ -68,6 +71,15 @@ class _HomePageState extends State<HomePage> {
         child: Text('Welcome to home Page!'),
       );
     });
+  }
+
+  void _logOut() {
+    _authService.deleteToken();
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
   }
 
   @override
@@ -401,12 +413,31 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
+                  onTap: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirmar cierre de seisón.'),
+                          content: const Text(
+                              '¿Estás seguro de que deseas cerrar sesión?'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Cancelar'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('Salir'),
+                            ),
+                          ],
+                        );
+                      },
                     );
+
+                    if (confirm == true) {
+                      _logOut();
+                    }
                   },
                 ),
               ],
