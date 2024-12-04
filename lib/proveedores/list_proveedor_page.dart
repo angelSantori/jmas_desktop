@@ -36,53 +36,62 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
 
             final proveedores = snapshot.data!;
 
-            return GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // Número de tarjetas por fila
-                crossAxisSpacing: 20, // Espacio horizontal entre tarjetas
-                mainAxisSpacing: 20, // Espacio vertical entre tarjetas
-                childAspectRatio:
-                    6 / 2, // Proporción de ancho/alto de las tarjetas
-              ),
+            return ListView.builder(
               itemCount: proveedores.length,
-              padding: const EdgeInsets.all(16),
               itemBuilder: (context, index) {
                 final proveedor = proveedores[index];
+
                 return Card(
                   color: Colors.blue.shade900,
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   elevation: 4,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '${proveedor.proveedor_Name}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              //Name proveedor
+                              Text(
+                                '${proveedor.proveedor_Name}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
+                              //Phone proveedor
+                              Text(
+                                'Contacto: ${proveedor.proveedor_Phone}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
+                              //Address proveedor
+                              Text(
+                                'Dirección: ${proveedor.proveedor_Address}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Contacto: ${proveedor.proveedor_Phone}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Dirección: ${proveedor.proveedor_Address}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        )
                       ],
                     ),
                   ),
