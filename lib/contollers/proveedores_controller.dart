@@ -89,6 +89,30 @@ class ProveedoresController {
       return [];
     }
   }
+
+  Future<bool> editProveedor(Proveedores proveedor) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.put(
+        Uri.parse(
+            '${_authService.apiURL}/Proveedores/${proveedor.id_Proveedor}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: proveedor.toJson(),
+      );
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print(
+            'Error al editar proveedor: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar proveedor: $e');
+      return false;
+    }
+  }
 }
 
 class Proveedores {
