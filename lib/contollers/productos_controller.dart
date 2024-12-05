@@ -89,6 +89,29 @@ class ProductosController {
       return [];
     }
   }
+
+  Future<bool> editProducto(Productos producto) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.put(
+        Uri.parse('${_authService.apiURL}/Productos/${producto.id_Producto}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: producto.toJson(),
+      );
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print(
+            'Error al editar producto: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar producto: $e');
+      return false;
+    }
+  }
 }
 
 class Productos {
