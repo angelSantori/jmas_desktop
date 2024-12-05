@@ -31,8 +31,8 @@ void showError(BuildContext context, String message) {
   );
 }
 
-void showOk(BuildContext context, String message) {
-  showDialog(
+Future<void> showOk(BuildContext context, String message) async {
+  return showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
@@ -96,5 +96,22 @@ void showAdvertence(BuildContext context, String message) {
         ],
       );
     },
+  );
+}
+
+Widget buildFormRow({required String label, required Widget child}) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      SizedBox(
+        width: 120,
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 20),
+          textAlign: TextAlign.left,
+        ),
+      ),
+      Expanded(child: child),
+    ],
   );
 }
