@@ -111,6 +111,7 @@ Widget buildFormRow({required String label, required Widget child}) {
           textAlign: TextAlign.left,
         ),
       ),
+      const SizedBox(width: 20),
       Expanded(child: child),
     ],
   );
