@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/proveedores/edit_proveedor_page.dart';
 
 class ListProveedorPage extends StatefulWidget {
   const ListProveedorPage({super.key});
@@ -91,6 +92,32 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                               const SizedBox(height: 10),
                             ],
                           ),
+                        ),
+
+                        //Editar
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        EditProveedorPage(proveedor: proveedor),
+                                  ),
+                                );
+                                if (result == true) {
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                          ],
                         )
                       ],
                     ),
