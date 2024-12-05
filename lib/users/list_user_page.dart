@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/users/edit_user_page.dart';
 
 class ListUserPage extends StatefulWidget {
   const ListUserPage({super.key});
@@ -98,7 +99,18 @@ class _ListUserPageState extends State<ListUserPage> {
                                 color: Colors.white,
                                 size: 30,
                               ),
-                              onPressed: () {},
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        EditUserPage(user: user),
+                                  ),
+                                );
+                                if (result == true) {
+                                  setState(() {});
+                                }
+                              },
                             )
                           ],
                         )
