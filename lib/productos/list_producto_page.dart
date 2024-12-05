@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/productos/edit_producto_page.dart';
 
 class ListProductoPage extends StatefulWidget {
   const ListProductoPage({super.key});
@@ -122,7 +123,18 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                 color: Colors.white,
                                 size: 30,
                               ),
-                              onPressed: () {},
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        EditProductoPage(producto: producto),
+                                  ),
+                                );
+                                if (result == true) {
+                                  setState(() {});
+                                }
+                              },
                             )
                           ],
                         )
