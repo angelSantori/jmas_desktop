@@ -128,6 +128,29 @@ class UsersController {
       return false;
     }
   }
+
+  Future<bool> editUser(Users user, BuildContext context) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.put(
+        Uri.parse('${_authService.apiURL}/Users/${user.id_User}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: user.toJson(),
+      );
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print(
+            'Error al editar usuario: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar usuario: $e');
+      return false;
+    }
+  }
 }
 
 class Users {
