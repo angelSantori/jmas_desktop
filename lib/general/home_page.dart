@@ -8,6 +8,7 @@ import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
+import 'package:jmas_desktop/widgets/categorias.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -114,284 +115,75 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 //Productos
-                Theme(
-                  data: Theme.of(context).copyWith(
-                      expansionTileTheme: const ExpansionTileThemeData(
-                    iconColor: Colors.white,
-                    textColor: Colors.white,
-                    collapsedIconColor: Colors.white,
-                  )),
-                  child: ExpansionTile(
-                    title: const Row(
-                      children: [
-                        Icon(
-                          Icons.maps_home_work_outlined,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Productos',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                CustomExpansionTile(
+                  title: 'Productos',
+                  icon: Icons.maps_home_work_outlined,
+                  children: [
+                    CustomListTile(
+                      title: 'Lista productos',
+                      icon: Icons.list_alt_rounded,
+                      onTap: _navigateToListProducto,
                     ),
-                    children: [
-                      //List Productos
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: ListTile(
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.list_alt_rounded,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Lista Productos',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: _navigateToListProducto,
-                        ),
-                      ),
-
-                      //Add Producto
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: ListTile(
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.add_shopping_cart_rounded,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Agregar Producto',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: _navigateToAddProducto,
-                        ),
-                      ),
-                    ],
-                  ),
+                    CustomListTile(
+                      title: 'Agregar Producto',
+                      icon: Icons.add_shopping_cart_rounded,
+                      onTap: _navigateToAddProducto,
+                    ),
+                  ],
                 ),
 
                 //Proveedores
-                Theme(
-                  data: Theme.of(context).copyWith(
-                      expansionTileTheme: const ExpansionTileThemeData(
-                          iconColor: Colors.white,
-                          collapsedIconColor: Colors.white)),
-                  child: ExpansionTile(
-                    title: Row(
-                      children: [
-                        Image.asset(
-                          'assets/icons/cliente.png',
-                          width: 24,
-                          height: 24,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Proveedores',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                CustomExpansionTile(
+                  title: 'Proveedores',
+                  icon: Icons.people,
+                  children: [
+                    CustomListTile(
+                      title: 'Lista Proveedores',
+                      icon: Icons.format_align_left_rounded,
+                      onTap: _navigateToListProveedores,
                     ),
-                    children: [
-                      //List proveedores
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: ListTile(
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.format_align_center,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Lista Proveedores',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: _navigateToListProveedores,
-                        ),
-                      ),
-
-                      //Add Proveedor
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: ListTile(
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.people_alt_outlined,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Agregar Proveedor',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: _navigateToAddProveedores,
-                        ),
-                      ),
-                    ],
-                  ),
+                    CustomListTile(
+                      title: 'Agragar Proveedor',
+                      icon: Icons.add_box,
+                      onTap: _navigateToAddProveedores,
+                    ),
+                  ],
                 ),
+
                 //Usuarios
-                Theme(
-                  data: Theme.of(context).copyWith(
-                      expansionTileTheme: const ExpansionTileThemeData(
-                    iconColor: Colors.white,
-                    textColor: Colors.white,
-                    collapsedIconColor: Colors.white,
-                  )),
-                  child: ExpansionTile(
-                    title: const Row(
-                      children: [
-                        Icon(
-                          Icons.person,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Usuarios',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      ],
+                CustomExpansionTile(
+                  title: 'Usuarios',
+                  icon: Icons.person,
+                  children: [
+                    CustomListTile(
+                      title: 'Liata Usuarios',
+                      icon: Icons.format_list_bulleted,
+                      onTap: _navigateToListUsers,
                     ),
-                    children: [
-                      //List User
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: ListTile(
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.format_list_bulleted,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Lista Usuarios',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: _navigateToListUsers,
-                        ),
-                      ),
-
-                      //Add User
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: ListTile(
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.add_reaction_sharp,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Agregar Usuario',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: _navigateToAddUsers,
-                        ),
-                      )
-                    ],
-                  ),
+                    CustomListTile(
+                      title: 'Agregar Usuario',
+                      icon: Icons.add_reaction_sharp,
+                      onTap: _navigateToAddUsers,
+                    ),
+                  ],
                 ),
 
-                Theme(
-                  data: Theme.of(context).copyWith(
-                      expansionTileTheme: const ExpansionTileThemeData(
-                    iconColor: Colors.white,
-                    textColor: Colors.white,
-                    collapsedIconColor: Colors.white,
-                  )),
-                  child: ExpansionTile(
-                    title: const Row(
-                      children: [
-                        Icon(
-                          Icons.login,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Entradas',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                //Movimientos
+                CustomExpansionTile(
+                  title: 'Movimientos',
+                  icon: Icons.folder_copy_rounded,
+                  children: [
+                    CustomListTile(
+                      title: 'Entradas',
+                      icon: Icons.move_down_sharp,
+                      onTap: () {},
                     ),
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 16),
-                        child: ListTile(
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.line_style_sharp,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Lista Entradas',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          onTap: _navigateToListEntradas,
-                        ),
-                      )
-                    ],
-                  ),
+                    CustomListTile(
+                      title: 'Lista Entradas',
+                      icon: Icons.line_style_sharp,
+                      onTap: _navigateToListEntradas,
+                    ),
+                  ],
                 ),
 
                 //Salir Logout
