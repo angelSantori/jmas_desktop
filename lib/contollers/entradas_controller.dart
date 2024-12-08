@@ -7,7 +7,7 @@ import 'package:http/io_client.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class EntradasController {
-  AuthService _authService = AuthService();  
+  AuthService _authService = AuthService();
 
   IOClient _createHttpClient() {
     final ioClient = HttpClient();
@@ -19,8 +19,12 @@ class EntradasController {
   Future<List<Entradas>> listEntradas() async {
     try {
       final IOClient client = _createHttpClient();
-      final response =
-          await client.get(Uri.parse('${_authService.apiURL}/Entradas'));
+      final response = await client.get(
+        Uri.parse('${_authService.apiURL}/Entradas'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
@@ -45,6 +49,9 @@ class Entradas {
   String? entrada_Fecha;
   int? id_Producto;
   int? id_Proveedor;
+  int? id_User;
+  int? id_Junta;
+  int? id_Entidad;
   Entradas({
     this.id_Entradas,
     this.entrada_Folio,
@@ -53,6 +60,9 @@ class Entradas {
     this.entrada_Fecha,
     this.id_Producto,
     this.id_Proveedor,
+    this.id_User,
+    this.id_Junta,
+    this.id_Entidad,
   });
 
   Entradas copyWith({
@@ -63,6 +73,9 @@ class Entradas {
     String? entrada_Fecha,
     int? id_Producto,
     int? id_Proveedor,
+    int? id_User,
+    int? id_Junta,
+    int? id_Entidad,
   }) {
     return Entradas(
       id_Entradas: id_Entradas ?? this.id_Entradas,
@@ -72,6 +85,9 @@ class Entradas {
       entrada_Fecha: entrada_Fecha ?? this.entrada_Fecha,
       id_Producto: id_Producto ?? this.id_Producto,
       id_Proveedor: id_Proveedor ?? this.id_Proveedor,
+      id_User: id_User ?? this.id_User,
+      id_Junta: id_Junta ?? this.id_Junta,
+      id_Entidad: id_Entidad ?? this.id_Entidad,
     );
   }
 
@@ -84,6 +100,9 @@ class Entradas {
       'entrada_Fecha': entrada_Fecha,
       'id_Producto': id_Producto,
       'id_Proveedor': id_Proveedor,
+      'id_User': id_User,
+      'id_Junta': id_Junta,
+      'id_Entidad': id_Entidad,
     };
   }
 
@@ -94,17 +113,19 @@ class Entradas {
       entrada_Folio:
           map['entrada_Folio'] != null ? map['entrada_Folio'] as String : null,
       entrada_Unidades: map['entrada_Unidades'] != null
-          ? (map['entrada_Unidades'] as num).toDouble()
+          ? map['entrada_Unidades'] as double
           : null,
-      entrada_Costo: map['entrada_Costo'] != null
-          ? (map['entrada_Costo'] as num).toDouble()
-          : null,
+      entrada_Costo:
+          map['entrada_Costo'] != null ? map['entrada_Costo'] as double : null,
       entrada_Fecha:
           map['entrada_Fecha'] != null ? map['entrada_Fecha'] as String : null,
       id_Producto:
           map['id_Producto'] != null ? map['id_Producto'] as int : null,
       id_Proveedor:
           map['id_Proveedor'] != null ? map['id_Proveedor'] as int : null,
+      id_User: map['id_User'] != null ? map['id_User'] as int : null,
+      id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
+      id_Entidad: map['id_Entidad'] != null ? map['id_Entidad'] as int : null,
     );
   }
 
@@ -115,7 +136,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_Folio: $entrada_Folio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_Folio: $entrada_Folio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, id_Junta: $id_Junta, id_Entidad: $id_Entidad)';
   }
 
   @override
@@ -128,7 +149,10 @@ class Entradas {
         other.entrada_Costo == entrada_Costo &&
         other.entrada_Fecha == entrada_Fecha &&
         other.id_Producto == id_Producto &&
-        other.id_Proveedor == id_Proveedor;
+        other.id_Proveedor == id_Proveedor &&
+        other.id_User == id_User &&
+        other.id_Junta == id_Junta &&
+        other.id_Entidad == id_Entidad;
   }
 
   @override
@@ -139,6 +163,9 @@ class Entradas {
         entrada_Costo.hashCode ^
         entrada_Fecha.hashCode ^
         id_Producto.hashCode ^
-        id_Proveedor.hashCode;
+        id_Proveedor.hashCode ^
+        id_User.hashCode ^
+        id_Junta.hashCode ^
+        id_Entidad.hashCode;
   }
 }
