@@ -73,8 +73,12 @@ class ProductosController {
   Future<List<Productos>> listProductos() async {
     try {
       final IOClient client = _createHttpClient();
-      final response =
-          await client.get(Uri.parse('${_authService.apiURL}/Productos'));
+      final response = await client.get(
+        Uri.parse('${_authService.apiURL}/Productos'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);

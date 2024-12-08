@@ -78,8 +78,12 @@ class UsersController {
   Future<List<Users>> listUsers() async {
     try {
       final IOClient client = _createHttpClient();
-      final response =
-          await client.get(Uri.parse('${_authService.apiURL}/Users'));
+      final response = await client.get(
+        Uri.parse('${_authService.apiURL}/Users'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
