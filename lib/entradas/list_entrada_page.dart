@@ -113,26 +113,24 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                       )
                     ],
                   ),
-                  trailing: Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Folio: ${entrada.entrada_Folio ?? "Sin Folio"}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  trailing: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Folio: ${entrada.entrada_Folio ?? "Sin Folio"}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 5),
-                        Text(
-                          entrada.entrada_Fecha ?? 'Sin Fecha',
-                          style: const TextStyle(
-                            fontSize: 14,
-                          ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        entrada.entrada_Fecha ?? 'Sin Fecha',
+                        style: const TextStyle(
+                          fontSize: 14,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               );
