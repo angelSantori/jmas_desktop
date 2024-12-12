@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
@@ -71,6 +72,12 @@ class _HomePageState extends State<HomePage> {
       _currentPage = const Center(
         child: Text('Welcome to home Page!'),
       );
+    });
+  }
+
+  void _navigateToAddEntrada() {
+    setState(() {
+      _currentPage = const AddEntradaPage();
     });
   }
 
@@ -176,7 +183,7 @@ class _HomePageState extends State<HomePage> {
                     CustomListTile(
                       title: 'Entradas',
                       icon: Icons.move_down_sharp,
-                      onTap: () {},
+                      onTap: _navigateToAddEntrada,
                     ),
                     CustomListTile(
                       title: 'Lista Entradas',
