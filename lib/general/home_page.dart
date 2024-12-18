@@ -6,6 +6,7 @@ import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
 import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
+import 'package:jmas_desktop/salidas/add_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
@@ -78,6 +79,12 @@ class _HomePageState extends State<HomePage> {
   void _navigateToAddEntrada() {
     setState(() {
       _currentPage = const AddEntradaPage();
+    });
+  }
+
+  void _navigateToAddSalida() {
+    setState(() {
+      _currentPage = const AddSalidaPage();
     });
   }
 
@@ -163,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.person,
                   children: [
                     CustomListTile(
-                      title: 'Liata Usuarios',
+                      title: 'Lista Usuarios',
                       icon: Icons.format_list_bulleted,
                       onTap: _navigateToListUsers,
                     ),
@@ -189,6 +196,11 @@ class _HomePageState extends State<HomePage> {
                       title: 'Lista Entradas',
                       icon: Icons.line_style_sharp,
                       onTap: _navigateToListEntradas,
+                    ),
+                    CustomListTile(
+                      title: 'Salidas',
+                      icon: Icons.move_up_sharp,
+                      onTap: _navigateToAddSalida,
                     ),
                   ],
                 ),
