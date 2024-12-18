@@ -7,6 +7,7 @@ import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
 import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
 import 'package:jmas_desktop/salidas/add_salida_page.dart';
+import 'package:jmas_desktop/salidas/list_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
@@ -85,6 +86,12 @@ class _HomePageState extends State<HomePage> {
   void _navigateToAddSalida() {
     setState(() {
       _currentPage = const AddSalidaPage();
+    });
+  }
+
+  void _navigateToListSalidas() {
+    setState(() {
+      _currentPage = const ListSalidaPage();
     });
   }
 
@@ -201,6 +208,11 @@ class _HomePageState extends State<HomePage> {
                       title: 'Salidas',
                       icon: Icons.move_up_sharp,
                       onTap: _navigateToAddSalida,
+                    ),
+                    CustomListTile(
+                      title: 'Lista Salidas',
+                      icon: Icons.list_alt_sharp,
+                      onTap: _navigateToListSalidas,
                     ),
                   ],
                 ),
