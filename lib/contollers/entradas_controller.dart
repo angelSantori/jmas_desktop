@@ -39,6 +39,30 @@ class EntradasController {
       return [];
     }
   }
+
+  Future<bool> addEntrada(Entradas entrada) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.post(
+        Uri.parse('${_authService.apiURL}/Entradas'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: entrada.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print(
+            'Error al crear la entrada: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al crear la entrada: $e');
+      return false;
+    }
+  }
 }
 
 class Entradas {
@@ -113,10 +137,15 @@ class Entradas {
       entrada_Folio:
           map['entrada_Folio'] != null ? map['entrada_Folio'] as String : null,
       entrada_Unidades: map['entrada_Unidades'] != null
-          ? map['entrada_Unidades'] as double
+          ? (map['entrada_Unidades'] is int
+              ? (map['entrada_Unidades'] as int).toDouble()
+              : map['entrada_Unidades'] as double)
           : null,
-      entrada_Costo:
-          map['entrada_Costo'] != null ? map['entrada_Costo'] as double : null,
+      entrada_Costo: map['entrada_Costo'] != null
+          ? (map['entrada_Costo'] is int
+              ? (map['entrada_Costo'] as int).toDouble()
+              : map['entrada_Costo'] as double)
+          : null,
       entrada_Fecha:
           map['entrada_Fecha'] != null ? map['entrada_Fecha'] as String : null,
       id_Producto:
