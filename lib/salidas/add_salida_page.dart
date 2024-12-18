@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entidades_controller.dart';
-import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -16,11 +17,12 @@ class AddSalidaPage extends StatefulWidget {
 }
 
 class _AddSalidaPageState extends State<AddSalidaPage> {
-  final EntradasController _entradasController = EntradasController();
+  final SalidasController _salidasController = SalidasController();
   final UsersController _usersController = UsersController();
   final JuntasController _juntasController = JuntasController();
   final EntidadesController _entidadesController = EntidadesController();
   final ProductosController _productosController = ProductosController();
+  final ProveedoresController _proveedoresController = ProveedoresController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -33,14 +35,14 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   List<Users> _users = [];
   List<Entidades> _entidades = [];
   List<Juntas> _juntas = [];
-  List<Map<String, dynamic>> _productosAgregados = [];
+  List<Proveedores> _proveedores = [];
+  final List<Map<String, dynamic>> _productosAgregados = [];
 
   Users? _selectedUser;
   Entidades? _selectedEntidad;
   Juntas? _selectedJunta;
   Productos? _selectedProducto;
-
-  String? _errorMesage;
+  Proveedores? _selectedProveedor;
 
   bool _isLoading = false;
 
@@ -50,6 +52,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _loadEntidades();
     _loadJuntas();
     _loadUsers();
+    _loadProveedores();
   }
 
   Future<void> _loadEntidades() async {
@@ -73,25 +76,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     });
   }
 
-  Future<void> _buscarProducto() async {
-    final idProducto = int.tryParse(_idProductoController.text);
-    if (idProducto == null) {
-      setState(() {
-        _errorMesage = "El ID del producto debe ser un número válido.";
-        _selectedProducto = null;
-      });
-      return;
-    }
-
-    final producto = await _productosController.getProductoById(idProducto);
+  Future<void> _loadProveedores() async {
+    List<Proveedores> proveedores =
+        await _proveedoresController.listProveedores();
     setState(() {
-      if (producto != null) {
-        _selectedProducto = producto;
-        _errorMesage = null;
-      } else {
-        _selectedProducto = null;
-        _errorMesage = "Producto con id no encontrado.";
-      }
+      _proveedores = proveedores;
     });
   }
 
@@ -134,6 +123,100 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     }
   }
 
+  Future<void> _guardarSalida() async {
+    if (_productosAgregados.isEmpty) {
+      showAdvertence(
+          context, 'Debe agregar productos antes de guardar la salida.');
+      return;
+    }
+    if (_formKey.currentState!.validate()) {
+      bool success = true; // Para verificar si al menos una entrada fue exitosa
+      for (var producto in _productosAgregados) {
+        final nuevaSalida = _crearEntrada(producto);
+        bool result = await _salidasController.addSalida(nuevaSalida);
+
+        if (!result) {
+          success = false;
+          break; // Si hay error, no procesamos más productos y mostramos el error
+        }
+
+        if (producto['id'] == null) {
+          // ignore: use_build_context_synchronously
+          showAdvertence(context,
+              'Id nulo: ${producto['id_Producto']}, no se puede continuar');
+          success = false;
+          break;
+        }
+
+        final productoActualizado =
+            await _productosController.getProductoById(producto['id']);
+
+        if (productoActualizado == null) {
+          // ignore: use_build_context_synchronously
+          showAdvertence(context,
+              'Producto con ID ${producto['id']} no encontrado en la base de datos.');
+          success = false;
+          break;
+        }
+
+        productoActualizado.producto_Existencia =
+            (productoActualizado.producto_Existencia!) - producto['cantidad'];
+
+        bool editResult =
+            await _productosController.editProducto(productoActualizado);
+
+        if (!editResult) {
+          // ignore: use_build_context_synchronously
+          showAdvertence(context,
+              'Error al actualizar las existencias del producto con ID ${producto['id_Producto']}');
+          success = false;
+          break;
+        }
+      }
+
+      // Mostrar el mensaje correspondiente al finalizar el ciclo
+      if (success) {
+        // ignore: use_build_context_synchronously
+        showOk(context, 'Salida creada exitosamente.');
+      } else {
+        // ignore: use_build_context_synchronously
+        showError(context, 'Error al registrar salida');
+      }
+
+      _limpiarFormulario(); // Limpiar formulario después de guardar
+    }
+  }
+
+  Salidas _crearEntrada(Map<String, dynamic> producto) {
+    return Salidas(
+      id_Salida: 0,
+      salida_Folio: _referenciaController.text,
+      salida_Unidades: double.tryParse(producto['cantidad'].toString()),
+      salida_Costo: double.tryParse(producto['precio'].toString()),
+      salida_Fecha: _fecha,
+      id_Producto: producto['id'] ?? 0, // Toma el id del producto de la lista
+      id_Proveedor: _selectedProveedor?.id_Proveedor ?? 0, // Proveedor
+      id_User: _selectedUser?.id_User ?? 0, // Usuario
+      id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
+      id_Entidad: _selectedEntidad?.id_Entidad ?? 0, // Entidad
+    );
+  }
+
+  void _limpiarFormulario() {
+    _formKey.currentState!.reset();
+    _productosAgregados.clear();
+    setState(() {
+      _selectedUser = null;
+      _selectedEntidad = null;
+      _selectedJunta = null;
+      _selectedProducto = null;
+      _selectedProveedor = null;
+      _referenciaController.clear();
+      _idProductoController.clear();
+      _cantidadController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -169,6 +252,35 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'La referencia no puede estat vacía.';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  //Proveedores
+                  buildFormRow(
+                    label: 'Proveedor',
+                    child: DropdownButtonFormField<Proveedores>(
+                      value: _selectedProveedor,
+                      items: _proveedores
+                          .map((proveedor) => DropdownMenuItem(
+                                value: proveedor,
+                                child: Text(
+                                    proveedor.proveedor_Name ?? 'Sin nombre'),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedProveedor = value;
+                        });
+                      },
+                      decoration:
+                          const InputDecoration(label: Text('Proveedor')),
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Debe seleccionar un proveedor';
                         }
                         return null;
                       },
@@ -281,12 +393,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             ),
                             border: const OutlineInputBorder(),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Ingrese un ID';
-                            }
-                            return null;
-                          },
                           inputFormatters: [
                             FilteringTextInputFormatter.allow(
                                 RegExp(r'[0-9.]')),
@@ -314,6 +420,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             });
 
                             if (producto == null) {
+                              // ignore: use_build_context_synchronously
                               showAdvertence(context,
                                   'Producto con ID: ${_idProductoController.text}, no encontrado');
                             }
@@ -387,12 +494,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                 ),
                                 border: const OutlineInputBorder(),
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Ingrese una cantidad';
-                                }
-                                return null;
-                              },
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(
                                     RegExp(r'[0-9.]')),
@@ -419,158 +520,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                   const SizedBox(height: 20),
 
                   //Tabla productos agregados
-                  _productosAgregados.isNotEmpty
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Productos Agregados:',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            const SizedBox(height: 10),
-                            Table(
-                              border: TableBorder.all(),
-                              columnWidths: const {
-                                0: FlexColumnWidth(1), //ID
-                                1: FlexColumnWidth(3), //Descripción
-                                2: FlexColumnWidth(1), //Precio
-                                3: FlexColumnWidth(1), //Cantidad
-                                4: FlexColumnWidth(1), //Precio Total
-                              },
-                              children: [
-                                TableRow(
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade900,
-                                  ),
-                                  children: const [
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Clave',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Descripción',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Costo',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Cantidad',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Precio',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                ..._productosAgregados.map((producto) {
-                                  return TableRow(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(producto['id'].toString()),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(producto['descripcion'] ??
-                                            'Sin descripción'),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                            '\$${producto['costo'].toString()}'),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                            producto['cantidad'].toString()),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                            '\$${producto['precio'].toStringAsFixed(2)}'),
-                                      ),
-                                    ],
-                                  );
-                                }),
-                                //Fial para el total
-                                TableRow(children: [
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(''),
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(''),
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(''),
-                                  ),
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Total',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.right,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      '\$${_productosAgregados.fold<double>(
-                                            0.0,
-                                            (previousValue, producto) =>
-                                                previousValue +
-                                                (producto['precio'] ?? 0.0),
-                                          ).toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  )
-                                ])
-                              ],
-                            ),
-                          ],
-                        )
-                      : const Text(
-                          'No hay productos agregados.',
-                          style: TextStyle(fontStyle: FontStyle.italic),
-                        ),
+                  _buildProductosAgregados(),
+                  const SizedBox(height: 30),
+
+                  //Botón para agregar salida
+                  ElevatedButton(
+                    onPressed: _guardarSalida,
+                    child: const Text('Guardar Salida'),
+                  ),
+
                   const SizedBox(height: 30),
                 ],
               ),
@@ -578,6 +536,144 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildProductosAgregados() {
+    if (_productosAgregados.isEmpty) {
+      return const Text(
+        'No hay productos agregados.',
+        style: TextStyle(fontStyle: FontStyle.italic),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Productos Agregados:',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 10),
+        Table(
+          border: TableBorder.all(),
+          columnWidths: const {
+            0: FlexColumnWidth(1), //ID
+            1: FlexColumnWidth(3), //Descripción
+            2: FlexColumnWidth(1), //Precio
+            3: FlexColumnWidth(1), //Cantidad
+            4: FlexColumnWidth(1), //Precio Total
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(
+                color: Colors.blue.shade900,
+              ),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Clave',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Descripción',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Costo',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Cantidad',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Precio',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+            ..._productosAgregados.map((producto) {
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(producto['id'].toString()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(producto['descripcion'] ?? 'Sin descripción'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('\$${producto['costo'].toString()}'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(producto['cantidad'].toString()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('\$${producto['precio'].toStringAsFixed(2)}'),
+                  ),
+                ],
+              );
+            }),
+            TableRow(children: [
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(''),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(''),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(''),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Total',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.right,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  '\$${_productosAgregados.fold<double>(0.0, (previousValue, producto) => previousValue + (producto['precio'] ?? 0.0)).toStringAsFixed(2)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ])
+          ],
+        ),
+      ],
     );
   }
 }
