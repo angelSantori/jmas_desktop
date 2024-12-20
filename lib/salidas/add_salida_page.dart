@@ -7,6 +7,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddSalidaPage extends StatefulWidget {
@@ -520,7 +521,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                   const SizedBox(height: 20),
 
                   //Tabla productos agregados
-                  _buildProductosAgregados(),
+                  buildProductosAgregados(_productosAgregados),
                   const SizedBox(height: 30),
 
                   //Botón para agregar salida
@@ -536,144 +537,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildProductosAgregados() {
-    if (_productosAgregados.isEmpty) {
-      return const Text(
-        'No hay productos agregados.',
-        style: TextStyle(fontStyle: FontStyle.italic),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Productos Agregados:',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(height: 10),
-        Table(
-          border: TableBorder.all(),
-          columnWidths: const {
-            0: FlexColumnWidth(1), //ID
-            1: FlexColumnWidth(3), //Descripción
-            2: FlexColumnWidth(1), //Precio
-            3: FlexColumnWidth(1), //Cantidad
-            4: FlexColumnWidth(1), //Precio Total
-          },
-          children: [
-            TableRow(
-              decoration: BoxDecoration(
-                color: Colors.blue.shade900,
-              ),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    'Clave',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    'Descripción',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    'Costo',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    'Cantidad',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text(
-                    'Precio',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-            ..._productosAgregados.map((producto) {
-              return TableRow(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(producto['id'].toString()),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(producto['descripcion'] ?? 'Sin descripción'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('\$${producto['costo'].toString()}'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(producto['cantidad'].toString()),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('\$${producto['precio'].toStringAsFixed(2)}'),
-                  ),
-                ],
-              );
-            }),
-            TableRow(children: [
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(''),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(''),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(''),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Total',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  '\$${_productosAgregados.fold<double>(0.0, (previousValue, producto) => previousValue + (producto['precio'] ?? 0.0)).toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ])
-          ],
-        ),
-      ],
     );
   }
 }
