@@ -88,6 +88,52 @@ class CustomExpansionTile extends StatelessWidget {
   }
 }
 
+//SubExpansionTitle
+class SubCustomExpansionTile extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const SubCustomExpansionTile({
+    Key? key,
+    required this.title,
+    required this.icon,
+    required this.children,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        expansionTileTheme: const ExpansionTileThemeData(
+          iconColor: Colors.white,
+          textColor: Colors.white,
+          collapsedIconColor: Colors.white,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: ExpansionTile(
+          title: Row(
+            children: [
+              Icon(icon, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          children: children,
+        ),
+      ),
+    );
+  }
+}
+
 // Función para generar el archivo PDF
 Future<void> generateAndPrintPdf({
   required BuildContext context,
@@ -372,8 +418,10 @@ class BuscarProductoWidget extends StatelessWidget {
           onPressed: () async {
             final id = idProductoController.text;
             if (id.isNotEmpty) {
-              onProductoSeleccionado(null); // Limpiar el producto antes de buscar
-              final producto = await productosController.getProductoById(int.parse(id));
+              onProductoSeleccionado(
+                  null); // Limpiar el producto antes de buscar
+              final producto =
+                  await productosController.getProductoById(int.parse(id));
               if (producto != null) {
                 onProductoSeleccionado(producto);
               } else {
