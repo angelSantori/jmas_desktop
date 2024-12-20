@@ -387,8 +387,20 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: _agregarProducto,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Agregar'),
+                        icon: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade900,
+                        ),
+                        label: const Text(
+                          'Agregar',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -401,13 +413,29 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
                   //Botones
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       //PDF e imprimir
                       ElevatedButton(
                         onPressed: () async {
+                          bool datosCompletos =
+                              await validarCamposAntesDeImprimir(
+                            context: context,
+                            productosAgregados: _productosAgregados,
+                            referenciaController: _referenciaController,
+                            selectedProveedor: _selectedProveedor,
+                            selectedEntidad: _selectedEntidad,
+                            selectedJunta: _selectedJunta,
+                            selectedUser: _selectedUser,
+                          );
+
+                          if (!datosCompletos) {
+                            return;
+                          }
+
                           await generateAndPrintPdf(
                             context: context,
+                            movimiento: 'Entrada',
                             fecha: _fecha,
                             referencia: _referenciaController.text,
                             proveedor: _selectedProveedor?.proveedor_Name ??
@@ -419,13 +447,33 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             productos: _productosAgregados,
                           );
                         },
-                        child: const Text('Imprimir'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade900,
+                        ),
+                        child: const Text(
+                          'Imprimir',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
+
+                      const SizedBox(width: 60),
 
                       //Guardar entrada
                       ElevatedButton(
                         onPressed: _guardarEntrada,
-                        child: const Text('Guardar Entrada'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade900,
+                        ),
+                        child: const Text(
+                          'Guardar Entrada',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),

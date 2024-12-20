@@ -393,8 +393,20 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: _agregarProducto,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Agregar'),
+                        icon: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Agregar',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade900,
+                        ),
                       ),
                     ],
                   ),
@@ -404,10 +416,69 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                   buildProductosAgregados(_productosAgregados),
                   const SizedBox(height: 30),
 
-                  //Botón para agregar salida
-                  ElevatedButton(
-                    onPressed: _guardarSalida,
-                    child: const Text('Guardar Salida'),
+                  //Botónes
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      //Pdf e imprimir
+                      ElevatedButton(
+                        onPressed: () async {
+                          bool datosCompletos =
+                              await validarCamposAntesDeImprimir(
+                            context: context,
+                            productosAgregados: _productosAgregados,
+                            referenciaController: _referenciaController,
+                            selectedProveedor: _selectedProveedor,
+                            selectedEntidad: _selectedEntidad,
+                            selectedJunta: _selectedJunta,
+                            selectedUser: _selectedUser,
+                          );
+
+                          if (!datosCompletos) {
+                            return;
+                          }
+
+                          await generateAndPrintPdf(
+                            context: context,
+                            movimiento: 'Salida',
+                            fecha: _fecha,
+                            referencia: _referenciaController.text,
+                            proveedor: _selectedProveedor?.proveedor_Name ??
+                                'Sin Proveedor',
+                            entidad: _selectedEntidad?.entidad_Nombre ??
+                                'Sin Entidad',
+                            junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
+                            usuario: _selectedUser?.user_Name ?? 'Sin Usuario',
+                            productos: _productosAgregados,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade900,
+                        ),
+                        child: const Text(
+                          'Imprimir',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 60),
+
+                      //Guardar
+                      ElevatedButton(
+                        onPressed: _guardarSalida,
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue.shade900),
+                        child: const Text(
+                          'Guardar Salida',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 30),

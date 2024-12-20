@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -137,6 +138,7 @@ class SubCustomExpansionTile extends StatelessWidget {
 // Función para generar el archivo PDF
 Future<void> generateAndPrintPdf({
   required BuildContext context,
+  required String movimiento,
   required String fecha,
   required String referencia,
   required String proveedor,
@@ -161,7 +163,8 @@ Future<void> generateAndPrintPdf({
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('Reporte de Entrada', style: pw.TextStyle(fontSize: 24)),
+            pw.Text('Reporte de $movimiento',
+                style: const pw.TextStyle(fontSize: 24)),
             pw.SizedBox(height: 16),
             pw.Text('Fecha: $fecha'),
             pw.Text('Referencia: $referencia'),
@@ -386,8 +389,8 @@ class BuscarProductoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Campo para ID del Producto
         SizedBox(
@@ -431,7 +434,16 @@ class BuscarProductoWidget extends StatelessWidget {
               onAdvertencia('Por favor, ingrese un ID de producto.');
             }
           },
-          child: const Text('Buscar producto'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade900,
+          ),
+          child: const Text(
+            'Buscar producto',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         const SizedBox(width: 15),
 
@@ -506,4 +518,47 @@ class BuscarProductoWidget extends StatelessWidget {
       ],
     );
   }
+}
+
+// Función para validar campos antes de imprimir
+Future<bool> validarCamposAntesDeImprimir({
+  required BuildContext context,
+  required List productosAgregados,  
+  required TextEditingController referenciaController,
+  required var selectedProveedor,
+  required var selectedEntidad,
+  required var selectedJunta,
+  required var selectedUser,
+}) async {
+  if (productosAgregados.isEmpty) {
+    showAdvertence(context, 'Debe agregar productos antes de imprimir.');
+    return false;
+  }  
+
+  if (referenciaController.text.isEmpty) {
+    showAdvertence(context, 'La referencia es obligatoria.');
+    return false;
+  }
+
+  if (selectedProveedor == null) {
+    showAdvertence(context, 'Debe seleccionar un proveedor.');
+    return false;
+  }
+
+  if (selectedEntidad == null) {
+    showAdvertence(context, 'Debe seleccionar una entidad.');
+    return false;
+  }
+
+  if (selectedJunta == null) {
+    showAdvertence(context, 'Debe seleccionar una junta.');
+    return false;
+  }
+
+  if (selectedUser == null) {
+    showAdvertence(context, 'Debe seleccionar un usuario.');
+    return false;
+  }
+
+  return true; // Si pasa todas las validaciones, los datos están completos
 }
