@@ -22,6 +22,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final decodeToken = await _authService.decodeToken();
+    setState(() {
+      _userName = decodeToken?['sub'];
+    });
+  }
 
   Widget _currentPage = const Center(
     child: Text('Welcome to home Page!'),
@@ -108,132 +122,186 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Row(
-        children: <Widget>[
+        children: [
+          // Menú lateral
           Container(
-            width: 250,
-            color: Colors.blue.shade900,
+            width: 250, // Ancho fijo del menú
+            color: Colors.blue.shade900, // Color de fondo del menú
             child: Column(
-              children: <Widget>[
-                const SizedBox(height: 20),
-                ListTile(
-                  title: const Row(
+              children: [
+                // Encabezado del menú
+                Container(
+                  height: 80,
+                  alignment: Alignment.center,
+                  color: Colors.blue.shade700,
+                  child: Column(
                     children: [
-                      Icon(
-                        Icons.home,
-                        color: Colors.white,
+                      const SizedBox(height: 10),
+                      const Text(
+                        'JMAS',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Principal',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      const SizedBox(height: 10),
+                      if (_userName != null)
+                        Text(
+                          _userName!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
                     ],
                   ),
-                  onTap: _navigateToHome,
                 ),
-
-                //Productos
-                CustomExpansionTile(
-                  title: 'Productos',
-                  icon: Icons.maps_home_work_outlined,
-                  children: [
-                    CustomListTile(
-                      title: 'Lista productos',
-                      icon: Icons.list_alt_rounded,
-                      onTap: _navigateToListProducto,
-                    ),
-                    CustomListTile(
-                      title: 'Agregar Producto',
-                      icon: Icons.add_shopping_cart_rounded,
-                      onTap: _navigateToAddProducto,
-                    ),
-                  ],
-                ),
-
-                //Proveedores
-                CustomExpansionTile(
-                  title: 'Proveedores',
-                  icon: Icons.people,
-                  children: [
-                    CustomListTile(
-                      title: 'Lista Proveedores',
-                      icon: Icons.format_align_left_rounded,
-                      onTap: _navigateToListProveedores,
-                    ),
-                    CustomListTile(
-                      title: 'Agragar Proveedor',
-                      icon: Icons.add_box,
-                      onTap: _navigateToAddProveedores,
-                    ),
-                  ],
-                ),
-
-                //Usuarios
-                CustomExpansionTile(
-                  title: 'Usuarios',
-                  icon: Icons.person,
-                  children: [
-                    CustomListTile(
-                      title: 'Lista Usuarios',
-                      icon: Icons.format_list_bulleted,
-                      onTap: _navigateToListUsers,
-                    ),
-                    CustomListTile(
-                      title: 'Agregar Usuario',
-                      icon: Icons.add_reaction_sharp,
-                      onTap: _navigateToAddUsers,
-                    ),
-                  ],
-                ),
-
-                //Movimientos
-                CustomExpansionTile(
-                  title: 'Movimientos',
-                  icon: Icons.folder_copy_rounded,
-                  children: [
-                    //Entradas
-                    SubCustomExpansionTile(
-                      title: 'Entradas',
-                      icon: Icons.abc,
+                // Contenido del menú con scroll
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
                       children: [
-                        CustomListTile(
-                          title: 'Agregar entrada',
-                          icon: Icons.move_down_sharp,
-                          onTap: _navigateToAddEntrada,
+                        // Elementos del menú
+                        ListTile(
+                          title: const Row(
+                            children: [
+                              Icon(
+                                Icons.home,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Principal',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: _navigateToHome,
                         ),
-                        CustomListTile(
-                          title: 'Lista de entradas',
-                          icon: Icons.line_style_sharp,
-                          onTap: _navigateToListEntradas,
+
+                        //Productos
+                        CustomExpansionTile(
+                          title: 'Productos',
+                          icon: Icons.store,
+                          children: [
+                            CustomListTile(
+                              title: 'Lista productos',
+                              icon: Icons.list_alt_rounded,
+                              onTap: _navigateToListProducto,
+                            ),
+                            CustomListTile(
+                              title: 'Agregar Producto',
+                              icon: Icons.add_shopping_cart_rounded,
+                              onTap: _navigateToAddProducto,
+                            ),
+                          ],
+                        ),
+
+                        //Proveedores
+                        CustomExpansionTile(
+                          title: 'Proveedores',
+                          icon: Icons.people,
+                          children: [
+                            CustomListTile(
+                              title: 'Lista Proveedores',
+                              icon: Icons.format_align_left_rounded,
+                              onTap: _navigateToListProveedores,
+                            ),
+                            CustomListTile(
+                              title: 'Agragar Proveedor',
+                              icon: Icons.add_box,
+                              onTap: _navigateToAddProveedores,
+                            ),
+                          ],
+                        ),
+
+                        //Usuarios
+                        CustomExpansionTile(
+                          title: 'Usuarios',
+                          icon: Icons.person,
+                          children: [
+                            CustomListTile(
+                              title: 'Lista Usuarios',
+                              icon: Icons.format_list_bulleted,
+                              onTap: _navigateToListUsers,
+                            ),
+                            CustomListTile(
+                              title: 'Agregar Usuario',
+                              icon: Icons.add_reaction_sharp,
+                              onTap: _navigateToAddUsers,
+                            ),
+                          ],
+                        ),
+
+                        //Movimientos
+                        CustomExpansionTile(
+                          title: 'Movimientos',
+                          icon: Icons.folder_copy_rounded,
+                          children: [
+                            //Entradas
+                            SubCustomExpansionTile(
+                              title: 'Entradas',
+                              icon: Icons.abc,
+                              children: [
+                                CustomListTile(
+                                  title: 'Agregar entrada',
+                                  icon: Icons.move_down_sharp,
+                                  onTap: _navigateToAddEntrada,
+                                ),
+                                CustomListTile(
+                                  title: 'Lista de entradas',
+                                  icon: Icons.line_style_sharp,
+                                  onTap: _navigateToListEntradas,
+                                ),
+                              ],
+                            ),
+
+                            //Salidas
+                            SubCustomExpansionTile(
+                              title: 'Salidas',
+                              icon: Icons.ac_unit,
+                              children: [
+                                CustomListTile(
+                                  title: 'Agregar salida',
+                                  icon: Icons.move_up_sharp,
+                                  onTap: _navigateToAddSalida,
+                                ),
+                                CustomListTile(
+                                  title: 'Lista de salidas',
+                                  icon: Icons.list_alt_sharp,
+                                  onTap: _navigateToListSalidas,
+                                ),
+                              ],
+                            ),
+
+                            //Ajustes
+                            SubCustomExpansionTile(
+                              title: 'Ajustes',
+                              icon: Icons.miscellaneous_services_outlined,
+                              children: [
+                                //Ajuste más
+                                CustomListTile(
+                                  title: 'Ajuste +',
+                                  icon: Icons.add,
+                                  onTap: () {},
+                                ),
+
+                                //Ajuste menos
+                                CustomListTile(
+                                  title: 'Ajuste -',
+                                  icon: Icons.remove,
+                                  onTap: () {},
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
-
-                    //Salidas
-                    SubCustomExpansionTile(
-                      title: 'Salidas',
-                      icon: Icons.ac_unit,
-                      children: [
-                        CustomListTile(
-                          title: 'Agregar salida',
-                          icon: Icons.move_up_sharp,
-                          onTap: _navigateToAddSalida,
-                        ),
-                        CustomListTile(
-                          title: 'Lista de salidas',
-                          icon: Icons.list_alt_sharp,
-                          onTap: _navigateToListSalidas,
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
 
-                //Salir Logout
-                const Spacer(),
+                // Logout
                 ListTile(
                   title: Row(
                     children: [
@@ -281,13 +349,15 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-
-          //Sección principal con el contenido
+          // Contenido principal
           Expanded(
-            child: Center(
-              child: _currentPage,
+            child: Container(
+              color: Colors.grey.shade100,
+              child: Center(
+                child: _currentPage,
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
