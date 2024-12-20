@@ -11,7 +11,7 @@ import 'package:jmas_desktop/salidas/list_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
-import 'package:jmas_desktop/widgets/categorias.dart';
+import 'package:jmas_desktop/widgets/componentes.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

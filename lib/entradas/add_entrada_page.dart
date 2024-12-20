@@ -7,6 +7,7 @@ import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddEntradaPage extends StatefulWidget {
@@ -518,9 +519,33 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                   const SizedBox(height: 30),
 
                   //Botón para agregegar entrada
-                  ElevatedButton(
-                    onPressed: _guardarEntrada,
-                    child: const Text('Guardar Entrada'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      //PDF
+                      ElevatedButton(
+                        onPressed: () async {
+                          await generateAndPrintPdf(
+                            context: context,
+                            fecha: _fecha,
+                            referencia: _referenciaController.text,
+                            proveedor: _selectedProveedor?.proveedor_Name ??
+                                'Sin Proveedor',
+                            entidad: _selectedEntidad?.entidad_Nombre ??
+                                'Sin Entidad',
+                            junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
+                            usuario: _selectedUser?.user_Name ?? 'Sin Usuario',
+                            productos: _productosAgregados,
+                          );
+                        },
+                        child: const Text('Imprimir'),
+                      ),
+                      //Guardar entrada
+                      ElevatedButton(
+                        onPressed: _guardarEntrada,
+                        child: const Text('Guardar Entrada'),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 30),
