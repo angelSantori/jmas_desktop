@@ -194,25 +194,40 @@ class _HomePageState extends State<HomePage> {
                   title: 'Movimientos',
                   icon: Icons.folder_copy_rounded,
                   children: [
-                    CustomListTile(
+                    //Entradas
+                    SubCustomExpansionTile(
                       title: 'Entradas',
-                      icon: Icons.move_down_sharp,
-                      onTap: _navigateToAddEntrada,
+                      icon: Icons.abc,
+                      children: [
+                        CustomListTile(
+                          title: 'Agregar entrada',
+                          icon: Icons.move_down_sharp,
+                          onTap: _navigateToAddEntrada,
+                        ),
+                        CustomListTile(
+                          title: 'Lista de entradas',
+                          icon: Icons.line_style_sharp,
+                          onTap: _navigateToListEntradas,
+                        ),
+                      ],
                     ),
-                    CustomListTile(
-                      title: 'Lista Entradas',
-                      icon: Icons.line_style_sharp,
-                      onTap: _navigateToListEntradas,
-                    ),
-                    CustomListTile(
+
+                    //Salidas
+                    SubCustomExpansionTile(
                       title: 'Salidas',
-                      icon: Icons.move_up_sharp,
-                      onTap: _navigateToAddSalida,
-                    ),
-                    CustomListTile(
-                      title: 'Lista Salidas',
-                      icon: Icons.list_alt_sharp,
-                      onTap: _navigateToListSalidas,
+                      icon: Icons.ac_unit,
+                      children: [
+                        CustomListTile(
+                          title: 'Agregar salida',
+                          icon: Icons.move_up_sharp,
+                          onTap: _navigateToAddSalida,
+                        ),
+                        CustomListTile(
+                          title: 'Lista de salidas',
+                          icon: Icons.list_alt_sharp,
+                          onTap: _navigateToListSalidas,
+                        ),
+                      ],
                     ),
                   ],
                 ),
