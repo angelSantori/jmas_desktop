@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entidades_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
@@ -364,141 +363,23 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                   ),
                   const SizedBox(height: 40),
 
-                  //Buscar Producto
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      // Campo para ID del Producto
-                      SizedBox(
-                        width: 120,
-                        child: TextFormField(
-                          controller: _idProductoController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'ID del Producto',
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: _isLoading &&
-                                        _idProductoController.text.isEmpty
-                                    ? Colors.red
-                                    : Colors.blue.shade900,
-                              ),
-                            ),
-                            border: const OutlineInputBorder(),
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9.]')),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-
-                      // Botón para buscar producto
-                      ElevatedButton(
-                        onPressed: () async {
-                          final id = _idProductoController.text;
-                          if (id.isNotEmpty) {
-                            setState(() {
-                              _isLoading = true;
-                            });
-
-                            final producto = await _productosController
-                                .getProductoById(int.parse(id));
-                            setState(() {
-                              _isLoading = false;
-                              _selectedProducto = producto;
-                            });
-
-                            if (producto == null) {
-                              showAdvertence(context,
-                                  'Producto con ID: ${_idProductoController.text}, no encontrado');
-                            }
-                          } else {
-                            showAdvertence(context,
-                                'Por favor, ingrese un ID de producto.');
-                          }
-                        },
-                        child: const Text('Buscar producto'),
-                      ),
-                      const SizedBox(width: 15),
-
-                      // Información del Producto
-                      if (_isLoading)
-                        const CircularProgressIndicator()
-                      else if (_selectedProducto != null)
-                        Expanded(
-                          flex: 2,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Información del Producto:',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                'Descripción: ${_selectedProducto!.producto_Descripcion ?? 'No disponible'}',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              Text(
-                                'Precio: \$${_selectedProducto!.producto_Precio1?.toStringAsFixed(2) ?? 'No disponible'}',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              Text(
-                                'Existencia: ${_selectedProducto!.producto_Existencia ?? 'No disponible'}',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        const Expanded(
-                          flex: 2,
-                          child: Text(
-                            'No se ha buscado un producto.',
-                            style: TextStyle(
-                                fontSize: 14, fontStyle: FontStyle.italic),
-                          ),
-                        ),
-                      const SizedBox(width: 15),
-
-                      // Campo para la cantidad
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Cantidad:',
-                              style: TextStyle(fontSize: 16)),
-                          const SizedBox(height: 5),
-                          SizedBox(
-                            width: 120,
-                            child: TextFormField(
-                              controller: _cantidadController,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'Cantidad',
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: _isLoading &&
-                                            _cantidadController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900,
-                                  ),
-                                ),
-                                border: const OutlineInputBorder(),
-                              ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9.]')),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  BuscarProductoWidget(
+                    idProductoController: _idProductoController,
+                    cantidadController: _cantidadController,
+                    productosController: _productosController,
+                    isLoading: _isLoading,
+                    selectedProducto: _selectedProducto,
+                    onProductoSeleccionado: (producto) {
+                      setState(() {
+                        _selectedProducto = producto;
+                      });
+                    },
+                    onAdvertencia: (message) {
+                      showAdvertence(context, message);
+                    },
                   ),
-                  const SizedBox(height: 10),
+
+                  const SizedBox(height: 20),
 
                   //Botón para agregar producto a la tabla
                   Row(
@@ -522,7 +403,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      //PDF
+                      //PDF e imprimir
                       ElevatedButton(
                         onPressed: () async {
                           await generateAndPrintPdf(
@@ -540,6 +421,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                         },
                         child: const Text('Imprimir'),
                       ),
+
                       //Guardar entrada
                       ElevatedButton(
                         onPressed: _guardarEntrada,
@@ -556,5 +438,5 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         ),
       ),
     );
-  }  
+  }
 }

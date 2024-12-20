@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -312,4 +314,148 @@ Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
       ),
     ],
   );
+}
+
+//Buscar producto
+class BuscarProductoWidget extends StatelessWidget {
+  final TextEditingController idProductoController;
+  final TextEditingController cantidadController;
+  final ProductosController productosController;
+  final bool isLoading;
+  final Productos? selectedProducto;
+  final Function(Productos?) onProductoSeleccionado;
+  final Function(String) onAdvertencia;
+
+  const BuscarProductoWidget({
+    Key? key,
+    required this.idProductoController,
+    required this.cantidadController,
+    required this.productosController,
+    required this.isLoading,
+    required this.selectedProducto,
+    required this.onProductoSeleccionado,
+    required this.onAdvertencia,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // Campo para ID del Producto
+        SizedBox(
+          width: 120,
+          child: TextFormField(
+            controller: idProductoController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'ID del Producto',
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: isLoading && idProductoController.text.isEmpty
+                      ? Colors.red
+                      : Colors.blue.shade900,
+                ),
+              ),
+              border: const OutlineInputBorder(),
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+            ],
+          ),
+        ),
+        const SizedBox(width: 15),
+
+        // Botón para buscar producto
+        ElevatedButton(
+          onPressed: () async {
+            final id = idProductoController.text;
+            if (id.isNotEmpty) {
+              onProductoSeleccionado(null); // Limpiar el producto antes de buscar
+              final producto = await productosController.getProductoById(int.parse(id));
+              if (producto != null) {
+                onProductoSeleccionado(producto);
+              } else {
+                onAdvertencia('Producto con ID: $id, no encontrado');
+              }
+            } else {
+              onAdvertencia('Por favor, ingrese un ID de producto.');
+            }
+          },
+          child: const Text('Buscar producto'),
+        ),
+        const SizedBox(width: 15),
+
+        // Información del Producto
+        if (isLoading)
+          const CircularProgressIndicator()
+        else if (selectedProducto != null)
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Información del Producto:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Descripción: ${selectedProducto!.producto_Descripcion ?? 'No disponible'}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Text(
+                  'Precio: \$${selectedProducto!.producto_Precio1?.toStringAsFixed(2) ?? 'No disponible'}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Text(
+                  'Existencia: ${selectedProducto!.producto_Existencia ?? 'No disponible'}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          )
+        else
+          const Expanded(
+            flex: 2,
+            child: Text(
+              'No se ha buscado un producto.',
+              style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+            ),
+          ),
+        const SizedBox(width: 15),
+
+        // Campo para la cantidad
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Cantidad:', style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 5),
+            SizedBox(
+              width: 120,
+              child: TextFormField(
+                controller: cantidadController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Cantidad',
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: isLoading && cantidadController.text.isEmpty
+                          ? Colors.red
+                          : Colors.blue.shade900,
+                    ),
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
