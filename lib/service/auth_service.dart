@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
@@ -19,5 +21,19 @@ class AuthService {
   Future<void> deleteToken() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('authToken');
+  }
+
+  //Decodificar el token
+  Future<Map<String, dynamic>?> decodeToken() async {
+    final String? token = await getToken();
+    if (token == null) return null;
+
+    // Decodificar el payload del token
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+
+    final payload =
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+    return jsonDecode(payload);
   }
 }
