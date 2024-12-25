@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/ajustes_plus/add_ajuste_more_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
@@ -106,6 +107,12 @@ class _HomePageState extends State<HomePage> {
   void _navigateToListSalidas() {
     setState(() {
       _currentPage = const ListSalidaPage();
+    });
+  }
+
+  void _navigateToAddAjusteMore() {
+    setState(() {
+      _currentPage = const AddAjusteMorePage();
     });
   }
 
@@ -283,7 +290,7 @@ class _HomePageState extends State<HomePage> {
                                 CustomListTile(
                                   title: 'Ajuste +',
                                   icon: Icons.add,
-                                  onTap: () {},
+                                  onTap: _navigateToAddAjusteMore,
                                 ),
 
                                 //Ajuste menos
