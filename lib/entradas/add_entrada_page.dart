@@ -244,7 +244,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                           const InputDecoration(labelText: 'Referencia'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'La referencia no puede estat vacía.';
+                          return 'La referencia no puede estar vacía.';
                         }
                         return null;
                       },
