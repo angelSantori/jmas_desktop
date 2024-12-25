@@ -58,6 +58,32 @@ class SalidasController {
       return false;
     }
   }
+
+  Future<List<Salidas>> getSalidaByFolio(String folio) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.get(
+          Uri.parse('${_authService.apiURL}/Salidas/ByFolio/$folio'),
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+          });
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((salida) => Salidas.fromMap(salida)).toList();
+      } else if (response.statusCode == 404) {
+        print('No se encontraton salidas con el folio: $folio');
+        return [];
+      } else {
+        print(
+            'Error al obtener las entradas por folio: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al obtener las salidas poe folio: $e');
+      return [];
+    }
+  }
 }
 
 class Salidas {
