@@ -63,6 +63,33 @@ class EntradasController {
       return false;
     }
   }
+
+  Future<List<Entradas>> getEntradaByFolio(String folio) async {
+    final IOClient client = _createHttpClient();
+    try {
+      final response = await client.get(
+        Uri.parse('${_authService.apiURL}/Entradas/ByFolio/$folio'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((entrada) => Entradas.fromMap(entrada)).toList();
+      } else if (response.statusCode == 404) {
+        print('No se encontraton entradas con el folio: $folio');
+        return [];
+      } else {
+        print(
+            'Error al obtener las entradas por folio: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al obtener las entradas poe folio: $e');
+      return [];
+    }
+  }
 }
 
 class Entradas {
