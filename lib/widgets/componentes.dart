@@ -3,7 +3,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -226,7 +228,7 @@ Future<void> generateAndPrintPdf({
   }
 }
 
-//Lista de productos
+//Tabla de productos
 Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
   if (productosAgregados.isEmpty) {
     return const Text(
@@ -523,7 +525,7 @@ class BuscarProductoWidget extends StatelessWidget {
 // Función para validar campos antes de imprimir
 Future<bool> validarCamposAntesDeImprimir({
   required BuildContext context,
-  required List productosAgregados,  
+  required List productosAgregados,
   required TextEditingController referenciaController,
   required var selectedProveedor,
   required var selectedEntidad,
@@ -533,7 +535,7 @@ Future<bool> validarCamposAntesDeImprimir({
   if (productosAgregados.isEmpty) {
     showAdvertence(context, 'Debe agregar productos antes de imprimir.');
     return false;
-  }  
+  }
 
   if (referenciaController.text.isEmpty) {
     showAdvertence(context, 'La referencia es obligatoria.');
@@ -561,4 +563,173 @@ Future<bool> validarCamposAntesDeImprimir({
   }
 
   return true; // Si pasa todas las validaciones, los datos están completos
+}
+
+Widget buildReferenciaBuscadaEntrada(List<Entradas> entradas) {
+  if (entradas.isEmpty) {
+    return const Text(
+      'No se encontro Folio en Entradas.',
+      style: TextStyle(fontStyle: FontStyle.italic),
+    );
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Folio de Entrada',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      const SizedBox(height: 10),
+      Table(
+        border: TableBorder.all(),
+        columnWidths: const {
+          0: FlexColumnWidth(1), // ID Producto
+          1: FlexColumnWidth(1), // Unidades
+          2: FlexColumnWidth(1), // Costo
+        },
+        children: [
+          TableRow(
+            decoration: BoxDecoration(
+              color: Colors.blue.shade900,
+            ),
+            children: const [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'ID Producto',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Unidades',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Costo',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          // Solo agregar filas si hay productos
+          if (entradas.isNotEmpty)
+            ...entradas.map((entrada) {
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(entrada.id_Producto.toString()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(entrada.entrada_Unidades.toString()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child:
+                        Text('\$${entrada.entrada_Costo!.toStringAsFixed(2)}'),
+                  ),
+                ],
+              );
+            }).toList(),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget buildReferenciaBuscadaSalida(List<Salidas> salidas) {
+  if (salidas.isEmpty) {
+    return const Text(
+      'No se encontro Folio en Salidas.',
+      style: TextStyle(fontStyle: FontStyle.italic),
+    );
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Folio de Salida',
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
+      const SizedBox(height: 10),
+      Table(
+        border: TableBorder.all(),
+        columnWidths: const {
+          0: FlexColumnWidth(1), // ID Producto
+          1: FlexColumnWidth(1), // Unidades
+          2: FlexColumnWidth(1), // Costo
+        },
+        children: [
+          TableRow(
+            decoration: BoxDecoration(
+              color: Colors.blue.shade900,
+            ),
+            children: const [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Clave de Producto',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Unidades',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Costo',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          // Solo agregar filas si hay productos
+          if (salidas.isNotEmpty)
+            ...salidas.map((salida) {
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(salida.id_Salida.toString()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(salida.salida_Unidades.toString()),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('\$${salida.salida_Costo!.toStringAsFixed(2)}'),
+                  ),
+                ],
+              );
+            }).toList(),
+        ],
+      ),
+    ],
+  );
 }
