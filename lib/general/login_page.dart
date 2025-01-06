@@ -22,6 +22,9 @@ class _LoginPageState extends State<LoginPage> {
   bool _isSubmitted = false;
   bool _isLoading = false;
 
+  bool _isPasswordVisible = false;
+  bool _isAccesVisible = false;
+
   void _submitForm() async {
     setState(() {
       _isSubmitted = true;
@@ -90,6 +93,16 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _userNameController,
                           decoration: InputDecoration(
                             labelText: 'User Access',
+                            suffixIcon: IconButton(
+                              icon: Icon(_isAccesVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off),
+                              onPressed: () {
+                                setState(() {
+                                  _isAccesVisible = !_isAccesVisible;
+                                });
+                              },
+                            ),
                             focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
                                     color: _isSubmitted &&
@@ -107,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                           inputFormatters: [
                             FilteringTextInputFormatter.deny(RegExp(r'\s'))
                           ],
-                          obscureText: true,
+                          obscureText: !_isAccesVisible,
                         ),
                       ),
                     ],
@@ -131,6 +144,16 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _passwordController,
                           decoration: InputDecoration(
                             labelText: 'Contraseña',
+                            suffixIcon: IconButton(
+                              icon: Icon(_isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
                             focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
                                     color: _isSubmitted &&
@@ -145,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                             }
                             return null;
                           },
-                          obscureText: true,
+                          obscureText: !_isPasswordVisible,
                         ),
                       ),
                     ],
