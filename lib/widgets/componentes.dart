@@ -499,8 +499,8 @@ class BuscarProductoWidget extends StatelessWidget {
 
                 //Imagen del producto
                 Container(
-                  height: 150,
-                  width: 150,
+                  height: 100,
+                  width: 100,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
                     color: Colors.grey.shade200,
