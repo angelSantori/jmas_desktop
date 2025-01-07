@@ -19,6 +19,7 @@ dependencies:
   printing: ^5.13.4 #Imprimir
   path_provider: ^2.1.5 #Archivos sistema
   file_picker: ^8.1.6 #Seleccionar carpeta
+  image_picker: ^1.1.2 #Seleccionar imagen
 
 dev_dependencies:
   flutter_test:
