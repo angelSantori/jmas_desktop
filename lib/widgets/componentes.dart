@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -388,6 +389,17 @@ class BuscarProductoWidget extends StatelessWidget {
     required this.onAdvertencia,
   }) : super(key: key);
 
+  Uint8List? _decodeImage(String? base64Image) {
+    if (base64Image == null || base64Image.isEmpty) {
+      return null;
+    }
+    try {
+      return base64Decode(base64Image);
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -455,26 +467,54 @@ class BuscarProductoWidget extends StatelessWidget {
         else if (selectedProducto != null)
           Expanded(
             flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
-                  'Información del Producto:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Información del Producto:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Descripción: ${selectedProducto!.producto_Descripcion ?? 'No disponible'}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      Text(
+                        'Precio: \$${selectedProducto!.producto_Precio1?.toStringAsFixed(2) ?? 'No disponible'}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      Text(
+                        'Existencia: ${selectedProducto!.producto_Existencia ?? 'No disponible'}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  'Descripción: ${selectedProducto!.producto_Descripcion ?? 'No disponible'}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  'Precio: \$${selectedProducto!.producto_Precio1?.toStringAsFixed(2) ?? 'No disponible'}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  'Existencia: ${selectedProducto!.producto_Existencia ?? 'No disponible'}',
-                  style: const TextStyle(fontSize: 14),
-                ),
+                const SizedBox(width: 15),
+
+                //Imagen del producto
+                Container(
+                  height: 150,
+                  width: 150,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    color: Colors.grey.shade200,
+                  ),
+                  child: selectedProducto!.producto_ImgBase64 != null
+                      ? Image.memory(
+                          _decodeImage(selectedProducto!.producto_ImgBase64)!,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          'assets/images/sinFoto.jpg',
+                          fit: BoxFit.cover,
+                        ),
+                )
               ],
             ),
           )
@@ -486,7 +526,7 @@ class BuscarProductoWidget extends StatelessWidget {
               style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
             ),
           ),
-        const SizedBox(width: 15),
+        const SizedBox(width: 50),
 
         // Campo para la cantidad
         Column(
