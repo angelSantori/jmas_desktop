@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -14,7 +18,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
   final ProductosController _productosController = ProductosController();
 
   final TextEditingController _descripcionController = TextEditingController();
-  final TextEditingController _costoController = TextEditingController();  
+  final TextEditingController _costoController = TextEditingController();
   final TextEditingController _precio1Controller = TextEditingController();
   final TextEditingController _precio2Controller = TextEditingController();
   final TextEditingController _precio3Controller = TextEditingController();
@@ -33,6 +37,22 @@ class _AddProductoPageState extends State<AddProductoPage> {
   bool _isLoading = false;
 
   String? _selectedUnidadMedida;
+  File? _selectedImage;
+  String? _encodedImage;
+
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? image =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+        _encodedImage = base64Encode(_selectedImage!.readAsBytesSync());
+      });
+    }
+  }
 
   void _submitForm() async {
     setState(() {
@@ -55,7 +75,8 @@ class _AddProductoPageState extends State<AddProductoPage> {
               double.parse(_existenciaInicialController.text),
           producto_ExistenciaConFis:
               double.parse(_existenciaConFisController.text),
-          producto_QR64: "SinFoto",
+          producto_QR64: null,
+          producto_ImgBase64: _encodedImage,
         );
         final success = await _productosController.addProducto(producto);
 
@@ -91,6 +112,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
     _existenciaConFisController.clear();
     setState(() {
       _selectedUnidadMedida = null;
+      _selectedImage = null;
     });
   }
 
@@ -108,6 +130,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
+                  const SizedBox(height: 10),
                   //Descripción
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -474,6 +497,43 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 50),
+                  //Seleccionar imagen
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Imagen: ',
+                        style: TextStyle(fontSize: 26),
+                      ),
+                      const SizedBox(height: 5),
+                      ElevatedButton(
+                        onPressed: _pickImage,
+                        child: const Text('Seleccionar imagen'),
+                      ),
+                    ],
+                  ),
+                  if (_selectedImage != null) ...[
+                    Image.file(
+                      _selectedImage!,
+                      height: 150,
+                      width: 150,
+                      fit: BoxFit.cover,
+                    )
+                  ],
+
+                  TextFormField(
+                    decoration: const InputDecoration(border: InputBorder.none),
+                    validator: (value) {
+                      if (_selectedImage == null) {
+                        return 'Imagen de producto es obligatoria.';
+                      }
+                      return null;
+                    },
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    style: const TextStyle(fontSize: 0, height: 0),
+                  ),
+
                   const SizedBox(height: 50),
 
                   //Botón para enviar el formulario
