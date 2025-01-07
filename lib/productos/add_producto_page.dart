@@ -14,8 +14,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
   final ProductosController _productosController = ProductosController();
 
   final TextEditingController _descripcionController = TextEditingController();
-  final TextEditingController _costoController = TextEditingController();
-  //final TextEditingController _unidadMedidaController = TextEditingController();
+  final TextEditingController _costoController = TextEditingController();  
   final TextEditingController _precio1Controller = TextEditingController();
   final TextEditingController _precio2Controller = TextEditingController();
   final TextEditingController _precio3Controller = TextEditingController();
