@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: public_member_api_docs, sort_constructors_first, non_constant_identifier_names
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,7 +7,7 @@ import 'package:http/io_client.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class EntradasController {
-  AuthService _authService = AuthService();
+  final AuthService _authService = AuthService();
 
   IOClient _createHttpClient() {
     final ioClient = HttpClient();
@@ -103,6 +103,7 @@ class Entradas {
   int? id_User;
   int? id_Junta;
   int? id_Entidad;
+  int? user_Reporte;
   Entradas({
     this.id_Entradas,
     this.entrada_Folio,
@@ -114,6 +115,7 @@ class Entradas {
     this.id_User,
     this.id_Junta,
     this.id_Entidad,
+    this.user_Reporte,
   });
 
   Entradas copyWith({
@@ -127,6 +129,7 @@ class Entradas {
     int? id_User,
     int? id_Junta,
     int? id_Entidad,
+    int? user_Reporte,
   }) {
     return Entradas(
       id_Entradas: id_Entradas ?? this.id_Entradas,
@@ -139,6 +142,7 @@ class Entradas {
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
       id_Entidad: id_Entidad ?? this.id_Entidad,
+      user_Reporte: user_Reporte ?? this.user_Reporte,
     );
   }
 
@@ -154,6 +158,7 @@ class Entradas {
       'id_User': id_User,
       'id_Junta': id_Junta,
       'id_Entidad': id_Entidad,
+      'user_Reporte': user_Reporte,
     };
   }
 
@@ -182,6 +187,8 @@ class Entradas {
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
       id_Entidad: map['id_Entidad'] != null ? map['id_Entidad'] as int : null,
+      user_Reporte:
+          map['user_Reporte'] != null ? map['user_Reporte'] as int : null,
     );
   }
 
@@ -192,7 +199,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_Folio: $entrada_Folio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, id_Junta: $id_Junta, id_Entidad: $id_Entidad)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_Folio: $entrada_Folio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, id_Junta: $id_Junta, id_Entidad: $id_Entidad, user_Reporte: $user_Reporte)';
   }
 
   @override
@@ -208,7 +215,8 @@ class Entradas {
         other.id_Proveedor == id_Proveedor &&
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
-        other.id_Entidad == id_Entidad;
+        other.id_Entidad == id_Entidad &&
+        other.user_Reporte == user_Reporte;
   }
 
   @override
@@ -222,6 +230,7 @@ class Entradas {
         id_Proveedor.hashCode ^
         id_User.hashCode ^
         id_Junta.hashCode ^
-        id_Entidad.hashCode;
+        id_Entidad.hashCode ^
+        user_Reporte.hashCode;
   }
 }

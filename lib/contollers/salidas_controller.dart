@@ -1,10 +1,14 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: non_constant_identifier_names
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:http/io_client.dart';
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class SalidasController {
-  AuthService _authService = AuthService();
+  final AuthService _authService = AuthService();
 
   IOClient _createHttpClient() {
     final ioClient = HttpClient();
@@ -97,6 +101,7 @@ class Salidas {
   int? id_User;
   int? id_Junta;
   int? id_Entidad;
+  int? user_Reporte;
   Salidas({
     this.id_Salida,
     this.salida_Folio,
@@ -108,6 +113,7 @@ class Salidas {
     this.id_User,
     this.id_Junta,
     this.id_Entidad,
+    this.user_Reporte,
   });
 
   Salidas copyWith({
@@ -121,6 +127,7 @@ class Salidas {
     int? id_User,
     int? id_Junta,
     int? id_Entidad,
+    int? user_Reporte,
   }) {
     return Salidas(
       id_Salida: id_Salida ?? this.id_Salida,
@@ -133,6 +140,7 @@ class Salidas {
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
       id_Entidad: id_Entidad ?? this.id_Entidad,
+      user_Reporte: user_Reporte ?? this.user_Reporte,
     );
   }
 
@@ -148,6 +156,7 @@ class Salidas {
       'id_User': id_User,
       'id_Junta': id_Junta,
       'id_Entidad': id_Entidad,
+      'user_Reporte': user_Reporte,
     };
   }
 
@@ -175,6 +184,8 @@ class Salidas {
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
       id_Entidad: map['id_Entidad'] != null ? map['id_Entidad'] as int : null,
+      user_Reporte:
+          map['user_Reporte'] != null ? map['user_Reporte'] as int : null,
     );
   }
 
@@ -185,7 +196,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_Folio: $salida_Folio, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, id_Junta: $id_Junta, id_Entidad: $id_Entidad)';
+    return 'Salidas(id_Salida: $id_Salida, salida_Folio: $salida_Folio, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, id_Junta: $id_Junta, id_Entidad: $id_Entidad, user_Reporte: $user_Reporte)';
   }
 
   @override
@@ -201,7 +212,8 @@ class Salidas {
         other.id_Proveedor == id_Proveedor &&
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
-        other.id_Entidad == id_Entidad;
+        other.id_Entidad == id_Entidad &&
+        other.user_Reporte == user_Reporte;
   }
 
   @override
@@ -215,6 +227,7 @@ class Salidas {
         id_Proveedor.hashCode ^
         id_User.hashCode ^
         id_Junta.hashCode ^
-        id_Entidad.hashCode;
+        id_Entidad.hashCode ^
+        user_Reporte.hashCode;
   }
 }
