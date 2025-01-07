@@ -6,6 +6,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -17,6 +18,7 @@ class AddSalidaPage extends StatefulWidget {
 }
 
 class _AddSalidaPageState extends State<AddSalidaPage> {
+  final AuthService _authService = AuthService();
   final SalidasController _salidasController = SalidasController();
   final UsersController _usersController = UsersController();
   final JuntasController _juntasController = JuntasController();
@@ -31,6 +33,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final TextEditingController _cantidadController = TextEditingController();
 
   final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
+  String? idUserReporte;
 
   List<Users> _users = [];
   List<Entidades> _entidades = [];
@@ -132,6 +136,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     if (_formKey.currentState!.validate()) {
       bool success = true; // Para verificar si al menos una entrada fue exitosa
       for (var producto in _productosAgregados) {
+        await _getUserId();
         final nuevaSalida = _crearEntrada(producto);
         bool result = await _salidasController.addSalida(nuevaSalida);
 
@@ -187,6 +192,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     }
   }
 
+  Future<void> _getUserId() async {
+    final decodeToken = await _authService.decodeToken();
+    idUserReporte = decodeToken?['Id_User'] ?? '0';
+  }
+
   Salidas _crearEntrada(Map<String, dynamic> producto) {
     return Salidas(
       id_Salida: 0,
@@ -199,6 +209,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       id_User: _selectedUser?.id_User ?? 0, // Usuario
       id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
       id_Entidad: _selectedEntidad?.id_Entidad ?? 0, // Entidad
+      user_Reporte: int.parse(idUserReporte ?? '0'),
     );
   }
 

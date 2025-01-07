@@ -6,6 +6,7 @@ import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -17,6 +18,7 @@ class AddEntradaPage extends StatefulWidget {
 }
 
 class _AddEntradaPageState extends State<AddEntradaPage> {
+  final AuthService _authService = AuthService();
   final EntradasController _entradasController = EntradasController();
   final UsersController _usersController = UsersController();
   final JuntasController _juntasController = JuntasController();
@@ -31,6 +33,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   final TextEditingController _cantidadController = TextEditingController();
 
   final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
+  String? idUserReporte;
 
   List<Users> _users = [];
   List<Entidades> _entidades = [];
@@ -126,6 +130,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     if (_formKey.currentState!.validate()) {
       bool success = true; // Para verificar si al menos una entrada fue exitosa
       for (var producto in _productosAgregados) {
+        await _getUserId();
         final nuevaEntrada = _crearEntrada(producto);
         bool result = await _entradasController.addEntrada(nuevaEntrada);
 
@@ -180,19 +185,24 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     }
   }
 
+  Future<void> _getUserId() async {
+    final decodeToken = await _authService.decodeToken();
+    idUserReporte = decodeToken?['Id_User'] ?? '0';
+  }
+
   Entradas _crearEntrada(Map<String, dynamic> producto) {
     return Entradas(
-      id_Entradas: 0,
-      entrada_Folio: _referenciaController.text,
-      entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
-      entrada_Costo: double.tryParse(producto['precio'].toString()),
-      entrada_Fecha: _fecha,
-      id_Producto: producto['id'] ?? 0, // Toma el id del producto de la lista
-      id_Proveedor: _selectedProveedor?.id_Proveedor ?? 0, // Proveedor
-      id_User: _selectedUser?.id_User ?? 0, // Usuario
-      id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
-      id_Entidad: _selectedEntidad?.id_Entidad ?? 0, // Entidad
-    );
+        id_Entradas: 0,
+        entrada_Folio: _referenciaController.text,
+        entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
+        entrada_Costo: double.tryParse(producto['precio'].toString()),
+        entrada_Fecha: _fecha,
+        id_Producto: producto['id'] ?? 0, // Toma el id del producto de la lista
+        id_Proveedor: _selectedProveedor?.id_Proveedor ?? 0, // Proveedor
+        id_User: _selectedUser?.id_User ?? 0, // Usuario
+        id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
+        id_Entidad: _selectedEntidad?.id_Entidad ?? 0, // Entidad
+        user_Reporte: int.parse(idUserReporte ?? '0'));
   }
 
   void _limpiarFormulario() {
