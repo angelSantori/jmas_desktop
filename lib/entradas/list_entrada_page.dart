@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/contollers/users_controller.dart';
 
 class ListEntradaPage extends StatefulWidget {
   const ListEntradaPage({super.key});
@@ -14,6 +15,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   final EntradasController _entradasController = EntradasController();
   final ProductosController _productosController = ProductosController();
   final ProveedoresController _proveedoresController = ProveedoresController();
+  final UsersController _usersController = UsersController();
 
   final TextEditingController _searchController = TextEditingController();
   List<Entradas> _allEntradas = [];
@@ -22,22 +24,43 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   DateTime? _startDate;
   DateTime? _endDate;
 
+  Map<int, Productos> _productosCache = {};
+  Map<int, Proveedores> _proveedoresCache = {};
+  Map<int, Users> _usersCache = {};
+
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _loadEntradas();
+    _loadData();
     _searchController.addListener(_filterEntradas);
   }
 
-  Future<void> _loadEntradas() async {
+  Future<void> _loadData() async {
     try {
       final entradas = await _entradasController.listEntradas();
+      final productos = await _productosController.listProductos();
+      final proveedores = await _proveedoresController.listProveedores();
+      final users = await _usersController.listUsers();
+
       setState(() {
         _allEntradas = entradas;
         _filteredEntradas = entradas;
+
+        _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
+        _proveedoresCache = {
+          for (var prov in proveedores) prov.id_Proveedor!: prov
+        };
+        _usersCache = {for (var us in users) us.id_User!: us};
+
+        _isLoading = false;
       });
     } catch (e) {
-      print('Error al cargar entradas: $e');
+      print('Error al cargar datos: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -105,161 +128,144 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
       appBar: AppBar(
         title: const Text('Lista de Entradas'),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Buscar por folio',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Column(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _selectDateRange(context),
-                    icon: const Icon(Icons.calendar_today),
-                    label: Text(
-                      _startDate != null && _endDate != null
-                          ? 'Desde: ${_startDate!.toLocal()} Hasta: ${_endDate!.toLocal()}'
-                          : 'Seleccionar rango de fechas',
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      labelText: 'Buscar por folio',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    setState(() {
-                      _startDate = null;
-                      _endDate = null;
-                      _filterEntradas();
-                    });
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _selectDateRange(context),
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(_startDate != null && _endDate != null
+                              ? 'Desde: ${_startDate!.toLocal()} Hasta: ${_endDate!.toLocal()}'
+                              : 'Seleccionar rango de fechas'),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _startDate = null;
+                            _endDate = null;
+                            _filterEntradas();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: _buildListView(),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildListView() {
+    if (_filteredEntradas.isEmpty) {
+      return Center(
+        child: Text(
+          _searchController.text.isNotEmpty
+              ? 'No hay entradas que coincidan con el folio'
+              : (_startDate != null || _endDate != null)
+                  ? 'No hay entradas que coincidan con el rango de fechas'
+                  : 'No hay entradas disponibles',
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: _filteredEntradas.length,
+      itemBuilder: (context, index) {
+        final entrada = _filteredEntradas[index];
+        final producto = _productosCache[entrada.id_Producto];
+        final proveedor = _proveedoresCache[entrada.id_Proveedor];
+        final user = _usersCache[entrada.id_User];
+
+        return Card(
+          margin: const EdgeInsets.all(10),
+          child: ListTile(
+            title: producto != null
+                ? Text(
+                    '${producto.producto_Descripcion}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : const Text('Producto no encontrado'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                proveedor != null
+                    ? Text(
+                        '${proveedor.proveedor_Name}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                      )
+                    : const Text('Proveedor no encontrado'),
+                const SizedBox(height: 10),
+                user != null
+                    ? Text('Realizado por: ${user.user_Name}',
+                        style: const TextStyle(fontSize: 15))
+                    : const Text('Usuario no encontrado'),
+                const SizedBox(height: 10),
+                Text(
+                  'Unidades: ${entrada.entrada_Unidades ?? 'No disponible'}',
+                  style: const TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Costo: \$${entrada.entrada_Costo}',
+                  style: const TextStyle(
+                    fontSize: 15,
+                  ),
+                )
+              ],
+            ),
+            trailing: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Folio: ${entrada.entrada_Folio ?? "Sin Folio"}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  entrada.entrada_Fecha ?? 'Sin Fecha',
+                  style: const TextStyle(
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
           ),
-          Expanded(
-            child: _filteredEntradas.isEmpty
-                ? Center(
-                    child: Text(
-                      _searchController.text.isNotEmpty
-                          ? 'No hay entradas que coincidan con el folio'
-                          : (_startDate != null || _endDate != null)
-                              ? 'No har entradas que coincidan con el rango de fechas'
-                              : 'No hay entradas disponibles',
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: _filteredEntradas.length,
-                    itemBuilder: (context, index) {
-                      final entrada = _filteredEntradas[index];
-                      return Card(
-                        margin: const EdgeInsets.all(10),
-                        child: ListTile(
-                          title: FutureBuilder<Productos?>(
-                            future: _productosController
-                                .getProductoById(entrada.id_Producto!),
-                            builder: (context, productoSnapshot) {
-                              if (productoSnapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Text('Cargando producto...');
-                              } else if (productoSnapshot.hasError) {
-                                return const Text('Error al cargar producto');
-                              } else if (productoSnapshot.data == null) {
-                                return const Text('Producto no encontrado');
-                              } else {
-                                return Text(
-                                  '${productoSnapshot.data!.producto_Descripcion}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              FutureBuilder<Proveedores?>(
-                                future: _proveedoresController
-                                    .getProveedorById(entrada.id_Proveedor!),
-                                builder: (context, proveedorSnapshot) {
-                                  if (proveedorSnapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Text('Cargando proveedor...');
-                                  } else if (proveedorSnapshot.hasError) {
-                                    return const Text(
-                                        'Error al cargar proveedor');
-                                  } else if (proveedorSnapshot.data == null) {
-                                    return const Text(
-                                        'Proveedor no encontrado');
-                                  } else {
-                                    return Text(
-                                      '${proveedorSnapshot.data!.proveedor_Name}',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Unidades: ${entrada.entrada_Unidades ?? "No disponible"}',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Costo: \$${entrada.entrada_Costo}',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                ),
-                              )
-                            ],
-                          ),
-                          trailing: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Folio: ${entrada.entrada_Folio ?? "Sin Folio"}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                entrada.entrada_Fecha ?? 'Sin Fecha',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+        );
+      },
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 }
