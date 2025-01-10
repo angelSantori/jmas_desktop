@@ -6,8 +6,8 @@ import 'package:http/io_client.dart';
 
 import 'package:jmas_desktop/service/auth_service.dart';
 
-class AjusteMoreController {
-  AuthService _authService = AuthService();
+class AjusteMasController {
+  final AuthService _authService = AuthService();
 
   IOClient _createHttpClient() {
     final ioClient = HttpClient();

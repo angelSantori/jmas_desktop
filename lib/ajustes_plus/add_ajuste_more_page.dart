@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:jmas_desktop/contollers/ajuste_more_controller.dart';
+import 'package:jmas_desktop/contollers/ajuste_mas_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -15,7 +15,7 @@ class AddAjusteMorePage extends StatefulWidget {
 }
 
 class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
-  final AjusteMoreController _ajusteMoreController = AjusteMoreController();
+  final AjusteMasController _ajusteMoreController = AjusteMasController();
   final ProductosController _productosController = ProductosController();
   final EntradasController _entradasController = EntradasController();
   final SalidasController _salidasController = SalidasController();
