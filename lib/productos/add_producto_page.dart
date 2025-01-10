@@ -75,7 +75,6 @@ class _AddProductoPageState extends State<AddProductoPage> {
               double.parse(_existenciaInicialController.text),
           producto_ExistenciaConFis:
               double.parse(_existenciaConFisController.text),
-          producto_QR64: null,
           producto_ImgBase64: _encodedImage,
         );
         final success = await _productosController.addProducto(producto);
