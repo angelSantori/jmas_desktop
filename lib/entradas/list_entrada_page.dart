@@ -171,6 +171,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 10),
                 Expanded(
                   child: _buildListView(),
                 ),
@@ -201,7 +202,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         final user = _usersCache[entrada.id_User];
 
         return Card(
-          margin: const EdgeInsets.all(10),
+          margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
+          color: const Color.fromARGB(255, 201, 230, 242),
           child: ListTile(
             title: producto != null
                 ? Text(
@@ -209,25 +211,31 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   )
                 : const Text('Producto no encontrado'),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 10),
                 proveedor != null
                     ? Text(
                         '${proveedor.proveedor_Name}',
                         style: const TextStyle(
                           fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       )
                     : const Text('Proveedor no encontrado'),
                 const SizedBox(height: 10),
                 user != null
                     ? Text('Realizado por: ${user.user_Name}',
-                        style: const TextStyle(fontSize: 15))
-                    : const Text('Usuario no encontrado'),
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ))
+                    : const Text('Rrealizado por: Usuario no encontrado'),
                 const SizedBox(height: 10),
                 Text(
                   'Unidades: ${entrada.entrada_Unidades ?? 'No disponible'}',
@@ -252,6 +260,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 5),
@@ -259,6 +268,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                   entrada.entrada_Fecha ?? 'Sin Fecha',
                   style: const TextStyle(
                     fontSize: 14,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
