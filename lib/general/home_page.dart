@@ -138,22 +138,23 @@ class _HomePageState extends State<HomePage> {
               children: [
                 // Encabezado del menú
                 Container(
-                  height: 80,
+                  height: 150,
                   alignment: Alignment.center,
-                  color: Colors.blue.shade700,
+                  color: Colors.white,
                   child: Column(
                     children: [
                       const SizedBox(height: 10),
-                      const Text(
-                        'JMAS',
-                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      //Logo
+                      SizedBox(
+                        height: 100,
+                        child: Image.asset('assets/images/logo_jmas_sf.png'),
                       ),
                       const SizedBox(height: 10),
                       if (_userName != null)
                         Text(
                           _userName!,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontWeight: FontWeight.bold,
                           ),
                         )
@@ -163,7 +164,7 @@ class _HomePageState extends State<HomePage> {
                 // Contenido del menú con scroll
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Column(
+                    child: Column(                      
                       children: [
                         // Elementos del menú
                         ListTile(
