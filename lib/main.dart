@@ -6,7 +6,7 @@ void main() {
   runApp(const MyApp());
   doWhenWindowReady(
     () {
-      const initialSize = Size(1300, 600);
+      const initialSize = Size(1300, 800);
       //const initialSize2 = Size(width, height);
       appWindow.minSize = initialSize;
       appWindow.size = initialSize;
