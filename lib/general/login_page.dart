@@ -66,7 +66,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Bienvenido'),
       ),
       body: Center(
         child: Padding(
@@ -76,6 +75,12 @@ class _LoginPageState extends State<LoginPage> {
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
+                  //Logo
+                  SizedBox(
+                    height: 300,
+                    child: Image.asset('assets/images/logo_jmas_sf.png'),
+                  ),
+                  const SizedBox(height: 50),
                   //Usuario
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
