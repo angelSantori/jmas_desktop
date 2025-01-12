@@ -101,8 +101,6 @@ class Entradas {
   int? id_Producto;
   int? id_Proveedor;
   int? id_User;
-  int? id_Junta;
-  int? id_Entidad;
   int? user_Reporte;
   Entradas({
     this.id_Entradas,
@@ -113,8 +111,6 @@ class Entradas {
     this.id_Producto,
     this.id_Proveedor,
     this.id_User,
-    this.id_Junta,
-    this.id_Entidad,
     this.user_Reporte,
   });
 
@@ -127,8 +123,6 @@ class Entradas {
     int? id_Producto,
     int? id_Proveedor,
     int? id_User,
-    int? id_Junta,
-    int? id_Entidad,
     int? user_Reporte,
   }) {
     return Entradas(
@@ -140,8 +134,6 @@ class Entradas {
       id_Producto: id_Producto ?? this.id_Producto,
       id_Proveedor: id_Proveedor ?? this.id_Proveedor,
       id_User: id_User ?? this.id_User,
-      id_Junta: id_Junta ?? this.id_Junta,
-      id_Entidad: id_Entidad ?? this.id_Entidad,
       user_Reporte: user_Reporte ?? this.user_Reporte,
     );
   }
@@ -156,8 +148,6 @@ class Entradas {
       'id_Producto': id_Producto,
       'id_Proveedor': id_Proveedor,
       'id_User': id_User,
-      'id_Junta': id_Junta,
-      'id_Entidad': id_Entidad,
       'user_Reporte': user_Reporte,
     };
   }
@@ -185,8 +175,6 @@ class Entradas {
       id_Proveedor:
           map['id_Proveedor'] != null ? map['id_Proveedor'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
-      id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
-      id_Entidad: map['id_Entidad'] != null ? map['id_Entidad'] as int : null,
       user_Reporte:
           map['user_Reporte'] != null ? map['user_Reporte'] as int : null,
     );
@@ -199,7 +187,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_Folio: $entrada_Folio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, id_Junta: $id_Junta, id_Entidad: $id_Entidad, user_Reporte: $user_Reporte)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_Folio: $entrada_Folio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, user_Reporte: $user_Reporte)';
   }
 
   @override
@@ -214,8 +202,6 @@ class Entradas {
         other.id_Producto == id_Producto &&
         other.id_Proveedor == id_Proveedor &&
         other.id_User == id_User &&
-        other.id_Junta == id_Junta &&
-        other.id_Entidad == id_Entidad &&
         other.user_Reporte == user_Reporte;
   }
 
@@ -229,8 +215,6 @@ class Entradas {
         id_Producto.hashCode ^
         id_Proveedor.hashCode ^
         id_User.hashCode ^
-        id_Junta.hashCode ^
-        id_Entidad.hashCode ^
         user_Reporte.hashCode;
   }
 }

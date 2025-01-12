@@ -229,6 +229,93 @@ Future<void> generateAndPrintPdf({
   }
 }
 
+// Función para generar el archivo PDF
+Future<void> generateAndPrintPdfEntrada({
+  required BuildContext context,
+  required String movimiento,
+  required String fecha,
+  required String referencia,
+  required String proveedor,
+  required String usuario,
+  required List<Map<String, dynamic>> productos,
+}) async {
+  final pdf = pw.Document();
+
+  // Cálculo del total
+  final total = productos.fold<double>(
+    0.0,
+    (sum, producto) => sum + (producto['precio'] ?? 0.0),
+  );
+
+  // Generar contenido del PDF
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      build: (pw.Context context) {
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text('Reporte de $movimiento',
+                style: const pw.TextStyle(fontSize: 24)),
+            pw.SizedBox(height: 16),
+            pw.Text('Fecha: $fecha'),
+            pw.Text('Referencia: $referencia'),
+            pw.Text('Proveedor: $proveedor'),
+            pw.Text('Usuario: $usuario'),
+            pw.SizedBox(height: 16),
+            pw.Table.fromTextArray(
+              headers: ['Clave', 'Descripción', 'Costo', 'Cantidad', 'Total'],
+              data: productos.map((producto) {
+                return [
+                  producto['id'].toString(),
+                  producto['descripcion'] ?? '',
+                  '\$${producto['costo'].toString()}',
+                  producto['cantidad'].toString(),
+                  '\$${producto['precio'].toStringAsFixed(2)}',
+                ];
+              }).toList(),
+            ),
+            pw.SizedBox(height: 16),
+            pw.Text('Total: \$${total.toStringAsFixed(2)}'),
+          ],
+        );
+      },
+    ),
+  );
+
+  try {
+    // Permitir al usuario seleccionar la carpeta
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    if (selectedDirectory == null) {
+      // El usuario canceló la selección
+      return;
+    }
+
+    // Generar nombre del archivo con la fecha actual
+    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
+    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
+    final String fileName = 'entrada_reporte_${currentDate}_$currentTime.pdf';
+
+    // Construir la ruta completa del archivo
+    final String filePath = '$selectedDirectory/$fileName';
+
+    // Guardar el archivo PDF
+    final file = File(filePath);
+    await file.writeAsBytes(await pdf.save());
+
+    // ignore: avoid_print
+    print('PDF guardado en: $filePath');
+
+    // Mostrar vista previa e imprimir
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  } catch (e) {
+    // ignore: avoid_print
+    print('Error al guardar el PDF: $e');
+  }
+}
+
 //Tabla de productos
 Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
   if (productosAgregados.isEmpty) {
@@ -594,6 +681,37 @@ Future<bool> validarCamposAntesDeImprimir({
 
   if (selectedJunta == null) {
     showAdvertence(context, 'Debe seleccionar una junta.');
+    return false;
+  }
+
+  if (selectedUser == null) {
+    showAdvertence(context, 'Debe seleccionar un usuario.');
+    return false;
+  }
+
+  return true; // Si pasa todas las validaciones, los datos están completos
+}
+
+// Función para validar campos antes de imprimir
+Future<bool> validarCamposAntesDeImprimirEntrada({
+  required BuildContext context,
+  required List productosAgregados,
+  required TextEditingController referenciaController,
+  required var selectedProveedor,
+  required var selectedUser,
+}) async {
+  if (productosAgregados.isEmpty) {
+    showAdvertence(context, 'Debe agregar productos antes de imprimir.');
+    return false;
+  }
+
+  if (referenciaController.text.isEmpty) {
+    showAdvertence(context, 'La referencia es obligatoria.');
+    return false;
+  }
+
+  if (selectedProveedor == null) {
+    showAdvertence(context, 'Debe seleccionar un proveedor.');
     return false;
   }
 

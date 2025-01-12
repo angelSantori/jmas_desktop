@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:jmas_desktop/contollers/entidades_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
-import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -21,8 +19,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   final AuthService _authService = AuthService();
   final EntradasController _entradasController = EntradasController();
   final UsersController _usersController = UsersController();
-  final JuntasController _juntasController = JuntasController();
-  final EntidadesController _entidadesController = EntidadesController();
   final ProductosController _productosController = ProductosController();
   final ProveedoresController _proveedoresController = ProveedoresController();
 
@@ -37,14 +33,10 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   String? idUserReporte;
 
   List<Users> _users = [];
-  List<Entidades> _entidades = [];
-  List<Juntas> _juntas = [];
   List<Proveedores> _proveedores = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
   Users? _selectedUser;
-  Entidades? _selectedEntidad;
-  Juntas? _selectedJunta;
   Productos? _selectedProducto;
   Proveedores? _selectedProveedor;
 
@@ -53,24 +45,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   @override
   void initState() {
     super.initState();
-    _loadEntidades();
-    _loadJuntas();
     _loadUsers();
     _loadProveedores();
-  }
-
-  Future<void> _loadEntidades() async {
-    List<Entidades> entidades = await _entidadesController.listEntidades();
-    setState(() {
-      _entidades = entidades;
-    });
-  }
-
-  Future<void> _loadJuntas() async {
-    List<Juntas> juntas = await _juntasController.listJuntas();
-    setState(() {
-      _juntas = juntas;
-    });
   }
 
   Future<void> _loadUsers() async {
@@ -200,8 +176,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         id_Producto: producto['id'] ?? 0, // Toma el id del producto de la lista
         id_Proveedor: _selectedProveedor?.id_Proveedor ?? 0, // Proveedor
         id_User: _selectedUser?.id_User ?? 0, // Usuario
-        id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
-        id_Entidad: _selectedEntidad?.id_Entidad ?? 0, // Entidad
         user_Reporte: int.parse(idUserReporte ?? '0'));
   }
 
@@ -210,8 +184,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     _productosAgregados.clear();
     setState(() {
       _selectedUser = null;
-      _selectedEntidad = null;
-      _selectedJunta = null;
       _selectedProducto = null;
       _selectedProveedor = null;
       _referenciaController.clear();
@@ -284,61 +256,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       validator: (value) {
                         if (value == null) {
                           return 'Debe seleccionar un proveedor';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  //Entidad
-                  buildFormRow(
-                    label: 'Entidad:',
-                    child: DropdownButtonFormField<Entidades>(
-                      value: _selectedEntidad,
-                      items: _entidades
-                          .map((entidad) => DropdownMenuItem(
-                                value: entidad,
-                                child: Text(
-                                    entidad.entidad_Nombre ?? 'Sin Nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedEntidad = value;
-                        });
-                      },
-                      decoration: const InputDecoration(label: Text('Entidad')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar una entidad.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  //Junta
-                  buildFormRow(
-                    label: 'Junta:',
-                    child: DropdownButtonFormField<Juntas>(
-                      value: _selectedJunta,
-                      items: _juntas
-                          .map((junta) => DropdownMenuItem(
-                                value: junta,
-                                child: Text(junta.junta_Name ?? 'Sin Nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedJunta = value;
-                        });
-                      },
-                      decoration: const InputDecoration(label: Text('Junta')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar una junta.';
                         }
                         return null;
                       },
@@ -429,13 +346,11 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       ElevatedButton(
                         onPressed: () async {
                           bool datosCompletos =
-                              await validarCamposAntesDeImprimir(
+                              await validarCamposAntesDeImprimirEntrada(
                             context: context,
                             productosAgregados: _productosAgregados,
                             referenciaController: _referenciaController,
                             selectedProveedor: _selectedProveedor,
-                            selectedEntidad: _selectedEntidad,
-                            selectedJunta: _selectedJunta,
                             selectedUser: _selectedUser,
                           );
 
@@ -443,16 +358,13 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             return;
                           }
 
-                          await generateAndPrintPdf(
+                          await generateAndPrintPdfEntrada(
                             context: context,
                             movimiento: 'Entrada',
                             fecha: _fecha,
                             referencia: _referenciaController.text,
                             proveedor: _selectedProveedor?.proveedor_Name ??
                                 'Sin Proveedor',
-                            entidad: _selectedEntidad?.entidad_Nombre ??
-                                'Sin Entidad',
-                            junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
                             usuario: _selectedUser?.user_Name ?? 'Sin Usuario',
                             productos: _productosAgregados,
                           );
