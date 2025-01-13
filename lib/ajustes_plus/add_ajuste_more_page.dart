@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/ajuste_mas_controller.dart';
-import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
-import 'package:jmas_desktop/contollers/salidas_controller.dart';
+import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -15,71 +14,24 @@ class AddAjusteMorePage extends StatefulWidget {
 }
 
 class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
-  final AjusteMasController _ajusteMoreController = AjusteMasController();
+  final AuthService _authService = AuthService();
+  final AjusteMasController _ajusteMasController = AjusteMasController();
   final ProductosController _productosController = ProductosController();
-  final EntradasController _entradasController = EntradasController();
-  final SalidasController _salidasController = SalidasController();
 
   final TextEditingController _cantidadController = TextEditingController();
-  final TextEditingController _referenciaController = TextEditingController();
+  final TextEditingController _descripctionController = TextEditingController();
   final TextEditingController _idProductoController = TextEditingController();
 
   final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
   final _formKey = GlobalKey<FormState>();
 
   final List<Map<String, dynamic>> _productosAgregados = [];
-  List<Entradas> _entradas = [];
-  List<Salidas> _salidas = [];
 
   bool _isLoading = false;
-  bool _hasSearched = false;
 
-  int? _idEntrada;
-  int? _idSalida;
+  String? idUserReporte;
 
   Productos? _selectedProducto;
-
-  Future<void> _buscarReferencia() async {
-    setState(() {
-      _isLoading = true;
-      _hasSearched = true;
-      _idEntrada = null;
-      _idSalida = null;
-    });
-
-    try {
-      final List<Entradas> entradas = await _entradasController
-          .getEntradaByFolio(_referenciaController.text);
-
-      final List<Salidas> salidas =
-          await _salidasController.getSalidaByFolio(_referenciaController.text);
-
-      setState(() {
-        _entradas = entradas;
-        _salidas = salidas;
-      });
-
-      if (_entradas.isNotEmpty) {
-        setState(() {
-          _idEntrada = _entradas.first.id_Entradas;
-          _idSalida = null;
-        });
-        buildReferenciaBuscadaEntrada(_entradas);
-      } else if (_salidas.isNotEmpty) {
-        setState(() {
-          _idSalida = _salidas.first.id_Salida;
-          _idEntrada = null;
-        });
-        buildReferenciaBuscadaSalida(_salidas);
-      }
-    } catch (e) {
-      showAdvertence(context, 'Error al buscar la referencia: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
 
   void _agregarProducto() {
     if (_selectedProducto != null && _cantidadController.text.isNotEmpty) {
@@ -114,7 +66,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
     }
   }
 
-  Future<void> _guardarAjuste() async {
+  Future<void> _guardarAjusteMas() async {
     if (_productosAgregados.isEmpty) {
       showAdvertence(context, 'Debe agregar al menos un producto.');
       return;
@@ -123,9 +75,9 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
     if (_formKey.currentState!.validate()) {
       bool success = true;
       for (var producto in _productosAgregados) {
-        final nuevoAjuste = _crearAjuste(producto);
-
-        bool result = await _ajusteMoreController.addAjusteMore(nuevoAjuste);
+        await _getUserId();
+        final nuevoAjuste = _crearAjusteMas(producto);
+        bool result = await _ajusteMasController.addAjusteMas(nuevoAjuste);
 
         print('Datos enviados al back: ${nuevoAjuste.toJson()}');
 
@@ -152,13 +104,8 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
           break;
         }
 
-        if (_idEntrada != null) {
-          productoActualizado.producto_Existencia =
-              (productoActualizado.producto_Existencia!) + producto['cantidad'];
-        } else {
-          productoActualizado.producto_Existencia =
-              (productoActualizado.producto_Existencia!) - producto['cantidad'];
-        }
+        productoActualizado.producto_Existencia =
+            (productoActualizado.producto_Existencia!) + producto['cantidad'];
 
         bool editResult =
             await _productosController.editProducto(productoActualizado);
@@ -175,37 +122,41 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
       // Mostrar el mensaje correspondiente al finalizar el ciclo
       if (success) {
         // ignore: use_build_context_synchronously
-        showOk(context, 'Ajuste + creado exitosamente.');
+        showOk(context, 'Ajuste Más creado exitosamente.');
       } else {
         // ignore: use_build_context_synchronously
-        showError(context, 'Error al registrar ajuste');
+        showError(context, 'Error al registrar ajuste más');
       }
 
       _limpiarFormulario(); // Limpiar formulario después de guardar
     }
   }
 
+  Future<void> _getUserId() async {
+    final decodeToken = await _authService.decodeToken();
+    idUserReporte = decodeToken?['Id_User'] ?? '0';
+  }
+
   void _limpiarFormulario() {
+    _formKey.currentState!.reset();
+    _productosAgregados.clear();
     setState(() {
-      _referenciaController.clear();
+      _descripctionController.clear();
       _cantidadController.clear();
       _idProductoController.clear();
       _productosAgregados.clear();
-      _idEntrada = null;
-      _idSalida = null;
       _selectedProducto = null;
-      _hasSearched = false;
     });
   }
 
-  AjusteMores _crearAjuste(Map<String, dynamic> producto) {
-    return AjusteMores(
-      id_AjusteMore: 0,
-      ajusteMore_Cantidad: double.parse(producto['cantidad'].toString()),
-      ajusteMore_Fecha: _fecha,
+  AjusteMas _crearAjusteMas(Map<String, dynamic> producto) {
+    return AjusteMas(
+      id_AjusteMas: 0,
+      ajuesteMas_Descripcion: _descripctionController.text,
+      ajusteMas_Cantidad: double.parse(producto['cantidad'].toString()),
+      ajusteMas_Fecha: _fecha,
       id_Producto: producto['id'],
-      id_Entradas: _idEntrada ?? null,
-      id_Salida: _idSalida ?? null,
+      id_User: int.parse(idUserReporte ?? '0'),
     );
   }
 
@@ -240,30 +191,24 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       buildFormRow(
-                        label: 'Referencia',
+                        label: 'Descripción:',
                         child: Row(
                           children: [
                             // Campo de texto para la referencia
                             Expanded(
                               child: TextFormField(
-                                controller: _referenciaController,
+                                controller: _descripctionController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Referencia',
+                                  labelText: 'Descripción',
                                   border: OutlineInputBorder(),
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'La referencia no puede estar vacía.';
+                                    return 'La descripción no puede estar vacía.';
                                   }
                                   return null;
                                 },
                               ),
-                            ),
-                            const SizedBox(width: 10), // Separador
-                            // Botón de búsqueda
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _buscarReferencia,
-                              child: const Text('Buscar'),
                             ),
                           ],
                         ),
@@ -271,25 +216,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  //Resultados de busqueda
-                  // Resultados de búsqueda
-                  _isLoading
-                      ? const CircularProgressIndicator()
-                      : _hasSearched
-                          ? Column(
-                              children: [
-                                // Resultados basados en las listas
-                                _entradas.isNotEmpty
-                                    ? buildReferenciaBuscadaEntrada(_entradas)
-                                    : _salidas.isNotEmpty
-                                        ? buildReferenciaBuscadaSalida(_salidas)
-                                        : const Text(
-                                            'Referencia no encontrada en la base de datos'),
-                              ],
-                            )
-                          : const SizedBox.shrink(),
 
-                  const SizedBox(height: 50),
                   //Buscar producto
                   BuscarProductoWidget(
                     idProductoController: _idProductoController,
@@ -342,7 +269,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
                     children: [
                       //Guardar entrada
                       ElevatedButton(
-                        onPressed: _guardarAjuste,
+                        onPressed: _guardarAjusteMas,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
                         ),
