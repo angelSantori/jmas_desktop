@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadUserName() async {
     final decodeToken = await _authService.decodeToken();
     setState(() {
-      _userName = decodeToken?['sub'];
+      _userName = decodeToken?['User_Name'];
     });
   }
 
@@ -157,6 +157,8 @@ class _HomePageState extends State<HomePage> {
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false,
                         )
                     ],
                   ),
@@ -164,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                 // Contenido del menú con scroll
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Column(                      
+                    child: Column(
                       children: [
                         // Elementos del menú
                         ListTile(
