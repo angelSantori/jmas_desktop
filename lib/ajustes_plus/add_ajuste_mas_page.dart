@@ -6,14 +6,14 @@ import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
-class AddAjusteMorePage extends StatefulWidget {
-  const AddAjusteMorePage({super.key});
+class AddAjusteMasPage extends StatefulWidget {
+  const AddAjusteMasPage({super.key});
 
   @override
-  State<AddAjusteMorePage> createState() => _AddAjusteMorePageState();
+  State<AddAjusteMasPage> createState() => _AddAjusteMasPageState();
 }
 
-class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
+class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
   final AuthService _authService = AuthService();
   final AjusteMasController _ajusteMasController = AjusteMasController();
   final ProductosController _productosController = ProductosController();
@@ -76,10 +76,8 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
       bool success = true;
       for (var producto in _productosAgregados) {
         await _getUserId();
-        final nuevoAjuste = _crearAjusteMas(producto);
-        bool result = await _ajusteMasController.addAjusteMas(nuevoAjuste);
-
-        print('Datos enviados al back: ${nuevoAjuste.toJson()}');
+        final nuevoAjusteMas = _crearAjusteMas(producto);
+        bool result = await _ajusteMasController.addAjusteMas(nuevoAjusteMas);
 
         if (!result) {
           success = false;
@@ -128,7 +126,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
         showError(context, 'Error al registrar ajuste más');
       }
 
-      _limpiarFormulario(); // Limpiar formulario después de guardar
+      _limpiarFormulario();
     }
   }
 
@@ -176,7 +174,6 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 50),
                   //Fecha
                   Text(
                     _fecha,
@@ -186,7 +183,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
                   ),
                   const SizedBox(height: 20),
 
-                  //Referencia
+                  //Descripción
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -194,7 +191,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
                         label: 'Descripción:',
                         child: Row(
                           children: [
-                            // Campo de texto para la referencia
+                            // Campo de texto para la descripción
                             Expanded(
                               child: TextFormField(
                                 controller: _descripctionController,
@@ -274,7 +271,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
                           backgroundColor: Colors.blue.shade900,
                         ),
                         child: const Text(
-                          'Guardar Ajuste',
+                          'Guardar Ajuste +',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -284,7 +281,7 @@ class _AddAjusteMorePageState extends State<AddAjusteMorePage> {
                     ],
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

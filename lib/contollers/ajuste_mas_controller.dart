@@ -1,9 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:http/io_client.dart';
-
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class AjusteMasController {
@@ -36,7 +34,7 @@ class AjusteMasController {
       }
     } catch (e) {
       // ignore: avoid_print
-      print('Error lista ajustes more: $e');
+      print('Error lista ajustes mas: $e');
       return [];
     }
   }
