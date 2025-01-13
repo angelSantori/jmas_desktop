@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/general/home_page.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class LoginPage extends StatefulWidget {
@@ -19,7 +20,6 @@ class _LoginPageState extends State<LoginPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  bool _isSubmitted = false;
   bool _isLoading = false;
 
   bool _isPasswordVisible = false;
@@ -27,7 +27,6 @@ class _LoginPageState extends State<LoginPage> {
 
   void _submitForm() async {
     setState(() {
-      _isSubmitted = true;
       _isLoading = true;
     });
 
@@ -80,105 +79,48 @@ class _LoginPageState extends State<LoginPage> {
                     height: 300,
                     child: Image.asset('assets/images/logo_jmas_sf.png'),
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
                   //Usuario
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        child: Text(
-                          'User Access: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _userNameController,
-                          decoration: InputDecoration(
-                            labelText: 'User Access',
-                            suffixIcon: IconButton(
-                              icon: Icon(_isAccesVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
-                              onPressed: () {
-                                setState(() {
-                                  _isAccesVisible = !_isAccesVisible;
-                                });
-                              },
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _userNameController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa user access.';
-                            }
-                            return null;
-                          },
-                          inputFormatters: [
-                            FilteringTextInputFormatter.deny(RegExp(r'\s'))
-                          ],
-                          obscureText: !_isAccesVisible,
-                        ),
-                      ),
-                    ],
+                  CustomTextFieldAzul(
+                    controller: _userNameController,
+                    labelText: 'Acceso de Usuario',
+                    isPassword: true,
+                    isVisible: _isAccesVisible,
+                    prefixIcon: Icons.person,
+                    onVisibilityToggle: () {
+                      setState(() {
+                        _isAccesVisible = !_isPasswordVisible;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa el acceso';
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
                   //Contraseña
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        child: Text(
-                          'Contraseña: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _passwordController,
-                          decoration: InputDecoration(
-                            labelText: 'Contraseña',
-                            suffixIcon: IconButton(
-                              icon: Icon(_isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _passwordController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa la contraseña';
-                            }
-                            return null;
-                          },
-                          obscureText: !_isPasswordVisible,
-                        ),
-                      ),
-                    ],
+                  CustomTextFieldAzul(
+                    controller: _passwordController,
+                    labelText: 'Contraseña',
+                    isPassword: true,
+                    isVisible: _isPasswordVisible,
+                    prefixIcon: Icons.lock,
+                    onVisibilityToggle: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Por favor ingresa la contraseña.';
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
                   //Botón
                   ElevatedButton(
