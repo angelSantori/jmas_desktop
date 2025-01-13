@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
@@ -110,9 +111,15 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _navigateToAddAjusteMore() {
+  void _navigateToAddAjusteMas() {
     setState(() {
-      _currentPage = const AddAjusteMorePage();
+      _currentPage = const AddAjusteMasPage();
+    });
+  }
+
+  void _navigateToAddAjusteMenos() {
+    setState(() {
+      _currentPage = const AddAjusteMenosPage();
     });
   }
 
@@ -293,14 +300,14 @@ class _HomePageState extends State<HomePage> {
                                 CustomListTile(
                                   title: 'Ajuste +',
                                   icon: Icons.add,
-                                  onTap: _navigateToAddAjusteMore,
+                                  onTap: _navigateToAddAjusteMas,
                                 ),
 
                                 //Ajuste menos
                                 CustomListTile(
                                   title: 'Ajuste -',
                                   icon: Icons.remove,
-                                  onTap: () {},
+                                  onTap: _navigateToAddAjusteMenos,
                                 ),
                               ],
                             ),
