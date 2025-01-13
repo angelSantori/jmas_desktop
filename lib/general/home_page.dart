@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/ajustes_plus/add_ajuste_more_page.dart';
+import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
