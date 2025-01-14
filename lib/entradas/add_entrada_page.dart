@@ -238,10 +238,10 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                   ),
                   const SizedBox(height: 30),
 
-                  //Proveedores
                   Row(
                     children: [
                       Expanded(
+                        //Proveedores
                         child: CustomListaDesplegableTipo(
                           value: _selectedProveedor,
                           labelText: 'Proveedor',

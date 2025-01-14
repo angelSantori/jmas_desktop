@@ -8,6 +8,7 @@ import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddSalidaPage extends StatefulWidget {
@@ -253,133 +254,124 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  //Referencia
-                  buildFormRow(
-                    label: 'Referencia:',
-                    child: TextFormField(
-                      controller: _referenciaController,
-                      decoration:
-                          const InputDecoration(labelText: 'Referencia'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La referencia no puede estat vacía.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
 
-                  //Proveedores
-                  buildFormRow(
-                    label: 'Proveedor',
-                    child: DropdownButtonFormField<Proveedores>(
-                      value: _selectedProveedor,
-                      items: _proveedores
-                          .map((proveedor) => DropdownMenuItem(
-                                value: proveedor,
-                                child: Text(
-                                    proveedor.proveedor_Name ?? 'Sin nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedProveedor = value;
-                        });
-                      },
-                      decoration:
-                          const InputDecoration(label: Text('Proveedor')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar un proveedor';
-                        }
-                        return null;
-                      },
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _referenciaController,
+                          labelText: 'Referencia',
+                          validator: (p0) {
+                            if (p0 == null || p0.isEmpty) {
+                              return 'Referencia obligatoria.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
-                  //Entidad
-                  buildFormRow(
-                    label: 'Entidad:',
-                    child: DropdownButtonFormField<Entidades>(
-                      value: _selectedEntidad,
-                      items: _entidades
-                          .map((entidad) => DropdownMenuItem(
-                                value: entidad,
-                                child: Text(
-                                    entidad.entidad_Nombre ?? 'Sin Nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedEntidad = value;
-                        });
-                      },
-                      decoration: const InputDecoration(label: Text('Entidad')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar una entidad.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  Row(
+                    children: [
+                      Expanded(
+                        //Proveedor
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedProveedor,
+                          labelText: 'Proveedor',
+                          items: _proveedores,
+                          onChanged: (prov) {
+                            setState(() {
+                              _selectedProveedor = prov;
+                            });
+                          },
+                          validator: (prov) {
+                            if (prov == null) {
+                              return 'Debe seleccionar un proveedor';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (prov) =>
+                              prov.proveedor_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                      const SizedBox(width: 30),
 
-                  //Junta
-                  buildFormRow(
-                    label: 'Junta:',
-                    child: DropdownButtonFormField<Juntas>(
-                      value: _selectedJunta,
-                      items: _juntas
-                          .map((junta) => DropdownMenuItem(
-                                value: junta,
-                                child: Text(junta.junta_Name ?? 'Sin Nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedJunta = value;
-                        });
-                      },
-                      decoration: const InputDecoration(label: Text('Junta')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar una junta.';
-                        }
-                        return null;
-                      },
-                    ),
+                      //Entidad
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedEntidad,
+                          labelText: 'Entidad',
+                          items: _entidades,
+                          onChanged: (ent) {
+                            setState(() {
+                              _selectedEntidad = ent;
+                            });
+                          },
+                          validator: (ent) {
+                            if (ent == null) {
+                              return 'Debe seleccionar una entidad.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (ent) =>
+                              ent.entidad_Nombre ?? 'Sin nombre',
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
-                  //Users
-                  buildFormRow(
-                    label: 'Usuario:',
-                    child: DropdownButtonFormField<Users>(
-                      value: _selectedUser,
-                      items: _users
-                          .map((user) => DropdownMenuItem(
-                                value: user,
-                                child: Text(user.user_Name ?? 'Sin Nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedUser = value;
-                        });
-                      },
-                      decoration: const InputDecoration(label: Text('Usuario')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar un usuario.';
-                        }
-                        return null;
-                      },
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        //Junta
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedJunta,
+                          labelText: 'Junta',
+                          items: _juntas,
+                          onChanged: (junt) {
+                            setState(() {
+                              _selectedJunta = junt;
+                            });
+                          },
+                          validator: (jun) {
+                            if (jun == null) {
+                              return 'Debe seleccionar una junta.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (jun) =>
+                              jun.junta_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+
+                      //Usuario
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedUser,
+                          labelText: 'Usuario',
+                          items: _users,
+                          onChanged: (user) {
+                            setState(() {
+                              _selectedUser = user;
+                            });
+                          },
+                          validator: (user) {
+                            if (user == null) {
+                              return 'Debe seleccionar un usuario';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (user) =>
+                              user.user_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   BuscarProductoWidget(
                     idProductoController: _idProductoController,

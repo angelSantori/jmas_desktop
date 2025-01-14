@@ -169,30 +169,26 @@ class _AddProductoPageState extends State<AddProductoPage> {
                           },
                         ),
                       ),
-                    ],
-                  ),
 
-                  const SizedBox(height: 30),
+                      const SizedBox(width: 30),
 
-                  //Unidad de medida
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      CustomListaDesplegable(
-                        value: _selectedUnidadMedida,
-                        labelText: 'Unidad de Medida',
-                        items: _unidadMedida,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedUnidadMedida = value;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Unidad de medida obligatoria.';
-                          }
-                          return null;
-                        },
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedUnidadMedida,
+                          labelText: 'Unidad de Medida',
+                          items: _unidadMedida,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedUnidadMedida = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Unidad de medida obligatoria.';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
                     ],
                   ),

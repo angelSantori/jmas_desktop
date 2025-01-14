@@ -4,6 +4,7 @@ import 'package:jmas_desktop/contollers/ajuste_menos_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddAjusteMenosPage extends StatefulWidget {
@@ -177,39 +178,28 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
                     _fecha,
                     style: const TextStyle(
                       fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
-                  //Descripción
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      buildFormRow(
-                        label: 'Descripción',
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _descriptionController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Descripción',
-                                  border: OutlineInputBorder(),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'La descripción no puede estar vacía';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _descriptionController,
+                          labelText: 'Descripción',
+                          validator: (p0) {
+                            if (p0 == null || p0.isEmpty) {
+                              return 'Descripción obligatoria.';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
                   //Buscar producto
                   BuscarProductoWidget(

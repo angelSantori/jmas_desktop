@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddProveedorPage extends StatefulWidget {
@@ -18,6 +19,7 @@ class _AddProveedorPageState extends State<AddProveedorPage> {
 
   final _formKey = GlobalKey<FormState>();
 
+  // ignore: unused_field
   bool _isSubmitted = false;
   bool _isLoading = false;
 
@@ -81,32 +83,14 @@ class _AddProveedorPageState extends State<AddProveedorPage> {
                 children: <Widget>[
                   //Nombre
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                        child: Text(
-                          'Nombre: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextFielTexto(
                           controller: _nombreController,
-                          decoration: InputDecoration(
-                            labelText: 'Nombre del proveedor',
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _nombreController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa un nombre';
+                          labelText: 'Nombre',
+                          validator: (nomb) {
+                            if (nomb == null || nomb.isEmpty) {
+                              return 'Nombre obligatorio';
                             }
                             return null;
                           },
@@ -114,36 +98,19 @@ class _AddProveedorPageState extends State<AddProveedorPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
 
                   //Dirección
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                        child: Text(
-                          'Dirección: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextFielTexto(
                           controller: _direccionController,
-                          decoration: InputDecoration(
-                            labelText: 'Dirección del proveedor',
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _direccionController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa una dirección';
+                          labelText: 'Dirección',
+                          prefixIcon: Icons.add_home_work_outlined,
+                          validator: (dire) {
+                            if (dire == null || dire.isEmpty) {
+                              return 'Dirección obligatoria';
                             }
                             return null;
                           },
@@ -151,36 +118,19 @@ class _AddProveedorPageState extends State<AddProveedorPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
 
                   //Telefono
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                        child: Text(
-                          'Telefóno: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextFieldNumero(
                           controller: _telefonoController,
-                          decoration: InputDecoration(
-                            labelText: 'Nombre del proveedor',
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _telefonoController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa un nombre';
+                          labelText: 'Teléfono',
+                          prefixIcon: Icons.phone,
+                          validator: (tele) {
+                            if (tele == null || tele.isEmpty) {
+                              return 'Teléfono obligatorio';
                             }
                             return null;
                           },
@@ -188,7 +138,7 @@ class _AddProveedorPageState extends State<AddProveedorPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
 
                   ElevatedButton(
                     onPressed: _isLoading ? null : _submitForm,
@@ -210,7 +160,7 @@ class _AddProveedorPageState extends State<AddProveedorPage> {
                           ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),

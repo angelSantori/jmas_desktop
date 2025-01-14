@@ -499,6 +499,7 @@ class BuscarProductoWidget extends StatelessWidget {
           width: 160,
           child: CustomTextFielTexto(
             controller: idProductoController,
+            prefixIcon: Icons.search,
             labelText: 'Id Producto',
           ),
         ),
@@ -610,6 +611,7 @@ class BuscarProductoWidget extends StatelessWidget {
               width: 140,
               child: CustomTextFielTexto(
                 controller: cantidadController,
+                prefixIcon: Icons.numbers_outlined,
                 labelText: 'Cantidad',
               ),
             ),
