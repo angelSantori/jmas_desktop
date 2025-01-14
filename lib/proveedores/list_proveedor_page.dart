@@ -51,11 +51,11 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
         title: const Text('Lista de Proveedores'),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 60),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: const EdgeInsets.symmetric(vertical: 5),
               child: TextField(
                 controller: _searchController,
                 decoration: const InputDecoration(
@@ -71,20 +71,27 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                       child: Text(
                           'No hay proveedores que coincidan con la búsqueda'),
                     )
-                  : ListView.builder(
+                  : GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 30,
+                        childAspectRatio: 4,
+                      ),
                       itemCount: _filteredProveedores.length,
                       itemBuilder: (context, index) {
                         final proveedor = _filteredProveedores[index];
 
                         return Card(
-                          color: Colors.blue.shade900,
+                          color: const Color.fromARGB(255, 201, 230, 242),
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           elevation: 4,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           child: Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(8),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -97,8 +104,8 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                                       Text(
                                         '${proveedor.proveedor_Name}',
                                         style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 20,
+                                          color: Colors.black,
+                                          fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -108,9 +115,8 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                                       Text(
                                         'Contacto: ${proveedor.proveedor_Phone}',
                                         style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 15,
                                         ),
                                       ),
                                       const SizedBox(height: 10),
@@ -119,12 +125,10 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                                       Text(
                                         'Dirección: ${proveedor.proveedor_Address}',
                                         style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 15,
                                         ),
                                       ),
-                                      const SizedBox(height: 10),
                                     ],
                                   ),
                                 ),
@@ -136,7 +140,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                                     IconButton(
                                       icon: const Icon(
                                         Icons.edit,
-                                        color: Colors.white,
+                                        color: Colors.black,
                                         size: 30,
                                       ),
                                       onPressed: () async {
@@ -162,6 +166,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                       },
                     ),
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),

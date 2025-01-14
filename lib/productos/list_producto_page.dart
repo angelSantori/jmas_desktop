@@ -79,7 +79,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                       itemBuilder: (context, index) {
                         final producto = _filteredProductos[index];
                         return Card(
-                          color: Colors.blue.shade900,
+                          color: const Color.fromARGB(255, 201, 230, 242),
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           elevation: 4,
@@ -119,7 +119,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                       Text(
                                         '${producto.producto_Descripcion}',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -128,7 +128,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                       Text(
                                         'Clave: ${producto.id_Producto}',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -137,7 +137,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                       Text(
                                         'Costo: \$${producto.producto_Costo}',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -146,7 +146,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                       Text(
                                         'Existencias: ${producto.producto_Existencia} ${producto.producto_UMedida}',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -155,7 +155,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                       Text(
                                         'Existencias iniciales: ${producto.producto_ExistenciaInicial} ${producto.producto_UMedida}',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -169,7 +169,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                     IconButton(
                                       icon: const Icon(
                                         Icons.edit,
-                                        color: Colors.white,
+                                        color: Colors.black,
                                         size: 30,
                                       ),
                                       onPressed: () async {

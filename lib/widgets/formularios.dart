@@ -31,7 +31,10 @@ class CustomTextFieldAzul extends StatelessWidget {
         controller: controller,
         decoration: InputDecoration(
           labelText: labelText,
-          labelStyle: TextStyle(color: Colors.blue.shade900),
+          labelStyle: TextStyle(
+            color: Colors.blue.shade900,
+            fontWeight: FontWeight.bold,
+          ),
           prefixIcon: Icon(prefixIcon, color: Colors.blue.shade900),
           suffixIcon: isPassword
               ? IconButton(
@@ -79,6 +82,7 @@ class CustomTextFielTexto extends StatelessWidget {
   final String labelText;
   final String? Function(String?)? validator;
   final IconData prefixIcon;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextFielTexto({
     Key? key,
@@ -86,6 +90,7 @@ class CustomTextFielTexto extends StatelessWidget {
     required this.labelText,
     this.validator,
     this.prefixIcon = Icons.text_fields,
+    this.inputFormatters,
   }) : super(key: key);
 
   @override
@@ -94,6 +99,7 @@ class CustomTextFielTexto extends StatelessWidget {
       width: 500,
       child: TextFormField(
         controller: controller,
+        inputFormatters: inputFormatters,
         decoration: InputDecoration(
           labelText: labelText,
           labelStyle: TextStyle(

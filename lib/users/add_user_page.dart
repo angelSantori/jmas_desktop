@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddUserPage extends StatefulWidget {
@@ -22,6 +23,7 @@ class _AddUserPageState extends State<AddUserPage> {
 
   final _formKey = GlobalKey<FormState>();
 
+  // ignore: unused_field
   bool _isSubmitted = false;
   bool _isLoading = false;
 
@@ -105,74 +107,33 @@ class _AddUserPageState extends State<AddUserPage> {
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
-                  //Name
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                        child: Text(
-                          'Nombre: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
                       Expanded(
-                        child: TextFormField(
+                        //Nombre
+                        child: CustomTextFielTexto(
                           controller: _userNameController,
-                          decoration: InputDecoration(
-                            labelText: 'Nombre del usuario',
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _userNameController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa un nombre.';
+                          labelText: 'Nombre',
+                          prefixIcon: Icons.person,
+                          validator: (name) {
+                            if (name == null || name.isEmpty) {
+                              return 'Nombre obligatorio.';
                             }
                             return null;
                           },
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 50),
+                      const SizedBox(width: 30),
 
-                  //Contacto
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        child: Text(
-                          'Contacto: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
+                      //Contacto
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextFieldNumero(
                           controller: _userContactoController,
-                          decoration: InputDecoration(
-                            labelText: 'Contacto del usuario',
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _userAccessController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.deny(RegExp(r'\s'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa un contacto.';
+                          labelText: 'Contacto',
+                          prefixIcon: Icons.phone,
+                          validator: (numero) {
+                            if (numero == null || numero.isEmpty) {
+                              return 'Contacto obligatorio.';
                             }
                             return null;
                           },
@@ -180,190 +141,93 @@ class _AddUserPageState extends State<AddUserPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
 
-                  //Acceso
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                        child: Text(
-                          'Acceso: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextFielTexto(
                           controller: _userAccessController,
-                          decoration: InputDecoration(
-                            labelText: 'Acceso del usuario',
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _userAccessController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.deny(RegExp(r'\s'))
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa una clave de acceso.';
+                          labelText: 'Acceso del usuario',
+                          prefixIcon: Icons.person_4,
+                          validator: (access) {
+                            if (access == null || access.isEmpty) {
+                              return 'Acceso de usuario obligatorio.';
                             }
                             return null;
                           },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.deny(RegExp(r'\s'))
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 50),
-
-                  //Rol
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        child: Text(
-                          'Rol del usuario: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 30),
                       Expanded(
-                        child: DropdownButtonFormField<String>(
+                        child: CustomListaDesplegable(
                           value: _selectedRol,
-                          decoration: const InputDecoration(
-                              labelText: 'Rol del usuario',
-                              border: OutlineInputBorder()),
-                          items: _roles.map((e) {
-                            return DropdownMenuItem(
-                              value: e,
-                              child: Text(e),
-                            );
-                          }).toList(),
+                          labelText: 'Rol',
+                          items: _roles,
                           onChanged: (value) {
                             setState(() {
                               _selectedRol = value;
                             });
                           },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Por favor selecciona un rol de usuario.';
-                            }
-                            return null;
-                          },
-                        ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 50),
-
-                  //Contraseña
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        child: Text(
-                          'Contraseña: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
                         ),
                       ),
-                      const SizedBox(width: 5),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  Row(
+                    children: [
+                      //Contraseña
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextFieldAzul(
                           controller: _userPasswordController,
-                          decoration: InputDecoration(
-                            labelText: 'Contraseña del usuario',
-                            suffix: IconButton(
-                              icon: Icon(
-                                _isPasswordVisibles
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisibles = !_isPasswordVisibles;
-                                });
-                              },
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _userPasswordController.text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor ingresa una contraseña.';
+                          labelText: 'Contraseña',
+                          isPassword: true,
+                          isVisible: _isPasswordVisibles,
+                          prefixIcon: Icons.lock,
+                          onVisibilityToggle: () {
+                            setState(() {
+                              _isPasswordVisibles = !_isPasswordVisibles;
+                            });
+                          },
+                          validator: (pass) {
+                            if (pass == null || pass.isEmpty) {
+                              return 'Contraseña obligatoria.';
                             }
                             return null;
                           },
-                          obscureText: !_isPasswordVisibles,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 50),
+                      const SizedBox(width: 30),
 
-                  //Confirmar Contraseña
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        child: Text(
-                          'Confirmar contraseña: ',
-                          textAlign: TextAlign.justify,
-                          style: TextStyle(fontSize: 26),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
+                      //Confirm contraseña
                       Expanded(
-                        child: TextFormField(
+                        child: CustomTextFieldAzul(
                           controller: _passwordConfirmController,
-                          decoration: InputDecoration(
-                            labelText: 'Contraseña del usuario',
-                            suffix: IconButton(
-                              icon: Icon(
-                                _isConfirmPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isConfirmPasswordVisible =
-                                      !_isConfirmPasswordVisible;
-                                });
-                              },
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: _isSubmitted &&
-                                            _passwordConfirmController
-                                                .text.isEmpty
-                                        ? Colors.red
-                                        : Colors.blue.shade900)),
-                            border: const OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Por favor confirma la contraseña.';
+                          labelText: 'Confirmar contraseña',
+                          isPassword: true,
+                          isVisible: _isConfirmPasswordVisible,
+                          prefixIcon: Icons.lock,
+                          onVisibilityToggle: () {
+                            setState(() {
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
+                            });
+                          },
+                          validator: (pass) {
+                            if (pass == null || pass.isEmpty) {
+                              return 'Confirmar contraseña obligatorio.';
                             }
                             return null;
                           },
-                          obscureText: !_isConfirmPasswordVisible,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
 
                   //Botón para enviar formulario
                   ElevatedButton(
