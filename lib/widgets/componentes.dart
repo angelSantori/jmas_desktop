@@ -864,3 +864,19 @@ Widget buildReferenciaBuscadaSalida(List<Salidas> salidas) {
     ],
   );
 }
+
+//Parse data
+DateTime? parseDate(String dateString) {
+  try {
+    final parts = dateString.split('/');
+    if (parts.length == 3) {
+      final day = int.parse(parts[0]);
+      final month = int.parse(parts[1]);
+      final year = int.parse(parts[2]);
+      return DateTime(year, month, day);
+    }
+  } catch (e) {
+    print('Error al parsear fecha: $e');
+  }
+  return null;
+}

@@ -3,6 +3,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/widgets/componentes.dart';
 
 class ListSalidaPage extends StatefulWidget {
   const ListSalidaPage({super.key});
@@ -65,21 +66,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     }
   }
 
-  DateTime? _parseDate(String dateString) {
-    try {
-      final parts = dateString.split('/');
-      if (parts.length == 3) {
-        final day = int.parse(parts[0]);
-        final month = int.parse(parts[1]);
-        final year = int.parse(parts[2]);
-        return DateTime(year, month, day);
-      }
-    } catch (e) {
-      print('Error al parsear fecha: $e');
-    }
-    return null;
-  }
-
   void _filterSalidas() {
     final query = _searchController.text.toLowerCase();
     setState(() {
@@ -87,7 +73,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final folio = salida.salida_Folio?.toString() ?? '';
         final fechaString = salida.salida_Fecha;
 
-        final fecha = fechaString != null ? _parseDate(fechaString) : null;
+        final fecha = fechaString != null ? parseDate(fechaString) : null;
 
         final matchesFolio =
             query.isEmpty || folio.toLowerCase().contains(query);
@@ -198,7 +184,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final user = _usersCache[salida.user_Reporte];
 
         return Card(
-          margin: const EdgeInsets.all(10),
+          margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
+          color: const Color.fromARGB(255, 201, 230, 242),
           child: ListTile(
             title: producto != null
                 ? Text(
@@ -206,17 +193,21 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   )
                 : const Text('Producto no encontrado'),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 10),
                 proveedor != null
                     ? Text(
                         '${proveedor.proveedor_Name}',
                         style: const TextStyle(
                           fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       )
                     : const Text('Proveedor no encontrado'),

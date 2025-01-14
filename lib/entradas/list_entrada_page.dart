@@ -3,6 +3,7 @@ import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/widgets/componentes.dart';
 
 class ListEntradaPage extends StatefulWidget {
   const ListEntradaPage({super.key});
@@ -64,21 +65,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     }
   }
 
-  DateTime? _parseDate(String dateString) {
-    try {
-      final parts = dateString.split('/');
-      if (parts.length == 3) {
-        final day = int.parse(parts[0]);
-        final month = int.parse(parts[1]);
-        final year = int.parse(parts[2]);
-        return DateTime(year, month, day);
-      }
-    } catch (e) {
-      print('Error al parsear fecha: $e');
-    }
-    return null;
-  }
-
   void _filterEntradas() {
     final query = _searchController.text.toLowerCase();
     setState(() {
@@ -87,7 +73,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         final fechaString = entrada.entrada_Fecha;
 
         //Parsear la fecha del string
-        final fecha = fechaString != null ? _parseDate(fechaString) : null;
+        final fecha = fechaString != null ? parseDate(fechaString) : null;
 
         //Validar folio
         final matchesFolio =
@@ -175,6 +161,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                 Expanded(
                   child: _buildListView(),
                 ),
+                const SizedBox(height: 30),
               ],
             ),
     );
@@ -199,7 +186,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         final entrada = _filteredEntradas[index];
         final producto = _productosCache[entrada.id_Producto];
         final proveedor = _proveedoresCache[entrada.id_Proveedor];
-        final user = _usersCache[entrada.id_User];
+        final user = _usersCache[entrada.user_Reporte];
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
