@@ -6,6 +6,7 @@ import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddEntradaPage extends StatefulWidget {
@@ -217,78 +218,76 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
+
                   //Referencia
-                  buildFormRow(
-                    label: 'Referencia:',
-                    child: TextFormField(
-                      controller: _referenciaController,
-                      decoration:
-                          const InputDecoration(labelText: 'Referencia'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La referencia no puede estar vacía.';
-                        }
-                        return null;
-                      },
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _referenciaController,
+                          labelText: 'Referencia',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Refetencia obligatoria';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   //Proveedores
-                  buildFormRow(
-                    label: 'Proveedor',
-                    child: DropdownButtonFormField<Proveedores>(
-                      value: _selectedProveedor,
-                      items: _proveedores
-                          .map((proveedor) => DropdownMenuItem(
-                                value: proveedor,
-                                child: Text(
-                                    proveedor.proveedor_Name ?? 'Sin nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedProveedor = value;
-                        });
-                      },
-                      decoration:
-                          const InputDecoration(label: Text('Proveedor')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar un proveedor';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedProveedor,
+                          labelText: 'Proveedor',
+                          items: _proveedores,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedProveedor = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Debe seleccionar un proveedor.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (proveedor) =>
+                              proveedor.proveedor_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                      const SizedBox(width: 50),
 
-                  //Users
-                  buildFormRow(
-                    label: 'Usuario:',
-                    child: DropdownButtonFormField<Users>(
-                      value: _selectedUser,
-                      items: _users
-                          .map((user) => DropdownMenuItem(
-                                value: user,
-                                child: Text(user.user_Name ?? 'Sin Nombre'),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedUser = value;
-                        });
-                      },
-                      decoration: const InputDecoration(label: Text('Usuario')),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Debe seleccionar un usuario.';
-                        }
-                        return null;
-                      },
-                    ),
+                      //Users
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedUser,
+                          labelText: 'Usuario',
+                          items: _users,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedUser = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Debe seleccionar un usuario.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (user) =>
+                              user.user_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+
+                  const SizedBox(height: 30),
 
                   BuscarProductoWidget(
                     idProductoController: _idProductoController,
