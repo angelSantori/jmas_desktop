@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -495,24 +496,10 @@ class BuscarProductoWidget extends StatelessWidget {
       children: [
         // Campo para ID del Producto
         SizedBox(
-          width: 120,
-          child: TextFormField(
+          width: 160,
+          child: CustomTextFielTexto(
             controller: idProductoController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'ID del Producto',
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: isLoading && idProductoController.text.isEmpty
-                      ? Colors.red
-                      : Colors.blue.shade900,
-                ),
-              ),
-              border: const OutlineInputBorder(),
-            ),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-            ],
+            labelText: 'Id Producto',
           ),
         ),
         const SizedBox(width: 15),
@@ -619,27 +606,11 @@ class BuscarProductoWidget extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Cantidad:', style: TextStyle(fontSize: 16)),
-            const SizedBox(height: 5),
             SizedBox(
-              width: 120,
-              child: TextFormField(
+              width: 140,
+              child: CustomTextFielTexto(
                 controller: cantidadController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Cantidad',
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: isLoading && cantidadController.text.isEmpty
-                          ? Colors.red
-                          : Colors.blue.shade900,
-                    ),
-                  ),
-                  border: const OutlineInputBorder(),
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                ],
+                labelText: 'Cantidad',
               ),
             ),
           ],
