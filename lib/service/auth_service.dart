@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String apiURL = 'https://localhost:7048/api';
+  //final String apiURL = 'https://localhost:7048/api';
+  final String apiURL = 'https://jmasapi.up.railway.app/api';
 
   //Save token en almacenamiento local
   Future<void> saveToken(String token) async {
