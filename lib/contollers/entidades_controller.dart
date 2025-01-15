@@ -1,23 +1,14 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:http/io_client.dart';
+import 'package:http/http.dart' as http;
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class EntidadesController {
   final AuthService _authService = AuthService();
 
-  IOClient _createHttpClient() {
-    final ioClient = HttpClient();
-    ioClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    return IOClient(ioClient);
-  }
-
   //List Entidades
   Future<List<Entidades>> listEntidades() async {
     try {
-      final IOClient client = _createHttpClient();
-      final response = await client.get(
+      final response = await http.get(
         Uri.parse('${_authService.apiURL}/Entidades'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',

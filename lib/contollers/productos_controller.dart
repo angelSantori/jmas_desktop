@@ -1,29 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: non_constant_identifier_names
-
 import 'dart:convert';
-import 'dart:io';
-
-import 'package:http/io_client.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class ProductosController {
-  final AuthService _authService = AuthService();
-
-  // Crear un IOClient que permita certificados no seguros
-  IOClient _createHttpClient() {
-    final ioClient = HttpClient();
-    ioClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    return IOClient(ioClient);
-  }
+  final AuthService _authService = AuthService();  
 
   //Agregar Producto
   Future<bool> addProducto(Productos prodcuto) async {
-    final IOClient client = _createHttpClient();
+    
     try {
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse('${_authService.apiURL}/Productos'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -46,10 +34,10 @@ class ProductosController {
 
   //Producto por ID
   Future<Productos?> getProductoById(int idProdcuto) async {
-    final IOClient client = _createHttpClient();
+    
 
     try {
-      final response = await client.get(
+      final response = await http.get(
         Uri.parse('${_authService.apiURL}/Productos/$idProdcuto'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -77,8 +65,8 @@ class ProductosController {
   //Lista Productos
   Future<List<Productos>> listProductos() async {
     try {
-      final IOClient client = _createHttpClient();
-      final response = await client.get(
+      
+      final response = await http.get(
         Uri.parse('${_authService.apiURL}/Productos'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -100,9 +88,9 @@ class ProductosController {
   }
 
   Future<bool> editProducto(Productos producto) async {
-    final IOClient client = _createHttpClient();
+    
     try {
-      final response = await client.put(
+      final response = await http.put(
         Uri.parse('${_authService.apiURL}/Productos/${producto.id_Producto}'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',

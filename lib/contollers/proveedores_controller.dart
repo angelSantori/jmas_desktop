@@ -1,24 +1,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-import 'dart:io';
-
-import 'package:http/io_client.dart';
+import 'package:http/http.dart' as http;
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class ProveedoresController {
   AuthService _authService = AuthService();
 
-  IOClient _createHttpClient() {
-    final ioClient = HttpClient();
-    ioClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    return IOClient(ioClient);
-  }
-
   Future<bool> addProveedor(Proveedores proveedor) async {
-    final IOClient client = _createHttpClient();
     try {
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse('${_authService.apiURL}/Proveedores'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -40,10 +30,8 @@ class ProveedoresController {
   }
 
   Future<Proveedores?> getProveedorById(int idProveedor) async {
-    final IOClient client = _createHttpClient();
-
     try {
-      final response = await client.get(
+      final response = await http.get(
         Uri.parse('${_authService.apiURL}/Proveedores/$idProveedor'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -70,8 +58,7 @@ class ProveedoresController {
 
   Future<List<Proveedores>> listProveedores() async {
     try {
-      final IOClient client = _createHttpClient();
-      final response = await client.get(
+      final response = await http.get(
         Uri.parse('${_authService.apiURL}/Proveedores'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -95,9 +82,8 @@ class ProveedoresController {
   }
 
   Future<bool> editProveedor(Proveedores proveedor) async {
-    final IOClient client = _createHttpClient();
     try {
-      final response = await client.put(
+      final response = await http.put(
         Uri.parse(
             '${_authService.apiURL}/Proveedores/${proveedor.id_Proveedor}'),
         headers: {

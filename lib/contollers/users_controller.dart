@@ -1,27 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-import 'dart:io';
-
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:http/io_client.dart';
-
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class UsersController {
   final AuthService _authService = AuthService();
 
-  IOClient _createHttpClient() {
-    final ioClient = HttpClient();
-    ioClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    return IOClient(ioClient);
-  }
-
   Future<bool> addUser(Users user, BuildContext context) async {
-    final IOClient client = _createHttpClient();
     try {
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse('${_authService.apiURL}/Users'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -42,15 +31,14 @@ class UsersController {
         return false;
       }
     } catch (e) {
-      print('Error al agregar cliente: $e');
+      print('Error al agregar httpe: $e');
       return false;
     }
   }
 
   Future<Users?> getUserById(int idUser) async {
-    final IOClient client = _createHttpClient();
     try {
-      final response = await client.get(
+      final response = await http.get(
         Uri.parse('${_authService.apiURL}/Users/$idUser'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -77,8 +65,7 @@ class UsersController {
 
   Future<List<Users>> listUsers() async {
     try {
-      final IOClient client = _createHttpClient();
-      final response = await client.get(
+      final response = await http.get(
         Uri.parse('${_authService.apiURL}/Users'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -101,10 +88,8 @@ class UsersController {
 
   Future<bool> loginUser(
       String userAccess, String userPassword, BuildContext context) async {
-    final IOClient client = _createHttpClient();
-
     try {
-      final response = await client.post(
+      final response = await http.post(
         Uri.parse('${_authService.apiURL}/Users/Login'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
@@ -134,9 +119,8 @@ class UsersController {
   }
 
   Future<bool> editUser(Users user, BuildContext context) async {
-    final IOClient client = _createHttpClient();
     try {
-      final response = await client.put(
+      final response = await http.put(
         Uri.parse('${_authService.apiURL}/Users/${user.id_User}'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
