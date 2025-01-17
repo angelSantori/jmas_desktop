@@ -450,7 +450,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           }
 
                           await generateAndPrintPdf(
-                            context: context,
                             movimiento: 'Salida',
                             fecha: _fecha,
                             referencia: _referenciaController.text,

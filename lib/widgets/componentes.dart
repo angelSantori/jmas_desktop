@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +9,7 @@ import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'dart:html' as html;
 
 //ListTitle
 class CustomListTile extends StatelessWidget {
@@ -141,7 +139,6 @@ class SubCustomExpansionTile extends StatelessWidget {
 
 // Función para generar el archivo PDF
 Future<void> generateAndPrintPdf({
-  required BuildContext context,
   required String movimiento,
   required String fecha,
   required String referencia,
@@ -198,32 +195,29 @@ Future<void> generateAndPrintPdf({
   );
 
   try {
-    // Permitir al usuario seleccionar la carpeta
-    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
-    if (selectedDirectory == null) {
-      // El usuario canceló la selección
-      return;
-    }
-
     // Generar nombre del archivo con la fecha actual
     final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
     final String currentTime = DateFormat('HHmmss').format(DateTime.now());
-    final String fileName = 'entrada_reporte_${currentDate}_$currentTime.pdf';
+    final String fileName = 'Salida_Reporte_${currentDate}_$currentTime.pdf';
 
-    // Construir la ruta completa del archivo
-    final String filePath = '$selectedDirectory/$fileName';
+    // Convertir el PDF en bytes
+    final bytes = await pdf.save();
 
-    // Guardar el archivo PDF
-    final file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
+    // Crear un Blob para descargarlo en el navegador
+    final blob = html.Blob([bytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
 
-    // ignore: avoid_print
-    print('PDF guardado en: $filePath');
+    // Crear un link para descargar el archivo
+    // ignore: unused_local_variable
+    final anchor = html.AnchorElement(href: url)
+      ..target = '_blank'
+      ..download = fileName
+      ..click();
 
-    // Mostrar vista previa e imprimir
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+    // Liberar el objeto URL después de descargar
+    html.Url.revokeObjectUrl(url);
+
+    print('PDF Reporte salida descargado exitosamente.');
   } catch (e) {
     // ignore: avoid_print
     print('Error al guardar el PDF: $e');
@@ -232,7 +226,6 @@ Future<void> generateAndPrintPdf({
 
 // Función para generar el archivo PDF
 Future<void> generateAndPrintPdfEntrada({
-  required BuildContext context,
   required String movimiento,
   required String fecha,
   required String referencia,
@@ -285,32 +278,26 @@ Future<void> generateAndPrintPdfEntrada({
   );
 
   try {
-    // Permitir al usuario seleccionar la carpeta
-    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
-    if (selectedDirectory == null) {
-      // El usuario canceló la selección
-      return;
-    }
-
     // Generar nombre del archivo con la fecha actual
     final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
     final String currentTime = DateFormat('HHmmss').format(DateTime.now());
-    final String fileName = 'entrada_reporte_${currentDate}_$currentTime.pdf';
+    final String fileName = 'Entrada_Reporte_${currentDate}_$currentTime.pdf';
 
-    // Construir la ruta completa del archivo
-    final String filePath = '$selectedDirectory/$fileName';
+    final bytes = await pdf.save();
 
-    // Guardar el archivo PDF
-    final file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
+    final blob = html.Blob([bytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
 
-    // ignore: avoid_print
-    print('PDF guardado en: $filePath');
+    // ignore: unused_local_variable
+    final anchor = html.AnchorElement(href: url)
+      ..target = '_blank'
+      ..download = fileName
+      ..click();
 
-    // Mostrar vista previa e imprimir
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+    // Liberar el objeto URL después de descargar
+    html.Url.revokeObjectUrl(url);
+
+    print('PDF Reporte entrada descargado exitosamente.');
   } catch (e) {
     // ignore: avoid_print
     print('Error al guardar el PDF: $e');

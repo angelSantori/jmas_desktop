@@ -366,7 +366,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                           }
 
                           await generateAndPrintPdfEntrada(
-                            context: context,
                             movimiento: 'Entrada',
                             fecha: _fecha,
                             referencia: _referenciaController.text,
