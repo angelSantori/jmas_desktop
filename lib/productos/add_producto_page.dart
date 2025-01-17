@@ -1,8 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -17,7 +14,6 @@ class AddProductoPage extends StatefulWidget {
 
 class _AddProductoPageState extends State<AddProductoPage> {
   final ProductosController _productosController = ProductosController();
-
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _costoController = TextEditingController();
   final TextEditingController _precio1Controller = TextEditingController();
@@ -39,7 +35,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
   bool _isLoading = false;
 
   String? _selectedUnidadMedida;
-  File? _selectedImage;
+  XFile? _selectedImage;
   String? _encodedImage;
 
   final ImagePicker _imagePicker = ImagePicker();
@@ -49,9 +45,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
         await _imagePicker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
+      final bytes = await image.readAsBytes();
       setState(() {
-        _selectedImage = File(image.path);
-        _encodedImage = base64Encode(_selectedImage!.readAsBytesSync());
+        _selectedImage = image;
+        _encodedImage = base64Encode(bytes);
       });
     }
   }
@@ -65,6 +62,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedImage == null) {
         showAdvertence(context, 'Imagen es obligatoria');
+        setState(() {
+          _isSubmitted = false;
+          _isLoading = false;
+        });
         return;
       }
       try {
@@ -102,6 +103,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
     }
 
     setState(() {
+      _isSubmitted = false;
       _isLoading = false;
     });
   }
@@ -318,19 +320,36 @@ class _AddProductoPageState extends State<AddProductoPage> {
 
                   //Botón para enviar el formulario
                   ElevatedButton(
-                    onPressed: _submitForm,
+                    onPressed: _isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade900,
+                        backgroundColor:
+                            _isLoading ? Colors.grey : Colors.blue.shade900,
                         textStyle: const TextStyle(
                           fontSize: 20,
                         )),
-                    child: const Text(
-                      'Registrar Producto',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Text('Cargando...'),
+                            ],
+                          )
+                        : const Text(
+                            'Registrar Producto',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
 
                   const SizedBox(height: 50),

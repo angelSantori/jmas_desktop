@@ -28,7 +28,7 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
 
   final List<Map<String, dynamic>> _productosAgregados = [];
 
-  bool _isLoading = false;
+  bool _isLoadingGaurdando = false;
 
   String? idUserReporte;
 
@@ -74,6 +74,9 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
     }
 
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoadingGaurdando = true;
+      });
       bool success = true;
       for (var producto in _productosAgregados) {
         await _getUserId();
@@ -128,6 +131,10 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
       }
 
       _limpiarFormulario();
+
+      setState(() {
+        _isLoadingGaurdando = false;
+      });
     }
   }
 
@@ -210,7 +217,6 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
                     productosController: _productosController,
-                    isLoading: _isLoading,
                     selectedProducto: _selectedProducto,
                     onProductoSeleccionado: (producto) {
                       setState(() {
@@ -257,17 +263,40 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
                     children: [
                       //Guardar entrada
                       ElevatedButton(
-                        onPressed: _guardarAjusteMas,
+                        onPressed:
+                            _isLoadingGaurdando ? null : _guardarAjusteMas,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
                         ),
-                        child: const Text(
-                          'Guardar Ajuste +',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isLoadingGaurdando
+                            ? const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Guardando...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Text(
+                                'Guardar Ajuste +',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ],
                   ),

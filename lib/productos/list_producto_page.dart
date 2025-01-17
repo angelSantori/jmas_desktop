@@ -18,6 +18,8 @@ class _ListProductoPageState extends State<ListProductoPage> {
   List<Productos> _allProductos = [];
   List<Productos> _filteredProductos = [];
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +28,9 @@ class _ListProductoPageState extends State<ListProductoPage> {
   }
 
   Future<void> _loadProductos() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final productos = await _productosController.listProductos();
       setState(() {
@@ -34,6 +39,10 @@ class _ListProductoPageState extends State<ListProductoPage> {
       });
     } catch (e) {
       print('Error al cargar productos: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -69,131 +78,137 @@ class _ListProductoPageState extends State<ListProductoPage> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: _filteredProductos.isEmpty
-                  ? const Center(
-                      child: Text(
-                          'No hay productos que coincidan con la búsqueda'),
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                          color: Colors.blue.shade900),
                     )
-                  : ListView.builder(
-                      itemCount: _filteredProductos.length,
-                      itemBuilder: (context, index) {
-                        final producto = _filteredProductos[index];
-                        return Card(
-                          color: const Color.fromARGB(255, 201, 230, 242),
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: producto.producto_ImgBase64 != null &&
-                                          producto
-                                              .producto_ImgBase64!.isNotEmpty
-                                      ? Image.memory(
-                                          base64Decode(
-                                              producto.producto_ImgBase64!),
-                                          width: 200,
-                                          height: 200,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.asset(
-                                          'assets/images/sinFoto.jpg',
-                                          width: 200,
-                                          height: 200,
-                                          fit: BoxFit.cover,
-                                        ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '${producto.producto_Descripcion}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        'Clave: ${producto.id_Producto}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        'Costo: \$${producto.producto_Costo}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        'Existencias: ${producto.producto_Existencia} ${producto.producto_UMedida}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        'Existencias iniciales: ${producto.producto_ExistenciaInicial} ${producto.producto_UMedida}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
+                  : _filteredProductos.isEmpty
+                      ? const Center(
+                          child: Text(
+                              'No hay productos que coincidan con la búsqueda'),
+                        )
+                      : ListView.builder(
+                          itemCount: _filteredProductos.length,
+                          itemBuilder: (context, index) {
+                            final producto = _filteredProductos[index];
+                            return Card(
+                              color: const Color.fromARGB(255, 201, 230, 242),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.black,
-                                        size: 30,
-                                      ),
-                                      onPressed: () async {
-                                        final result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditProductoPage(
-                                                    producto: producto),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: producto.producto_ImgBase64 !=
+                                                  null &&
+                                              producto.producto_ImgBase64!
+                                                  .isNotEmpty
+                                          ? Image.memory(
+                                              base64Decode(
+                                                  producto.producto_ImgBase64!),
+                                              width: 200,
+                                              height: 200,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.asset(
+                                              'assets/images/sinFoto.jpg',
+                                              width: 200,
+                                              height: 200,
+                                              fit: BoxFit.cover,
+                                            ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '${producto.producto_Descripcion}',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        );
-                                        if (result == true) {
-                                          _loadProductos();
-                                        }
-                                      },
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            'Clave: ${producto.id_Producto}',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            'Costo: \$${producto.producto_Costo}',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            'Existencias: ${producto.producto_Existencia} ${producto.producto_UMedida}',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            'Existencias iniciales: ${producto.producto_ExistenciaInicial} ${producto.producto_UMedida}',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            color: Colors.black,
+                                            size: 30,
+                                          ),
+                                          onPressed: () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditProductoPage(
+                                                        producto: producto),
+                                              ),
+                                            );
+                                            if (result == true) {
+                                              _loadProductos();
+                                            }
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),

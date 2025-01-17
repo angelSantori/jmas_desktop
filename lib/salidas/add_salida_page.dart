@@ -135,6 +135,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       return;
     }
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
       bool success = true; // Para verificar si al menos una entrada fue exitosa
       for (var producto in _productosAgregados) {
         await _getUserId();
@@ -184,9 +187,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       if (success) {
         // ignore: use_build_context_synchronously
         showOk(context, 'Salida creada exitosamente.');
+        setState(() {
+          _isLoading = false;
+        });
       } else {
         // ignore: use_build_context_synchronously
         showError(context, 'Error al registrar salida');
+        setState(() {
+          _isLoading = false;
+        });
       }
 
       _limpiarFormulario(); // Limpiar formulario después de guardar
@@ -238,7 +247,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 50),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -377,7 +386,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
                     productosController: _productosController,
-                    isLoading: _isLoading,
                     selectedProducto: _selectedProducto,
                     onProductoSeleccionado: (p0) {
                       setState(() {
@@ -470,16 +478,38 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
                       //Guardar
                       ElevatedButton(
-                        onPressed: _guardarSalida,
+                        onPressed: _isLoading ? null : _guardarSalida,
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue.shade900),
-                        child: const Text(
-                          'Guardar Salida',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Guardando...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Text(
+                                'Guardar Salida',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ],
                   ),

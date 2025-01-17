@@ -16,6 +16,8 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
   List<Proveedores> _allProveedores = [];
   List<Proveedores> _filteredProveedores = [];
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -24,13 +26,21 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
   }
 
   Future<void> _loadProveedores() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final proveedores = await _proveedoresController.listProveedores();
       setState(() {
         _allProveedores = proveedores;
         _filteredProveedores = proveedores;
       });
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _filterProveedores() {
@@ -46,6 +56,8 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Proveedores'),
@@ -66,105 +78,106 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
               ),
             ),
             Expanded(
-              child: _filteredProveedores.isEmpty
-                  ? const Center(
-                      child: Text(
-                          'No hay proveedores que coincidan con la búsqueda'),
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                          color: Colors.blue.shade900),
                     )
-                  : GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 20,
-                        mainAxisSpacing: 30,
-                        childAspectRatio: 4,
-                      ),
-                      itemCount: _filteredProveedores.length,
-                      itemBuilder: (context, index) {
-                        final proveedor = _filteredProveedores[index];
-
-                        return Card(
-                          color: const Color.fromARGB(255, 201, 230, 242),
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      //Name proveedor
-                                      Text(
-                                        '${proveedor.proveedor_Name}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-
-                                      //Phone proveedor
-                                      Text(
-                                        'Contacto: ${proveedor.proveedor_Phone}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-
-                                      //Address proveedor
-                                      Text(
-                                        'Dirección: ${proveedor.proveedor_Address}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                //Editar
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.black,
-                                        size: 30,
-                                      ),
-                                      onPressed: () async {
-                                        final result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditProveedorPage(
-                                                    proveedor: proveedor),
-                                          ),
-                                        );
-                                        if (result == true) {
-                                          _loadProveedores();
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
+                  : _filteredProveedores.isEmpty
+                      ? const Center(
+                          child: Text(
+                              'No hay proveedores que coincidan con la búsqueda'),
+                        )
+                      : GridView.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: screenWidth > 800
+                                ? 4
+                                : screenWidth > 600
+                                    ? 3
+                                    : 2,
+                            crossAxisSpacing: 20,
+                            mainAxisSpacing: 30,
+                            childAspectRatio: screenWidth > 800
+                                ? 1
+                                : screenWidth > 600
+                                    ? 2.5
+                                    : 2,
                           ),
-                        );
-                      },
-                    ),
+                          itemCount: _filteredProveedores.length,
+                          itemBuilder: (context, index) {
+                            final proveedor = _filteredProveedores[index];
+
+                            return Card(
+                              color: const Color.fromARGB(255, 201, 230, 242),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${proveedor.proveedor_Name}',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+
+                                    //Phone proveedor
+                                    Text(
+                                      'Contacto: ${proveedor.proveedor_Phone}',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+
+                                    //Address proveedor
+                                    Text(
+                                      'Dirección: ${proveedor.proveedor_Address}',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    const Spacer(),
+
+                                    //Editar
+                                    Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Colors.black,
+                                          size: 20,
+                                        ),
+                                        onPressed: () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditProveedorPage(
+                                                      proveedor: proveedor),
+                                            ),
+                                          );
+                                          if (result == true) {
+                                            _loadProveedores();
+                                          }
+                                        },
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
             ),
             const SizedBox(height: 30),
           ],

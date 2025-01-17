@@ -457,11 +457,10 @@ Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
 }
 
 //Buscar producto
-class BuscarProductoWidget extends StatelessWidget {
+class BuscarProductoWidget extends StatefulWidget {
   final TextEditingController idProductoController;
   final TextEditingController cantidadController;
   final ProductosController productosController;
-  final bool isLoading;
   final Productos? selectedProducto;
   final Function(Productos?) onProductoSeleccionado;
   final Function(String) onAdvertencia;
@@ -471,11 +470,17 @@ class BuscarProductoWidget extends StatelessWidget {
     required this.idProductoController,
     required this.cantidadController,
     required this.productosController,
-    required this.isLoading,
     required this.selectedProducto,
     required this.onProductoSeleccionado,
     required this.onAdvertencia,
   }) : super(key: key);
+
+  @override
+  State<BuscarProductoWidget> createState() => _BuscarProductoWidgetState();
+}
+
+class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
+  final ValueNotifier<bool> _isLoading = ValueNotifier(false);
 
   Uint8List? _decodeImage(String? base64Image) {
     if (base64Image == null || base64Image.isEmpty) {
@@ -485,6 +490,31 @@ class BuscarProductoWidget extends StatelessWidget {
       return base64Decode(base64Image);
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<void> _buscarProducto() async {
+    final id = widget.idProductoController.text;
+    if (id.isNotEmpty) {
+      widget
+          .onProductoSeleccionado(null); // Limpiar el producto antes de buscar
+      _isLoading.value = true; // Iniciar el estado de carga
+
+      try {
+        final producto =
+            await widget.productosController.getProductoById(int.parse(id));
+        if (producto != null) {
+          widget.onProductoSeleccionado(producto);
+        } else {
+          widget.onAdvertencia('Producto con ID: $id, no encontrado');
+        }
+      } catch (e) {
+        widget.onAdvertencia('Error al buscar el producto: $e');
+      } finally {
+        _isLoading.value = false; // Finalizar el estado de carga
+      }
+    } else {
+      widget.onAdvertencia('Por favor, ingrese un ID de producto.');
     }
   }
 
@@ -498,7 +528,7 @@ class BuscarProductoWidget extends StatelessWidget {
         SizedBox(
           width: 160,
           child: CustomTextFielTexto(
-            controller: idProductoController,
+            controller: widget.idProductoController,
             prefixIcon: Icons.search,
             labelText: 'Id Producto',
           ),
@@ -506,40 +536,39 @@ class BuscarProductoWidget extends StatelessWidget {
         const SizedBox(width: 15),
 
         // Botón para buscar producto
-        ElevatedButton(
-          onPressed: () async {
-            final id = idProductoController.text;
-            if (id.isNotEmpty) {
-              onProductoSeleccionado(
-                  null); // Limpiar el producto antes de buscar
-              final producto =
-                  await productosController.getProductoById(int.parse(id));
-              if (producto != null) {
-                onProductoSeleccionado(producto);
-              } else {
-                onAdvertencia('Producto con ID: $id, no encontrado');
-              }
-            } else {
-              onAdvertencia('Por favor, ingrese un ID de producto.');
-            }
+        ValueListenableBuilder<bool>(
+          valueListenable: _isLoading,
+          builder: (context, isLoading, child) {
+            return ElevatedButton(
+              onPressed: isLoading ? null : _buscarProducto,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isLoading
+                    ? Colors.grey
+                    : Colors.blue.shade900, // Cambiar color si está cargando
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Buscar producto',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            );
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue.shade900,
-          ),
-          child: const Text(
-            'Buscar producto',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ),
         const SizedBox(width: 15),
 
         // Información del Producto
-        if (isLoading)
-          const CircularProgressIndicator()
-        else if (selectedProducto != null)
+        if (widget.selectedProducto != null)
           Expanded(
             flex: 2,
             child: Row(
@@ -556,15 +585,15 @@ class BuscarProductoWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        'Descripción: ${selectedProducto!.producto_Descripcion ?? 'No disponible'}',
+                        'Descripción: ${widget.selectedProducto!.producto_Descripcion ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
                       ),
                       Text(
-                        'Precio: \$${selectedProducto!.producto_Precio1?.toStringAsFixed(2) ?? 'No disponible'}',
+                        'Precio: \$${widget.selectedProducto!.producto_Precio1?.toStringAsFixed(2) ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
                       ),
                       Text(
-                        'Existencia: ${selectedProducto!.producto_Existencia ?? 'No disponible'}',
+                        'Existencia: ${widget.selectedProducto!.producto_Existencia ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
                       ),
                     ],
@@ -572,7 +601,7 @@ class BuscarProductoWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 15),
 
-                //Imagen del producto
+                // Imagen del producto
                 Container(
                   height: 100,
                   width: 100,
@@ -580,9 +609,10 @@ class BuscarProductoWidget extends StatelessWidget {
                     border: Border.all(color: Colors.grey),
                     color: Colors.grey.shade200,
                   ),
-                  child: selectedProducto!.producto_ImgBase64 != null
+                  child: widget.selectedProducto!.producto_ImgBase64 != null
                       ? Image.memory(
-                          _decodeImage(selectedProducto!.producto_ImgBase64)!,
+                          _decodeImage(
+                              widget.selectedProducto!.producto_ImgBase64)!,
                           fit: BoxFit.cover,
                         )
                       : Image.asset(
@@ -610,7 +640,7 @@ class BuscarProductoWidget extends StatelessWidget {
             SizedBox(
               width: 140,
               child: CustomTextFielTexto(
-                controller: cantidadController,
+                controller: widget.cantidadController,
                 prefixIcon: Icons.numbers_outlined,
                 labelText: 'Cantidad',
               ),

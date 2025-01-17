@@ -105,6 +105,9 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       return;
     }
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
       bool success = true; // Para verificar si al menos una entrada fue exitosa
       for (var producto in _productosAgregados) {
         await _getUserId();
@@ -153,12 +156,18 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       if (success) {
         // ignore: use_build_context_synchronously
         showOk(context, 'Entrada creada exitosamente.');
+        setState(() {
+          _isLoading = false;
+        });
       } else {
         // ignore: use_build_context_synchronously
         showError(context, 'Error al registrar entradas');
+        setState(() {
+          _isLoading = false;
+        });
       }
 
-      _limpiarFormulario(); // Limpiar formulario después de guardar
+      _limpiarFormulario();
     }
   }
 
@@ -202,7 +211,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 50),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -261,7 +270,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                               proveedor.proveedor_Name ?? 'Sin nombre',
                         ),
                       ),
-                      const SizedBox(width: 50),
+                      const SizedBox(width: 30),
 
                       //Users
                       Expanded(
@@ -293,7 +302,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
                     productosController: _productosController,
-                    isLoading: _isLoading,
                     selectedProducto: _selectedProducto,
                     onProductoSeleccionado: (producto) {
                       setState(() {
@@ -384,17 +392,39 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
                       //Guardar entrada
                       ElevatedButton(
-                        onPressed: _guardarEntrada,
+                        onPressed: _isLoading ? null : _guardarEntrada,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
                         ),
-                        child: const Text(
-                          'Guardar Entrada',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Guardando...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Text(
+                                'Guardar Entrada',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ],
                   ),

@@ -28,7 +28,7 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
 
   final List<Map<String, dynamic>> _productosAgregados = [];
 
-  bool _isLoading = false;
+  bool _isLoadingGaurdando = false;
 
   String? idUserReporte;
 
@@ -74,6 +74,9 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
     }
 
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoadingGaurdando = true;
+      });
       bool success = true;
       for (var producto in _productosAgregados) {
         await _getUserId();
@@ -120,13 +123,17 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
       // Mostrar el mensaje correspondiente al finalizar el ciclo
       if (success) {
         // ignore: use_build_context_synchronously
-        showOk(context, 'Ajuste Más creado exitosamente.');
+        showOk(context, 'Ajuste Menos creado exitosamente.');
       } else {
         // ignore: use_build_context_synchronously
-        showError(context, 'Error al registrar ajuste más');
+        showError(context, 'Error al registrar ajuste menos');
       }
 
       _limpiarFormulario();
+
+      setState(() {
+        _isLoadingGaurdando = false;
+      });
     }
   }
 
@@ -206,7 +213,6 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
                     productosController: _productosController,
-                    isLoading: _isLoading,
                     selectedProducto: _selectedProducto,
                     onProductoSeleccionado: (producto) {
                       setState(() {
@@ -254,17 +260,40 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: _guardarAjusteMenos,
+                        onPressed:
+                            _isLoadingGaurdando ? null : _guardarAjusteMenos,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
                         ),
-                        child: const Text(
-                          'Guardar Ajuste -',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: _isLoadingGaurdando
+                            ? const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Guardando...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Text(
+                                'Guardar Ajuste -',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ],
                   ),

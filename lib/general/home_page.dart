@@ -25,17 +25,20 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
   String? _userName;
+  String? _userRole;
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserData();
   }
 
-  Future<void> _loadUserName() async {
+  Future<void> _loadUserData() async {
     final decodeToken = await _authService.decodeToken();
     setState(() {
       _userName = decodeToken?['User_Name'];
+      _userRole = decodeToken?[
+          'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
     });
   }
 
@@ -134,13 +137,15 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = _userRole == "Admin";
+
     return Scaffold(
       body: Row(
         children: [
           // Menú lateral
           Container(
-            width: 250, // Ancho fijo del menú
-            color: Colors.blue.shade900, // Color de fondo del menú
+            width: 250,
+            color: Colors.blue.shade900,
             child: Column(
               children: [
                 // Encabezado del menú
@@ -151,7 +156,6 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     children: [
                       const SizedBox(height: 10),
-                      //Logo
                       SizedBox(
                         height: 100,
                         child: Image.asset('assets/images/logo_jmas_sf.png'),
@@ -179,10 +183,7 @@ class _HomePageState extends State<HomePage> {
                         ListTile(
                           title: const Row(
                             children: [
-                              Icon(
-                                Icons.home,
-                                color: Colors.white,
-                              ),
+                              Icon(Icons.home, color: Colors.white),
                               SizedBox(width: 8),
                               Text(
                                 'Principal',
@@ -196,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                           onTap: _navigateToHome,
                         ),
 
-                        //Productos
+                        // Productos (siempre accesibles)
                         CustomExpansionTile(
                           title: 'Productos',
                           icon: Icons.store,
@@ -206,15 +207,16 @@ class _HomePageState extends State<HomePage> {
                               icon: Icons.list_alt_rounded,
                               onTap: _navigateToListProducto,
                             ),
-                            CustomListTile(
-                              title: 'Agregar Producto',
-                              icon: Icons.add_shopping_cart_rounded,
-                              onTap: _navigateToAddProducto,
-                            ),
+                            if (isAdmin)
+                              CustomListTile(
+                                title: 'Agregar Producto',
+                                icon: Icons.add_shopping_cart_rounded,
+                                onTap: _navigateToAddProducto,
+                              ),
                           ],
                         ),
 
-                        //Proveedores
+                        // Proveedores (siempre accesibles)
                         CustomExpansionTile(
                           title: 'Proveedores',
                           icon: Icons.people,
@@ -224,15 +226,16 @@ class _HomePageState extends State<HomePage> {
                               icon: Icons.format_align_left_rounded,
                               onTap: _navigateToListProveedores,
                             ),
-                            CustomListTile(
-                              title: 'Agragar Proveedor',
-                              icon: Icons.add_box,
-                              onTap: _navigateToAddProveedores,
-                            ),
+                            if (isAdmin)
+                              CustomListTile(
+                                title: 'Agregar Proveedor',
+                                icon: Icons.add_box,
+                                onTap: _navigateToAddProveedores,
+                              ),
                           ],
                         ),
 
-                        //Usuarios
+                        // Usuarios
                         CustomExpansionTile(
                           title: 'Usuarios',
                           icon: Icons.person,
@@ -242,20 +245,21 @@ class _HomePageState extends State<HomePage> {
                               icon: Icons.format_list_bulleted,
                               onTap: _navigateToListUsers,
                             ),
-                            CustomListTile(
-                              title: 'Agregar Usuario',
-                              icon: Icons.add_reaction_sharp,
-                              onTap: _navigateToAddUsers,
-                            ),
+                            if (isAdmin)
+                              CustomListTile(
+                                title: 'Agregar Usuario',
+                                icon: Icons.add_reaction_sharp,
+                                onTap: _navigateToAddUsers,
+                              ),
                           ],
                         ),
 
-                        //Movimientos
+                        // Movimientos (solo accesibles para Admin)
+
                         CustomExpansionTile(
                           title: 'Movimientos',
                           icon: Icons.folder_copy_rounded,
                           children: [
-                            //Entradas
                             SubCustomExpansionTile(
                               title: 'Entradas',
                               icon: Icons.abc,
@@ -272,8 +276,6 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-
-                            //Salidas
                             SubCustomExpansionTile(
                               title: 'Salidas',
                               icon: Icons.ac_unit,
@@ -290,20 +292,15 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-
-                            //Ajustes
                             SubCustomExpansionTile(
                               title: 'Ajustes',
                               icon: Icons.miscellaneous_services_outlined,
                               children: [
-                                //Ajuste más
                                 CustomListTile(
                                   title: 'Ajuste +',
                                   icon: Icons.add,
                                   onTap: _navigateToAddAjusteMas,
                                 ),
-
-                                //Ajuste menos
                                 CustomListTile(
                                   title: 'Ajuste -',
                                   icon: Icons.remove,
@@ -322,10 +319,7 @@ class _HomePageState extends State<HomePage> {
                 ListTile(
                   title: Row(
                     children: [
-                      Icon(
-                        Icons.logout,
-                        color: Colors.redAccent.shade400,
-                      ),
+                      Icon(Icons.logout, color: Colors.redAccent.shade400),
                       const SizedBox(width: 8),
                       Text(
                         'Salir',
@@ -336,36 +330,12 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  onTap: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text('Confirmar cierre de seisón.'),
-                          content: const Text(
-                              '¿Estás seguro de que deseas cerrar sesión?'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Cancelar'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Salir'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-
-                    if (confirm == true) {
-                      _logOut();
-                    }
-                  },
+                  onTap: _logOut,
                 ),
               ],
             ),
           ),
+
           // Contenido principal
           Expanded(
             child: Container(

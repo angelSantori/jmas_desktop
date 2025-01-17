@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CustomTextFieldAzul extends StatelessWidget {
   final TextEditingController controller;
@@ -261,7 +260,7 @@ class CustomListaDesplegable extends StatelessWidget {
 
 class CustomImagePicker extends StatelessWidget {
   final VoidCallback onPickImage;
-  final File? selectedImage;
+  final XFile? selectedImage;
   final String buttonText;
   final String? Function()? validator;
 
@@ -282,8 +281,8 @@ class CustomImagePicker extends StatelessWidget {
           Center(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                selectedImage!,
+              child: Image.network(
+                selectedImage!.path,
                 height: 180,
                 width: 180,
                 fit: BoxFit.cover,
