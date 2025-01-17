@@ -25,7 +25,17 @@ class _AddProductoPageState extends State<AddProductoPage> {
   final TextEditingController _existenciaConFisController =
       TextEditingController();
 
-  final List<String> _unidadMedida = ['Mts', 'Kg', 'Gr', 'Lts', 'Cm'];
+  final List<String> _unidadMedida = [
+    'Pza',
+    'Mto',
+    'Mtrs',
+    'Saco',
+    'Kg',
+    'Cilin',
+    'Lts',
+    'Caja',
+    'Gfon'
+  ];
 
   final _formKey = GlobalKey<FormState>();
 
