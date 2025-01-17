@@ -127,11 +127,37 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _logOut() {
-    _authService.deleteToken();
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+    showDialog(
+      context: context,
+      builder: (BuildContext cotext) {
+        return AlertDialog(
+          title: const Text('Confirmación'),
+          content: const Text('¿Estás seguro que deseas cerrar sesión?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _authService.deleteToken();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              },
+              child: const Text(
+                'Cerrar sesión',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
