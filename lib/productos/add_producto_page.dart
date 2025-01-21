@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -16,25 +17,38 @@ class _AddProductoPageState extends State<AddProductoPage> {
   final ProductosController _productosController = ProductosController();
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _costoController = TextEditingController();
-  final TextEditingController _precio1Controller = TextEditingController();
-  final TextEditingController _precio2Controller = TextEditingController();
-  final TextEditingController _precio3Controller = TextEditingController();
+  final TextEditingController _precioController = TextEditingController();
   final TextEditingController _existenciaController = TextEditingController();
-  final TextEditingController _existenciaInicialController =
-      TextEditingController();
-  final TextEditingController _existenciaConFisController =
-      TextEditingController();
+  final TextEditingController _maxController = TextEditingController();
+  final TextEditingController _minController = TextEditingController();
 
-  final List<String> _unidadMedida = [
-    'Pza',
-    'Mto',
-    'Mtrs',
-    'Saco',
-    'Kg',
-    'Cilin',
-    'Lts',
+  final ProveedoresController _proveedoresController = ProveedoresController();
+  List<Proveedores> _proveedores = [];
+  Proveedores? _selectedProveedor;
+
+  final List<String> _unMedEntrada = [
     'Caja',
-    'Gfon'
+    'Paquete',
+    'Saco',
+    'Tarima',
+    'Contenedor',
+    'Bolsa',
+    'Tambor',
+    'Rollo',
+    'Pallet',
+    'Barril',
+  ];
+
+  final List<String> _unMedSalida = [
+    'Pza (Pieza)',
+    'Kg (Kilogramo)',
+    'Lts (Litros)',
+    'Mto (Metro)',
+    'Cilin (Cilindro)',
+    'Gfon (Galón)',
+    'Gr (Gramos)',
+    'Ml (Mililitros)',
+    'Un (Unidad)'
   ];
 
   final _formKey = GlobalKey<FormState>();
@@ -44,11 +58,26 @@ class _AddProductoPageState extends State<AddProductoPage> {
   // ignore: unused_field
   bool _isLoading = false;
 
-  String? _selectedUnidadMedida;
+  String? _selectedUnMedSalida;
+  String? _selectedUnMedEntrada;
   XFile? _selectedImage;
   String? _encodedImage;
 
   final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProveedores();
+  }
+
+  Future<void> _loadProveedores() async {
+    List<Proveedores> proveedores =
+        await _proveedoresController.listProveedores();
+    setState(() {
+      _proveedores = proveedores;
+    });
+  }
 
   Future<void> _pickImage() async {
     final XFile? image =
@@ -81,18 +110,16 @@ class _AddProductoPageState extends State<AddProductoPage> {
       try {
         final producto = Productos(
           id_Producto: 0,
-          producto_Descripcion: _descripcionController.text,
-          producto_Costo: double.parse(_costoController.text),
-          producto_UMedida: _selectedUnidadMedida!,
-          producto_Precio1: double.parse(_precio1Controller.text),
-          producto_Precio2: double.parse(_precio2Controller.text),
-          producto_Precio3: double.parse(_precio3Controller.text),
-          producto_Existencia: double.parse(_existenciaController.text),
-          producto_ExistenciaInicial:
-              double.parse(_existenciaInicialController.text),
-          producto_ExistenciaConFis:
-              double.parse(_existenciaConFisController.text),
-          producto_ImgBase64: _encodedImage,
+          prodDescripcion: _descripcionController.text,
+          prodExistencia: double.parse(_existenciaController.text),
+          prodMax: double.parse(_maxController.text),
+          prodMin: double.parse(_minController.text),
+          prodCosto: double.parse(_costoController.text),
+          prodUMedSalida: _selectedUnMedSalida,
+          prodUMedEntrada: _selectedUnMedEntrada,
+          prodPrecio: double.parse(_precioController.text),
+          prodImgB64: _encodedImage,
+          idProveedor: _selectedProveedor?.id_Proveedor ?? 0,
         );
         final success = await _productosController.addProducto(producto);
 
@@ -119,16 +146,17 @@ class _AddProductoPageState extends State<AddProductoPage> {
   }
 
   void _clearForm() {
+    _formKey.currentState!.reset();
     _descripcionController.clear();
     _costoController.clear();
-    _precio1Controller.clear();
-    _precio2Controller.clear();
-    _precio3Controller.clear();
+    _precioController.clear();
     _existenciaController.clear();
-    _existenciaInicialController.clear();
-    _existenciaConFisController.clear();
+    _maxController.clear();
+    _minController.clear();
     setState(() {
-      _selectedUnidadMedida = null;
+      _selectedUnMedEntrada = null;
+      _selectedUnMedSalida = null;
+      _selectedProveedor = null;
       _selectedImage = null;
     });
   }
@@ -184,19 +212,15 @@ class _AddProductoPageState extends State<AddProductoPage> {
 
                       const SizedBox(width: 30),
 
+                      //Existencia
                       Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedUnidadMedida,
-                          labelText: 'Unidad de Medida',
-                          items: _unidadMedida,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedUnidadMedida = value;
-                            });
-                          },
+                        child: CustomTextFieldNumero(
+                          controller: _existenciaController,
+                          labelText: 'Existencias',
+                          prefixIcon: Icons.numbers_rounded,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Unidad de medida obligatoria.';
+                              return 'Existencias obligatorio.';
                             }
                             return null;
                           },
@@ -208,19 +232,18 @@ class _AddProductoPageState extends State<AddProductoPage> {
                   const Divider(),
                   const SizedBox(height: 30),
 
-                  //Precios
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      //Precio 1
+                      //Precio
                       Expanded(
                         child: CustomTextFieldNumero(
-                          controller: _precio1Controller,
-                          labelText: 'Precio 1',
+                          controller: _precioController,
+                          labelText: 'Precio',
                           prefixIcon: Icons.attach_money_rounded,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Precio 1 obligatorio.';
+                              return 'Precio obligatorio.';
                             }
                             return null;
                           },
@@ -228,15 +251,15 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       ),
                       const SizedBox(width: 30),
 
-                      //Precio 2
+                      //Max
                       Expanded(
                         child: CustomTextFieldNumero(
-                          controller: _precio2Controller,
-                          labelText: 'Precio 2',
-                          prefixIcon: Icons.attach_money_rounded,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Precio 2 obligatorio.';
+                          controller: _maxController,
+                          labelText: 'Máximas unidades',
+                          prefixIcon: Icons.numbers_rounded,
+                          validator: (max) {
+                            if (max == null || max.isEmpty) {
+                              return 'Máximas unidades obligatorias.';
                             }
                             return null;
                           },
@@ -244,15 +267,15 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       ),
                       const SizedBox(width: 30),
 
-                      //Precio 3
+                      //Min
                       Expanded(
                         child: CustomTextFieldNumero(
-                          controller: _precio3Controller,
-                          labelText: 'Precio 3',
-                          prefixIcon: Icons.attach_money_rounded,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Precio 3 obligatorio.';
+                          controller: _minController,
+                          labelText: 'Mínimas unidades',
+                          prefixIcon: Icons.numbers_rounded,
+                          validator: (min) {
+                            if (min == null || min.isEmpty) {
+                              return 'Mínimas unidades obligatorias.';
                             }
                             return null;
                           },
@@ -268,15 +291,19 @@ class _AddProductoPageState extends State<AddProductoPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      //Existencia
                       Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _existenciaController,
-                          labelText: 'Existencias',
-                          prefixIcon: Icons.numbers_rounded,
+                        child: CustomListaDesplegable(
+                          value: _selectedUnMedEntrada,
+                          labelText: 'Unidad de Medida Entrada',
+                          items: _unMedEntrada,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedUnMedEntrada = value;
+                            });
+                          },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Existencias obligatorio.';
+                              return 'Unidad de medida entrada obligatoria.';
                             }
                             return null;
                           },
@@ -284,15 +311,20 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       ),
                       const SizedBox(width: 30),
 
-                      //Existencia inicial
+                      //UnMedSalida
                       Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _existenciaInicialController,
-                          labelText: 'Existencias iniciales',
-                          prefixIcon: Icons.numbers_rounded,
+                        child: CustomListaDesplegable(
+                          value: _selectedUnMedSalida,
+                          labelText: 'Unidad de Medida Salida',
+                          items: _unMedSalida,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedUnMedSalida = value;
+                            });
+                          },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Existencias iniciales obligatorio.';
+                              return 'Unidad de medida salida obligatoria.';
                             }
                             return null;
                           },
@@ -300,18 +332,25 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       ),
                       const SizedBox(width: 30),
 
-                      //Existencia conteo fisico
+                      //Proveedor
                       Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _existenciaConFisController,
-                          labelText: 'Existencias conteo físico',
-                          prefixIcon: Icons.numbers_rounded,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Existencias conteo físico obligatorio.';
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedProveedor,
+                          labelText: 'Proveedor',
+                          items: _proveedores,
+                          onChanged: (prov) {
+                            setState(() {
+                              _selectedProveedor = prov;
+                            });
+                          },
+                          validator: (prov) {
+                            if (prov == null) {
+                              return 'Proveedor obligatorio.';
                             }
                             return null;
                           },
+                          itemLabelBuilder: (prov) =>
+                              prov.proveedor_Name ?? 'Sin nombre',
                         ),
                       ),
                     ],

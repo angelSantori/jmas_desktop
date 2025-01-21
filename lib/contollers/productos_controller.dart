@@ -1,15 +1,15 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-// ignore_for_file: non_constant_identifier_names
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class ProductosController {
-  final AuthService _authService = AuthService();  
+  final AuthService _authService = AuthService();
 
   //Agregar Producto
   Future<bool> addProducto(Productos prodcuto) async {
-    
     try {
       final response = await http.post(
         Uri.parse('${_authService.apiURL}/Productos'),
@@ -34,8 +34,6 @@ class ProductosController {
 
   //Producto por ID
   Future<Productos?> getProductoById(int idProdcuto) async {
-    
-
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Productos/$idProdcuto'),
@@ -65,7 +63,6 @@ class ProductosController {
   //Lista Productos
   Future<List<Productos>> listProductos() async {
     try {
-      
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Productos'),
         headers: {
@@ -88,7 +85,6 @@ class ProductosController {
   }
 
   Future<bool> editProducto(Productos producto) async {
-    
     try {
       final response = await http.put(
         Uri.parse('${_authService.apiURL}/Productos/${producto.id_Producto}'),
@@ -113,73 +109,71 @@ class ProductosController {
 
 class Productos {
   int? id_Producto;
-  String? producto_Descripcion;
-  double? producto_Costo;
-  String? producto_UMedida;
-  double? producto_Precio1;
-  double? producto_Precio2;
-  double? producto_Precio3;
-  double? producto_Existencia;
-  double? producto_ExistenciaInicial;
-  double? producto_ExistenciaConFis;
-  String? producto_ImgBase64;
+  String? prodDescripcion;
+  double? prodExistencia;
+  double? prodMax;
+  double? prodMin;
+  double? prodCosto;
+  String? prodUMedSalida;
+  String? prodUMedEntrada;
+  double? prodPrecio;
+  String? prodImgB64;
+  int? idProveedor;
   Productos({
     this.id_Producto,
-    this.producto_Descripcion,
-    this.producto_Costo,
-    this.producto_UMedida,
-    this.producto_Precio1,
-    this.producto_Precio2,
-    this.producto_Precio3,
-    this.producto_Existencia,
-    this.producto_ExistenciaInicial,
-    this.producto_ExistenciaConFis,
-    this.producto_ImgBase64,
+    this.prodDescripcion,
+    this.prodExistencia,
+    this.prodMax,
+    this.prodMin,
+    this.prodCosto,
+    this.prodUMedSalida,
+    this.prodUMedEntrada,
+    this.prodPrecio,
+    this.prodImgB64,
+    this.idProveedor,
   });
 
   Productos copyWith({
     int? id_Producto,
-    String? producto_Descripcion,
-    double? producto_Costo,
-    String? producto_UMedida,
-    double? producto_Precio1,
-    double? producto_Precio2,
-    double? producto_Precio3,
-    double? producto_Existencia,
-    double? producto_ExistenciaInicial,
-    double? producto_ExistenciaConFis,
-    String? producto_ImgBase64,
+    String? prodDescripcion,
+    double? prodExistencia,
+    double? prodMax,
+    double? prodMin,
+    double? prodCosto,
+    String? prodUMedSalida,
+    String? prodUMedEntrada,
+    double? prodPrecio,
+    String? prodImgB64,
+    int? idProveedor,
   }) {
     return Productos(
       id_Producto: id_Producto ?? this.id_Producto,
-      producto_Descripcion: producto_Descripcion ?? this.producto_Descripcion,
-      producto_Costo: producto_Costo ?? this.producto_Costo,
-      producto_UMedida: producto_UMedida ?? this.producto_UMedida,
-      producto_Precio1: producto_Precio1 ?? this.producto_Precio1,
-      producto_Precio2: producto_Precio2 ?? this.producto_Precio2,
-      producto_Precio3: producto_Precio3 ?? this.producto_Precio3,
-      producto_Existencia: producto_Existencia ?? this.producto_Existencia,
-      producto_ExistenciaInicial:
-          producto_ExistenciaInicial ?? this.producto_ExistenciaInicial,
-      producto_ExistenciaConFis:
-          producto_ExistenciaConFis ?? this.producto_ExistenciaConFis,
-      producto_ImgBase64: producto_ImgBase64 ?? this.producto_ImgBase64,
+      prodDescripcion: prodDescripcion ?? this.prodDescripcion,
+      prodExistencia: prodExistencia ?? this.prodExistencia,
+      prodMax: prodMax ?? this.prodMax,
+      prodMin: prodMin ?? this.prodMin,
+      prodCosto: prodCosto ?? this.prodCosto,
+      prodUMedSalida: prodUMedSalida ?? this.prodUMedSalida,
+      prodUMedEntrada: prodUMedEntrada ?? this.prodUMedEntrada,
+      prodPrecio: prodPrecio ?? this.prodPrecio,
+      prodImgB64: prodImgB64 ?? this.prodImgB64,
+      idProveedor: idProveedor ?? this.idProveedor,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id_Producto': id_Producto,
-      'producto_Descripcion': producto_Descripcion,
-      'producto_Costo': producto_Costo,
-      'producto_UMedida': producto_UMedida,
-      'producto_Precio1': producto_Precio1,
-      'producto_Precio2': producto_Precio2,
-      'producto_Precio3': producto_Precio3,
-      'producto_Existencia': producto_Existencia,
-      'producto_ExistenciaInicial': producto_ExistenciaInicial,
-      'producto_ExistenciaConFis': producto_ExistenciaConFis,
-      'producto_ImgBase64': producto_ImgBase64,
+      'prodDescripcion': prodDescripcion,
+      'prodExistencia': prodExistencia,
+      'prodMax': prodMax,
+      'prodMin': prodMin,
+      'prodCosto': prodCosto,
+      'prodUMedSalida': prodUMedSalida,
+      'prodUMedEntrada': prodUMedEntrada,
+      'prodPrecio': prodPrecio,
+      'prodImgB64': prodImgB64,
+      'idProveedor': idProveedor,
     };
   }
 
@@ -187,50 +181,44 @@ class Productos {
     return Productos(
       id_Producto:
           map['id_Producto'] != null ? map['id_Producto'] as int : null,
-      producto_Descripcion: map['producto_Descripcion'] != null
-          ? map['producto_Descripcion'] as String
+      prodDescripcion: map['prodDescripcion'] != null
+          ? map['prodDescripcion'] as String
           : null,
-      producto_Costo: map['producto_Costo'] != null
-          ? (map['producto_Costo'] is int
-              ? (map['producto_Costo'] as int).toDouble()
-              : map['producto_Costo'] as double)
+      prodExistencia: map['prodExistencia'] != null
+          ? (map['prodExistencia'] is int
+              ? (map['prodExistencia'] as int).toDouble()
+              : map['prodExistencia'] as double)
           : null,
-      producto_UMedida: map['producto_UMedida'] != null
-          ? map['producto_UMedida'] as String
+      prodMax: map['prodMax'] != null
+          ? (map['prodMax'] is int
+              ? (map['prodMax'] as int).toDouble()
+              : map['prodMax'] as double)
           : null,
-      producto_Precio1: map['producto_Precio1'] != null
-          ? (map['producto_Precio1'] is int
-              ? (map['producto_Precio1'] as int).toDouble()
-              : map['producto_Precio1'] as double)
+      prodMin: map['prodMin'] != null
+          ? (map['prodMin'] is int
+              ? (map['prodMin'] as int).toDouble()
+              : map['prodMin'] as double)
           : null,
-      producto_Precio2: map['producto_Precio2'] != null
-          ? (map['producto_Precio2'] is int
-              ? (map['producto_Precio2'] as int).toDouble()
-              : map['producto_Precio2'] as double)
+      prodCosto: map['prodCosto'] != null
+          ? (map['prodCosto'] is int
+              ? (map['prodCosto'] as int).toDouble()
+              : map['prodCosto'] as double)
           : null,
-      producto_Precio3: map['producto_Precio3'] != null
-          ? (map['producto_Precio3'] is int
-              ? (map['producto_Precio3'] as int).toDouble()
-              : map['producto_Precio3'] as double)
+      prodUMedSalida: map['prodUMedSalida'] != null
+          ? map['prodUMedSalida'] as String
           : null,
-      producto_Existencia: map['producto_Existencia'] != null
-          ? (map['producto_Existencia'] is int
-              ? (map['producto_Existencia'] as int).toDouble()
-              : map['producto_Existencia'] as double)
+      prodUMedEntrada: map['prodUMedEntrada'] != null
+          ? map['prodUMedEntrada'] as String
           : null,
-      producto_ExistenciaInicial: map['producto_ExistenciaInicial'] != null
-          ? (map['producto_ExistenciaInicial'] is int
-              ? (map['producto_ExistenciaInicial'] as int).toDouble()
-              : map['producto_ExistenciaInicial'] as double)
+      prodPrecio: map['prodPrecio'] != null
+          ? (map['prodPrecio'] is int
+              ? (map['prodPrecio'] as int).toDouble()
+              : map['prodPrecio'] as double)
           : null,
-      producto_ExistenciaConFis: map['producto_ExistenciaConFis'] != null
-          ? (map['producto_ExistenciaConFis'] is int
-              ? (map['producto_ExistenciaConFis'] as int).toDouble()
-              : map['producto_ExistenciaConFis'] as double)
-          : null,
-      producto_ImgBase64: map['producto_ImgBase64'] != null
-          ? map['producto_ImgBase64'] as String
-          : null,
+      prodImgB64:
+          map['prodImgB64'] != null ? map['prodImgB64'] as String : null,
+      idProveedor:
+          map['idProveedor'] != null ? map['idProveedor'] as int : null,
     );
   }
 
@@ -241,7 +229,7 @@ class Productos {
 
   @override
   String toString() {
-    return 'Productos(id_Producto: $id_Producto, producto_Descripcion: $producto_Descripcion, producto_Costo: $producto_Costo, producto_UMedida: $producto_UMedida, producto_Precio1: $producto_Precio1, producto_Precio2: $producto_Precio2, producto_Precio3: $producto_Precio3, producto_Existencia: $producto_Existencia, producto_ExistenciaInicial: $producto_ExistenciaInicial, producto_ExistenciaConFis: $producto_ExistenciaConFis, producto_ImgBase64: $producto_ImgBase64)';
+    return 'Productos(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodImgB64: $prodImgB64, idProveedor: $idProveedor)';
   }
 
   @override
@@ -249,30 +237,30 @@ class Productos {
     if (identical(this, other)) return true;
 
     return other.id_Producto == id_Producto &&
-        other.producto_Descripcion == producto_Descripcion &&
-        other.producto_Costo == producto_Costo &&
-        other.producto_UMedida == producto_UMedida &&
-        other.producto_Precio1 == producto_Precio1 &&
-        other.producto_Precio2 == producto_Precio2 &&
-        other.producto_Precio3 == producto_Precio3 &&
-        other.producto_Existencia == producto_Existencia &&
-        other.producto_ExistenciaInicial == producto_ExistenciaInicial &&
-        other.producto_ExistenciaConFis == producto_ExistenciaConFis &&
-        other.producto_ImgBase64 == producto_ImgBase64;
+        other.prodDescripcion == prodDescripcion &&
+        other.prodExistencia == prodExistencia &&
+        other.prodMax == prodMax &&
+        other.prodMin == prodMin &&
+        other.prodCosto == prodCosto &&
+        other.prodUMedSalida == prodUMedSalida &&
+        other.prodUMedEntrada == prodUMedEntrada &&
+        other.prodPrecio == prodPrecio &&
+        other.prodImgB64 == prodImgB64 &&
+        other.idProveedor == idProveedor;
   }
 
   @override
   int get hashCode {
     return id_Producto.hashCode ^
-        producto_Descripcion.hashCode ^
-        producto_Costo.hashCode ^
-        producto_UMedida.hashCode ^
-        producto_Precio1.hashCode ^
-        producto_Precio2.hashCode ^
-        producto_Precio3.hashCode ^
-        producto_Existencia.hashCode ^
-        producto_ExistenciaInicial.hashCode ^
-        producto_ExistenciaConFis.hashCode ^
-        producto_ImgBase64.hashCode;
+        prodDescripcion.hashCode ^
+        prodExistencia.hashCode ^
+        prodMax.hashCode ^
+        prodMin.hashCode ^
+        prodCosto.hashCode ^
+        prodUMedSalida.hashCode ^
+        prodUMedEntrada.hashCode ^
+        prodPrecio.hashCode ^
+        prodImgB64.hashCode ^
+        idProveedor.hashCode;
   }
 }
