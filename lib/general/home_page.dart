@@ -262,23 +262,24 @@ class _HomePageState extends State<HomePage> {
                         ),
 
                         // Usuarios
-                        CustomExpansionTile(
-                          title: 'Usuarios',
-                          icon: Icons.person,
-                          children: [
-                            CustomListTile(
-                              title: 'Lista Usuarios',
-                              icon: Icons.format_list_bulleted,
-                              onTap: _navigateToListUsers,
-                            ),
-                            if (isAdmin)
+                        if (isAdmin)
+                          CustomExpansionTile(
+                            title: 'Usuarios',
+                            icon: Icons.person,
+                            children: [
                               CustomListTile(
-                                title: 'Agregar Usuario',
-                                icon: Icons.add_reaction_sharp,
-                                onTap: _navigateToAddUsers,
+                                title: 'Lista Usuarios',
+                                icon: Icons.format_list_bulleted,
+                                onTap: _navigateToListUsers,
                               ),
-                          ],
-                        ),
+                              if (isAdmin)
+                                CustomListTile(
+                                  title: 'Agregar Usuario',
+                                  icon: Icons.add_reaction_sharp,
+                                  onTap: _navigateToAddUsers,
+                                ),
+                            ],
+                          ),
 
                         // Movimientos (solo accesibles para Admin)
 
