@@ -75,14 +75,13 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       }
 
       setState(() {
-        final double precioUnitario =
-            _selectedProducto!.producto_Precio1 ?? 0.0;
+        final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
           'id': _selectedProducto!.id_Producto,
-          'descripcion': _selectedProducto!.producto_Descripcion,
-          'costo': _selectedProducto!.producto_Precio1,
+          'descripcion': _selectedProducto!.prodDescripcion,
+          'costo': _selectedProducto!.prodPrecio,
           'cantidad': cantidad,
           'precio': precioTotal
         });
@@ -137,8 +136,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
           break;
         }
 
-        productoActualizado.producto_Existencia =
-            (productoActualizado.producto_Existencia!) + producto['cantidad'];
+        productoActualizado.prodExistencia =
+            (productoActualizado.prodExistencia!) + producto['cantidad'];
 
         bool editResult =
             await _productosController.editProducto(productoActualizado);
@@ -379,7 +378,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                           backgroundColor: Colors.blue.shade900,
                         ),
                         child: const Text(
-                          'Imprimir',
+                          'PDF',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

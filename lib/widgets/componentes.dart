@@ -572,15 +572,15 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        'Descripción: ${widget.selectedProducto!.producto_Descripcion ?? 'No disponible'}',
+                        'Descripción: ${widget.selectedProducto!.prodDescripcion ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
                       ),
                       Text(
-                        'Precio: \$${widget.selectedProducto!.producto_Precio1?.toStringAsFixed(2) ?? 'No disponible'}',
+                        'Precio: \$${widget.selectedProducto!.prodPrecio?.toStringAsFixed(2) ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
                       ),
                       Text(
-                        'Existencia: ${widget.selectedProducto!.producto_Existencia ?? 'No disponible'}',
+                        'Existencia: ${widget.selectedProducto!.prodExistencia ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
                       ),
                     ],
@@ -596,10 +596,9 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                     border: Border.all(color: Colors.grey),
                     color: Colors.grey.shade200,
                   ),
-                  child: widget.selectedProducto!.producto_ImgBase64 != null
+                  child: widget.selectedProducto!.prodImgB64 != null
                       ? Image.memory(
-                          _decodeImage(
-                              widget.selectedProducto!.producto_ImgBase64)!,
+                          _decodeImage(widget.selectedProducto!.prodImgB64)!,
                           fit: BoxFit.cover,
                         )
                       : Image.asset(

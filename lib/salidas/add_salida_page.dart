@@ -98,21 +98,20 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         return;
       }
 
-      if (cantidad > (_selectedProducto!.producto_Existencia ?? 0)) {
+      if (cantidad > (_selectedProducto!.prodExistencia ?? 0)) {
         showAdvertence(context,
             'La cantidad no puede ser mayor a la existencia del producto.');
         return;
       }
 
       setState(() {
-        final double precioUnitario =
-            _selectedProducto!.producto_Precio1 ?? 0.0;
+        final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
           'id': _selectedProducto!.id_Producto,
-          'descripcion': _selectedProducto!.producto_Descripcion,
-          'costo': _selectedProducto!.producto_Precio1,
+          'descripcion': _selectedProducto!.prodDescripcion,
+          'costo': _selectedProducto!.prodPrecio,
           'cantidad': cantidad,
           'precio': precioTotal
         });
@@ -168,8 +167,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           break;
         }
 
-        productoActualizado.producto_Existencia =
-            (productoActualizado.producto_Existencia!) - producto['cantidad'];
+        productoActualizado.prodExistencia =
+            (productoActualizado.prodExistencia!) - producto['cantidad'];
 
         bool editResult =
             await _productosController.editProducto(productoActualizado);
@@ -466,7 +465,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           backgroundColor: Colors.blue.shade900,
                         ),
                         child: const Text(
-                          'Imprimir',
+                          'PDF',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

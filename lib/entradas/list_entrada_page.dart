@@ -194,7 +194,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
           child: ListTile(
             title: producto != null
                 ? Text(
-                    '${producto.producto_Descripcion}',
+                    '${producto.prodDescripcion}',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
