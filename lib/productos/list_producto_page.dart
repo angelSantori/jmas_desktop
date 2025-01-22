@@ -1,11 +1,11 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/productos/edit_producto_page.dart';
 
 class ListProductoPage extends StatefulWidget {
-  const ListProductoPage({super.key});
+  final String? userRole;
+  const ListProductoPage({super.key, required this.userRole});
 
   @override
   State<ListProductoPage> createState() => _ListProductoPageState();
@@ -50,7 +50,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredProductos = _allProductos.where((producto) {
-        final descripcion = producto.producto_Descripcion?.toLowerCase() ?? '';
+        final descripcion = producto.prodDescripcion?.toLowerCase() ?? '';
         final clave = producto.id_Producto.toString();
         return descripcion.contains(query) || clave.contains(query);
       }).toList();
@@ -59,6 +59,8 @@ class _ListProductoPageState extends State<ListProductoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = widget.userRole == "Admin";
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de productos'),
@@ -107,13 +109,11 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: producto.producto_ImgBase64 !=
-                                                  null &&
-                                              producto.producto_ImgBase64!
-                                                  .isNotEmpty
+                                      child: producto.prodImgB64 != null &&
+                                              producto.prodImgB64!.isNotEmpty
                                           ? Image.memory(
                                               base64Decode(
-                                                  producto.producto_ImgBase64!),
+                                                  producto.prodImgB64!),
                                               width: 200,
                                               height: 200,
                                               fit: BoxFit.cover,
@@ -132,7 +132,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            '${producto.producto_Descripcion}',
+                                            '${producto.prodDescripcion}',
                                             style: const TextStyle(
                                               color: Colors.black,
                                               fontSize: 20,
@@ -150,7 +150,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                           ),
                                           const SizedBox(height: 10),
                                           Text(
-                                            'Costo: \$${producto.producto_Costo}',
+                                            'Costo: \$${producto.prodCosto}',
                                             style: const TextStyle(
                                               color: Colors.black,
                                               fontSize: 15,
@@ -159,16 +159,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                           ),
                                           const SizedBox(height: 10),
                                           Text(
-                                            'Existencias: ${producto.producto_Existencia} ${producto.producto_UMedida}',
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          Text(
-                                            'Existencias iniciales: ${producto.producto_ExistenciaInicial} ${producto.producto_UMedida}',
+                                            'Existencias: ${producto.prodExistencia} ${producto.prodUMedSalida}',
                                             style: const TextStyle(
                                               color: Colors.black,
                                               fontSize: 15,
@@ -178,31 +169,33 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                         ],
                                       ),
                                     ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.edit,
-                                            color: Colors.black,
-                                            size: 30,
+                                    if (isAdmin)
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.edit,
+                                              color: Colors.black,
+                                              size: 30,
+                                            ),
+                                            onPressed: () async {
+                                              final result =
+                                                  await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EditProductoPage(
+                                                          producto: producto),
+                                                ),
+                                              );
+                                              if (result == true) {
+                                                _loadProductos();
+                                              }
+                                            },
                                           ),
-                                          onPressed: () async {
-                                            final result = await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditProductoPage(
-                                                        producto: producto),
-                                              ),
-                                            );
-                                            if (result == true) {
-                                              _loadProductos();
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    ),
+                                        ],
+                                      ),
                                   ],
                                 ),
                               ),
