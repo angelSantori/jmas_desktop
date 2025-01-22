@@ -3,7 +3,8 @@ import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/proveedores/edit_proveedor_page.dart';
 
 class ListProveedorPage extends StatefulWidget {
-  const ListProveedorPage({super.key});
+  final String? userRole;
+  const ListProveedorPage({super.key, this.userRole});
 
   @override
   State<ListProveedorPage> createState() => _ListProveedorPageState();
@@ -56,6 +57,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = widget.userRole == "Admin";
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -149,29 +151,30 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                                     const Spacer(),
 
                                     //Editar
-                                    Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: IconButton(
-                                        icon: const Icon(
-                                          Icons.edit,
-                                          color: Colors.black,
-                                          size: 20,
+                                    if (isAdmin)
+                                      Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.edit,
+                                            color: Colors.black,
+                                            size: 20,
+                                          ),
+                                          onPressed: () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditProveedorPage(
+                                                        proveedor: proveedor),
+                                              ),
+                                            );
+                                            if (result == true) {
+                                              _loadProveedores();
+                                            }
+                                          },
                                         ),
-                                        onPressed: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditProveedorPage(
-                                                      proveedor: proveedor),
-                                            ),
-                                          );
-                                          if (result == true) {
-                                            _loadProveedores();
-                                          }
-                                        },
-                                      ),
-                                    )
+                                      )
                                   ],
                                 ),
                               ),
