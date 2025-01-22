@@ -11,6 +11,19 @@ class ListUserPage extends StatefulWidget {
 
 class _ListUserPageState extends State<ListUserPage> {
   final UsersController _usersController = UsersController();
+  late Future<List<Users>> _futureUsers;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  void _loadUsers() {
+    setState(() {
+      _futureUsers = _usersController.listUsers();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +37,7 @@ class _ListUserPageState extends State<ListUserPage> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: FutureBuilder<List<Users>>(
-            future: _usersController.listUsers(),
+            future: _futureUsers,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -126,7 +139,7 @@ class _ListUserPageState extends State<ListUserPage> {
                                           ),
                                         );
                                         if (result == true) {
-                                          _usersController.listUsers();
+                                          _loadUsers();
                                         }
                                       },
                                     ),

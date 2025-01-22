@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class EditUserPage extends StatefulWidget {
@@ -18,11 +20,16 @@ class _EditUserPageState extends State<EditUserPage> {
   late TextEditingController _contactoController;
   late TextEditingController _accessController;
   late TextEditingController _passwordController;
+  final TextEditingController _passwordConfirmController =
+      TextEditingController();
 
   String? _selectedRole;
   final List<String> _roles = ['Admin', 'Sistemas', 'Gestion', 'Electro'];
 
   bool _isLoading = false;
+
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void initState() {
@@ -48,6 +55,16 @@ class _EditUserPageState extends State<EditUserPage> {
     setState(() {
       _isLoading = true;
     });
+    if (_passwordController.text.isNotEmpty ||
+        _passwordConfirmController.text.isNotEmpty) {
+      if (_passwordController.text != _passwordConfirmController.text) {
+        showAdvertence(context, 'Contraseñas no coinciden.');
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+    }
     if (_formKey.currentState!.validate()) {
       final updateUser = widget.user.copyWith(
         user_Name: _nameController.text,
@@ -56,7 +73,13 @@ class _EditUserPageState extends State<EditUserPage> {
         user_Rol: _selectedRole!,
       );
 
-      final result = await _usersController.editUser(updateUser, context);
+      final result = await _usersController.editUser(
+        updateUser,
+        context,
+        password:
+            _passwordController.text.isEmpty ? null : _passwordController.text,
+      );
+
       setState(() {
         _isLoading = false;
       });
@@ -89,93 +112,122 @@ class _EditUserPageState extends State<EditUserPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  //Nombre
-                  buildFormRow(
-                    label: 'Nombre:',
-                    child: TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Nombre'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El nombre no puede estar vacío';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  Row(
+                    children: [
+                      //Nombre
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _nameController,
+                          labelText: 'Nombre',
+                          prefixIcon: Icons.person,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El nombre no puede estar vacío';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
 
-                  //Contacto
-                  buildFormRow(
-                    label: 'Contacto:',
-                    child: TextFormField(
-                      controller: _contactoController,
-                      decoration: const InputDecoration(labelText: 'Contacto'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El contacto no puede estar vacío';
-                        }
-                        return null;
-                      },
-                    ),
+                      //Contacto
+                      Expanded(
+                        child: CustomTextFieldNumero(
+                          controller: _contactoController,
+                          labelText: 'Contacto',
+                          prefixIcon: Icons.phone,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El contacto no puede estar vacío';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
-                  //Access
-                  buildFormRow(
-                    label: 'Acceso:',
-                    child: TextFormField(
-                      controller: _accessController,
-                      decoration:
-                          const InputDecoration(labelText: 'Palabra de acceso'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La palabra de acceso no puede estar vacía';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  Row(
+                    children: [
+                      //Acceso
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _accessController,
+                          labelText: 'Acceso del usuario',
+                          prefixIcon: Icons.person_4,
+                          validator: (access) {
+                            if (access == null || access.isEmpty) {
+                              return 'Acceso de usuario obligatorio.';
+                            }
+                            return null;
+                          },
+                          inputFormatters: [
+                            FilteringTextInputFormatter.deny(RegExp(r'\s'))
+                          ],
+                        ),
+                      ),
 
-                  //Rol
-                  buildFormRow(
-                    label: 'Rol:',
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedRole,
-                      items: _roles
-                          .map((role) => DropdownMenuItem(
-                                value: role,
-                                child: Text(role),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedRole = value!;
-                        });
-                      },
-                      decoration: const InputDecoration(labelText: 'Rol'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Debe seleccionar un rol';
-                        }
-                        return null;
-                      },
-                    ),
+                      const SizedBox(width: 30),
+
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedRole,
+                          labelText: 'Rol',
+                          items: _roles,
+                          onChanged: (rol) {
+                            setState(() {
+                              _selectedRole = rol;
+                            });
+                          },
+                          validator: (rol) {
+                            if (rol == null || rol.isEmpty) {
+                              return 'Rol obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   //Contraseña
-                  buildFormRow(
-                    label: 'Nueva contraseña:',
-                    child: TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration:
-                          const InputDecoration(labelText: 'Nueva contraseña'),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFieldAzul(
+                          controller: _passwordController,
+                          labelText: 'Nueva contraseña',
+                          isPassword: true,
+                          isVisible: _isPasswordVisible,
+                          onVisibilityToggle: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                          prefixIcon: Icons.lock,
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomTextFieldAzul(
+                          controller: _passwordConfirmController,
+                          labelText: 'Confirmar nueva contraseña',
+                          isPassword: true,
+                          isVisible: _isConfirmPasswordVisible,
+                          onVisibilityToggle: () {
+                            setState(() {
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
+                            });
+                          },
+                          prefixIcon: Icons.lock,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   //Botón
                   ElevatedButton(
