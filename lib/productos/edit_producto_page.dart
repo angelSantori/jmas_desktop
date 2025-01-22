@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class EditProductoPage extends StatefulWidget {
@@ -12,54 +16,117 @@ class EditProductoPage extends StatefulWidget {
 
 class _EditProductoPageState extends State<EditProductoPage> {
   final ProductosController _productosController = ProductosController();
-  final _formkey = GlobalKey<FormState>();
 
   late TextEditingController _descripcionController;
   late TextEditingController _costoController;
-  late TextEditingController _precio1Controller;
-  late TextEditingController _precio2Controller;
-  late TextEditingController _precio3Controller;
+  late TextEditingController _precioController;
   late TextEditingController _existenciaController;
-  late TextEditingController _existenciaInicialController;
-  late TextEditingController _existenciaConFisController;
+  late TextEditingController _maxController = TextEditingController();
+  late TextEditingController _minController = TextEditingController();
 
-  String? _selectedUMedida;
-  final List<String> _unidadesMedidas = ['Mts', 'Kg', 'Gr', 'Lts', 'Cm'];
+  final ProveedoresController _proveedoresController = ProveedoresController();
+  List<Proveedores> _proveedores = [];
+  Proveedores? _selectedProveedor;
+
+  String? _selectedUnMedSalida;
+  String? _selectedUnMedEntrada;
+  final List<String> _unMedEntrada = [
+    'Caja',
+    'Paquete',
+    'Saco',
+    'Tarima',
+    'Contenedor',
+    'Bolsa',
+    'Tambor',
+    'Rollo',
+    'Pallet',
+    'Barril',
+  ];
+
+  final List<String> _unMedSalida = [
+    'Pza (Pieza)',
+    'Kg (Kilogramo)',
+    'Lts (Litros)',
+    'Mto (Metro)',
+    'Cilin (Cilindro)',
+    'Gfon (Galón)',
+    'Gr (Gramos)',
+    'Ml (Mililitros)',
+    'Un (Unidad)'
+  ];
+
+  final _formkey = GlobalKey<FormState>();
+
+  XFile? _selectedImage;
+  String? _encodedImage;
+  late ImagePicker _imagePicker = ImagePicker();
 
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+
     _descripcionController =
-        TextEditingController(text: widget.producto.producto_Descripcion);
-    _costoController = TextEditingController(
-        text: (widget.producto.producto_Costo ?? 0.0).toString());
-    _selectedUMedida = widget.producto.producto_UMedida;
-    _precio1Controller = TextEditingController(
-        text: (widget.producto.producto_Precio1 ?? 0.0).toString());
-    _precio2Controller = TextEditingController(
-        text: (widget.producto.producto_Precio2 ?? 0.0).toString());
-    _precio3Controller = TextEditingController(
-        text: (widget.producto.producto_Precio3 ?? 0.0).toString());
+        TextEditingController(text: widget.producto.prodDescripcion);
     _existenciaController = TextEditingController(
-        text: (widget.producto.producto_Existencia ?? 0.0).toString());
-    _existenciaInicialController = TextEditingController(
-        text: (widget.producto.producto_ExistenciaInicial ?? 0.0).toString());
-    _existenciaConFisController = TextEditingController(
-        text: (widget.producto.producto_ExistenciaConFis ?? 0.0).toString());
+        text: (widget.producto.prodExistencia ?? 0.0).toString());
+    _maxController = TextEditingController(
+        text: (widget.producto.prodMax ?? 0.0).toString());
+    _minController = TextEditingController(
+        text: (widget.producto.prodMin ?? 0.0).toString());
+    _costoController = TextEditingController(
+        text: (widget.producto.prodCosto ?? 0.0).toString());
+    _selectedUnMedSalida =
+        widget.producto.prodUMedSalida ?? _unMedEntrada.first;
+    _selectedUnMedEntrada =
+        widget.producto.prodUMedEntrada ?? _unMedSalida.first;
+    _precioController = TextEditingController(
+        text: (widget.producto.prodPrecio ?? 0.0).toString());
+
+    _loadProveedores();
+
+    if (widget.producto.prodImgB64 != null &&
+        widget.producto.prodImgB64!.isNotEmpty) {
+      _encodedImage = widget.producto.prodImgB64;
+      _selectedImage = XFile.fromData(
+        base64Decode(widget.producto.prodImgB64!),
+      );
+    }
+  }
+
+  Future<void> _loadProveedores() async {
+    List<Proveedores> proveedores =
+        await _proveedoresController.listProveedores();
+    setState(() {
+      _proveedores = proveedores;
+      _selectedProveedor = proveedores.firstWhere(
+        (prov) => prov.id_Proveedor == widget.producto.idProveedor,
+      );
+    });
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image =
+        await _imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() {
+        _selectedImage = image;
+        _encodedImage = base64Encode(bytes);
+      });
+    }
   }
 
   @override
   void dispose() {
     _descripcionController.dispose();
-    _costoController.dispose();
-    _precio1Controller.dispose();
-    _precio2Controller.dispose();
-    _precio3Controller.dispose();
     _existenciaController.dispose();
-    _existenciaInicialController.dispose();
-    _existenciaConFisController.dispose();
+    _maxController.dispose();
+    _minController.dispose();
+    _costoController.dispose();
+    _precioController.dispose();
     super.dispose();
   }
 
@@ -69,17 +136,16 @@ class _EditProductoPageState extends State<EditProductoPage> {
     });
     if (_formkey.currentState!.validate()) {
       final updateProducto = widget.producto.copyWith(
-        producto_Descripcion: _descripcionController.text,
-        producto_Costo: double.parse(_costoController.text),
-        producto_UMedida: _selectedUMedida!,
-        producto_Precio1: double.parse(_precio1Controller.text),
-        producto_Precio2: double.parse(_precio2Controller.text),
-        producto_Precio3: double.parse(_precio3Controller.text),
-        producto_Existencia: double.parse(_existenciaController.text),
-        producto_ExistenciaInicial:
-            double.parse(_existenciaInicialController.text),
-        producto_ExistenciaConFis:
-            double.parse(_existenciaConFisController.text),
+        prodDescripcion: _descripcionController.text,
+        prodExistencia: double.parse(_existenciaController.text),
+        prodMax: double.parse(_maxController.text),
+        prodMin: double.parse(_minController.text),
+        prodCosto: double.parse(_costoController.text),
+        prodUMedSalida: _selectedUnMedSalida,
+        prodUMedEntrada: _selectedUnMedEntrada,
+        prodPrecio: double.parse(_precioController.text),
+        prodImgB64: _encodedImage,
+        idProveedor: _selectedProveedor?.id_Proveedor ?? 0,
       );
 
       final result = await _productosController.editProducto(updateProducto);
@@ -115,166 +181,196 @@ class _EditProductoPageState extends State<EditProductoPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 40),
-                  //Descripción
-                  buildFormRow(
-                    label: 'Descripción:',
-                    child: TextFormField(
-                      controller: _descripcionController,
-                      decoration:
-                          const InputDecoration(labelText: 'Descipción'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La descripción no puede estar vacía.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _descripcionController,
+                          labelText: 'Descripción',
+                          prefixIcon: Icons.arrow_forward_ios_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Descripción obligatoria.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
 
-                  //Costo
-                  buildFormRow(
-                    label: 'Costo:',
-                    child: TextFormField(
-                      controller: _costoController,
-                      decoration: const InputDecoration(labelText: 'Costo'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El costo no puede estar vacío.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                      const SizedBox(width: 30),
 
-                  //Unidad Medida
-                  buildFormRow(
-                    label: 'Unidad de Medida:',
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedUMedida,
-                      items: _unidadesMedidas
-                          .map((umedida) => DropdownMenuItem(
-                                value: umedida,
-                                child: Text(umedida),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedUMedida = value!;
-                        });
-                      },
-                      decoration:
-                          const InputDecoration(labelText: 'Unidad de Medida'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Debe de seleccionar una unidad de medida.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                      //Costo
+                      Expanded(
+                        child: CustomTextFieldNumero(
+                          controller: _costoController,
+                          labelText: 'Costo',
+                          prefixIcon: Icons.monetization_on_outlined,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Costo obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
 
-                  //Pecio 1
-                  buildFormRow(
-                    label: 'Precio 1:',
-                    child: TextFormField(
-                      controller: _precio1Controller,
-                      decoration: const InputDecoration(labelText: 'Precio 1'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El precio1 no puede estar vacío.';
-                        }
-                        return null;
-                      },
-                    ),
+                      //Existencia
+                      Expanded(
+                        child: CustomTextFieldNumero(
+                          controller: _existenciaController,
+                          labelText: 'Existencias',
+                          prefixIcon: Icons.numbers_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Existencias obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
 
-                  //Pecio 2
-                  buildFormRow(
-                    label: 'Precio 2:',
-                    child: TextFormField(
-                      controller: _precio2Controller,
-                      decoration: const InputDecoration(labelText: 'Precio 2'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El precio2 no puede estar vacío.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
+                  const Divider(),
+                  const SizedBox(height: 30),
 
-                  //Pecio 3
-                  buildFormRow(
-                    label: 'Precio 3:',
-                    child: TextFormField(
-                      controller: _precio3Controller,
-                      decoration: const InputDecoration(labelText: 'Precio 3'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El precio3 no puede estar vacío.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  Row(
+                    children: [
+                      //Precio
+                      Expanded(
+                        child: CustomTextFieldNumero(
+                          controller: _precioController,
+                          labelText: 'Precio',
+                          prefixIcon: Icons.attach_money_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Precio obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
 
-                  //Existencias
-                  buildFormRow(
-                    label: 'Existencias:',
-                    child: TextFormField(
-                      controller: _existenciaController,
-                      decoration:
-                          const InputDecoration(labelText: 'Existencia'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La existencia no puede estar vacía.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                      //Max
+                      Expanded(
+                        child: CustomTextFieldNumero(
+                          controller: _maxController,
+                          labelText: 'Máximas unidades',
+                          prefixIcon: Icons.numbers_rounded,
+                          validator: (max) {
+                            if (max == null || max.isEmpty) {
+                              return 'Máximas unidades obligatorias.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
 
-                  //Existencia Inicial
-                  buildFormRow(
-                    label: 'Existencia incial:',
-                    child: TextFormField(
-                      controller: _existenciaInicialController,
-                      decoration: const InputDecoration(
-                          labelText: 'Existencia inicial'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La existencia inicial no puede estar vacía.';
-                        }
-                        return null;
-                      },
-                    ),
+                      //Min
+                      Expanded(
+                        child: CustomTextFieldNumero(
+                          controller: _minController,
+                          labelText: 'Mínimas unidades',
+                          prefixIcon: Icons.numbers_rounded,
+                          validator: (min) {
+                            if (min == null || min.isEmpty) {
+                              return 'Mínimas unidades obligatorias.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
 
-                  //Existencia confis
-                  buildFormRow(
-                    label: 'Existencia conteo físico:',
-                    child: TextFormField(
-                      controller: _existenciaConFisController,
-                      decoration: const InputDecoration(
-                          labelText: 'Existencia conteo físico'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La existencia conteo físico no puede estar vacía.';
-                        }
-                        return null;
-                      },
-                    ),
+                  const SizedBox(height: 30),
+                  const Divider(),
+                  const SizedBox(height: 30),
+
+                  //Existencia
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedUnMedEntrada,
+                          labelText: 'Unidad de Medida Entrada',
+                          items: _unMedEntrada,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedUnMedEntrada = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Unidad de medida entrada obligatoria.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+
+                      //UnMedSalida
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedUnMedSalida,
+                          labelText: 'Unidad de Medida Salida',
+                          items: _unMedSalida,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedUnMedSalida = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Unidad de medida salida obligatoria.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+
+                      //Proveedor
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedProveedor,
+                          labelText: 'Proveedor',
+                          items: _proveedores,
+                          onChanged: (prov) {
+                            setState(() {
+                              _selectedProveedor = prov;
+                            });
+                          },
+                          validator: (prov) {
+                            if (prov == null) {
+                              return 'Proveedor obligatorio.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (prov) =>
+                              prov.proveedor_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 40),
+
+                  const SizedBox(height: 30),
+                  const Divider(),
+                  const SizedBox(height: 30),
+
+                  //Seleccionar imagen
+                  CustomImagePicker(
+                    onPickImage: _pickImage,
+                    selectedImage: _selectedImage,
+                  ),
+
+                  const SizedBox(height: 50),
 
                   //Botón
                   ElevatedButton(
