@@ -25,7 +25,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
   String? _userName;
-  String? _userRole;
+  String? userRole;
 
   @override
   void initState() {
@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
     final decodeToken = await _authService.decodeToken();
     setState(() {
       _userName = decodeToken?['User_Name'];
-      _userRole = decodeToken?[
+      userRole = decodeToken?[
           'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
     });
   }
@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToListProducto() {
     setState(() {
-      _currentPage = const ListProductoPage();
+      _currentPage = ListProductoPage(userRole: userRole);
     });
   }
 
@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToListProveedores() {
     setState(() {
-      _currentPage = const ListProveedorPage();
+      _currentPage = ListProveedorPage(userRole: userRole);
     });
   }
 
@@ -163,7 +163,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = _userRole == "Admin";
+    final isAdmin = userRole == "Admin";
 
     return Scaffold(
       body: Row(
