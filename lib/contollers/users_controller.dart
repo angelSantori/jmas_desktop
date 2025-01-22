@@ -118,14 +118,21 @@ class UsersController {
     }
   }
 
-  Future<bool> editUser(Users user, BuildContext context) async {
+  Future<bool> editUser(Users user, BuildContext context,
+      {String? password}) async {
     try {
+      final Map<String, dynamic> updateUserData = user.toMap();
+
+      if (password != null && password.isNotEmpty) {
+        updateUserData['user_Password'] = password;
+      }
+
       final response = await http.put(
         Uri.parse('${_authService.apiURL}/Users/${user.id_User}'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body: user.toJson(),
+        body: json.encode(updateUserData),
       );
       if (response.statusCode == 204) {
         return true;
