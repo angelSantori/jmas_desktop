@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class EditProveedorPage extends StatefulWidget {
@@ -76,7 +77,7 @@ class _EditProveedorPageState extends State<EditProveedorPage> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Form(
             key: _formkey,
             child: SingleChildScrollView(
@@ -85,52 +86,46 @@ class _EditProveedorPageState extends State<EditProveedorPage> {
                 children: [
                   const SizedBox(height: 40),
                   //Nombre
-                  buildFormRow(
-                    label: 'Nombre:',
-                    child: TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Nombre'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El nombre del proveedor no puede estar vacío.';
-                        }
-                        return null;
-                      },
-                    ),
+                  CustomTextFielTexto(
+                    controller: _nameController,
+                    labelText: 'Nombre',
+                    prefixIcon: Icons.person_2_rounded,
+                    validator: (provName) {
+                      if (provName == null || provName.isEmpty) {
+                        return 'Nombre proveedor obligatorio.';
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   //Dirección
-                  buildFormRow(
-                    label: 'Dirección:',
-                    child: TextFormField(
-                      controller: _direccionController,
-                      decoration: const InputDecoration(labelText: 'Dirección'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'La dirección del proveedor no puede estar vacío.';
-                        }
-                        return null;
-                      },
-                    ),
+                  CustomTextFielTexto(
+                    controller: _direccionController,
+                    labelText: 'Dirección',
+                    prefixIcon: Icons.location_on,
+                    validator: (provDir) {
+                      if (provDir == null || provDir.isEmpty) {
+                        return 'Dirección obligatorio.';
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   //Phone
-                  buildFormRow(
-                    label: 'Telefono:',
-                    child: TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(labelText: 'Telefono'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El telefono del proveedor no puede estar vacío.';
-                        }
-                        return null;
-                      },
-                    ),
+                  CustomTextFielTexto(
+                    controller: _phoneController,
+                    labelText: 'Teléfono',
+                    prefixIcon: Icons.phone,
+                    validator: (provPh) {
+                      if (provPh == null || provPh.isEmpty) {
+                        return 'Teléfono obligatorio.';
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   //Botón
                   ElevatedButton(
