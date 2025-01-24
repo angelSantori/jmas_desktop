@@ -105,9 +105,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lista de Entradas'),
-      ),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(),
