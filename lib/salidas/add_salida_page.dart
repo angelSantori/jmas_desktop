@@ -3,16 +3,16 @@ import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entidades_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
-import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
-import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
+import 'package:jmas_desktop/widgets/widgets_salida.dart';
 
 class AddSalidaPage extends StatefulWidget {
-  const AddSalidaPage({super.key});
+  final String? userName;
+  const AddSalidaPage({super.key, this.userName});
 
   @override
   State<AddSalidaPage> createState() => _AddSalidaPageState();
@@ -21,11 +21,9 @@ class AddSalidaPage extends StatefulWidget {
 class _AddSalidaPageState extends State<AddSalidaPage> {
   final AuthService _authService = AuthService();
   final SalidasController _salidasController = SalidasController();
-  final UsersController _usersController = UsersController();
   final JuntasController _juntasController = JuntasController();
   final EntidadesController _entidadesController = EntidadesController();
   final ProductosController _productosController = ProductosController();
-  final ProveedoresController _proveedoresController = ProveedoresController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -37,55 +35,34 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   String? idUserReporte;
 
-  List<Users> _users = [];
+  String? codFolio;
+
+  final ValueNotifier<double?> _precioAjustado = ValueNotifier(null);
+
   List<Entidades> _entidades = [];
   List<Juntas> _juntas = [];
-  List<Proveedores> _proveedores = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
-  Users? _selectedUser;
   Entidades? _selectedEntidad;
   Juntas? _selectedJunta;
   Productos? _selectedProducto;
-  Proveedores? _selectedProveedor;
 
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadEntidades();
-    _loadJuntas();
-    _loadUsers();
-    _loadProveedores();
+    _loadDataSalidas();
   }
 
-  Future<void> _loadEntidades() async {
+  Future<void> _loadDataSalidas() async {
+    final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
     List<Entidades> entidades = await _entidadesController.listEntidades();
-    setState(() {
-      _entidades = entidades;
-    });
-  }
-
-  Future<void> _loadJuntas() async {
     List<Juntas> juntas = await _juntasController.listJuntas();
     setState(() {
+      codFolio = fetchedCodFolio;
+      _entidades = entidades;
       _juntas = juntas;
-    });
-  }
-
-  Future<void> _loadUsers() async {
-    List<Users> users = await _usersController.listUsers();
-    setState(() {
-      _users = users;
-    });
-  }
-
-  Future<void> _loadProveedores() async {
-    List<Proveedores> proveedores =
-        await _proveedoresController.listProveedores();
-    setState(() {
-      _proveedores = proveedores;
     });
   }
 
@@ -106,12 +83,18 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
       setState(() {
         final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
+        final double porcentaje =
+            _precioAjustado.value != null ? _precioAjustado.value! : 0.0;
+
+        final double precioAjustado =
+            precioUnitario + (precioUnitario * (porcentaje / 100));
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
           'id': _selectedProducto!.id_Producto,
           'descripcion': _selectedProducto!.prodDescripcion,
-          'costo': _selectedProducto!.prodPrecio,
+          'costo': precioUnitario,
+          'precioAjustado': precioAjustado,
           'cantidad': cantidad,
           'precio': precioTotal
         });
@@ -140,7 +123,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       bool success = true; // Para verificar si al menos una entrada fue exitosa
       for (var producto in _productosAgregados) {
         await _getUserId();
-        final nuevaSalida = _crearEntrada(producto);
+        final nuevaSalida = _crearSalida(producto);
+        print('Cuerpo enviado: $nuevaSalida');
         bool result = await _salidasController.addSalida(nuevaSalida);
 
         if (!result) {
@@ -197,7 +181,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         });
       }
 
-      _limpiarFormulario(); // Limpiar formulario después de guardar
+      _limpiarFormulario();
     }
   }
 
@@ -206,19 +190,18 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     idUserReporte = decodeToken?['Id_User'] ?? '0';
   }
 
-  Salidas _crearEntrada(Map<String, dynamic> producto) {
+  Salidas _crearSalida(Map<String, dynamic> producto) {
     return Salidas(
       id_Salida: 0,
-      salida_Folio: _referenciaController.text,
+      salida_CodFolio: codFolio,
+      salida_Referencia: _referenciaController.text,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
       salida_Costo: double.tryParse(producto['precio'].toString()),
       salida_Fecha: _fecha,
-      id_Producto: producto['id'] ?? 0, // Toma el id del producto de la lista
-      id_Proveedor: _selectedProveedor?.id_Proveedor ?? 0, // Proveedor
-      id_User: _selectedUser?.id_User ?? 0, // Usuario
+      idProducto: producto['id'] ?? 0,
+      id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
       id_Entidad: _selectedEntidad?.id_Entidad ?? 0, // Entidad
-      user_Reporte: int.parse(idUserReporte ?? '0'),
     );
   }
 
@@ -226,11 +209,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _formKey.currentState!.reset();
     _productosAgregados.clear();
     setState(() {
-      _selectedUser = null;
       _selectedEntidad = null;
       _selectedJunta = null;
       _selectedProducto = null;
-      _selectedProveedor = null;
       _referenciaController.clear();
       _idProductoController.clear();
       _cantidadController.clear();
@@ -241,12 +222,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar Salida'),
+        title: Text('Salida: ${codFolio ?? "Cargando..."}'),
         centerTitle: true,
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -277,36 +258,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           },
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        //Proveedor
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedProveedor,
-                          labelText: 'Proveedor',
-                          items: _proveedores,
-                          onChanged: (prov) {
-                            setState(() {
-                              _selectedProveedor = prov;
-                            });
-                          },
-                          validator: (prov) {
-                            if (prov == null) {
-                              return 'Debe seleccionar un proveedor';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (prov) =>
-                              prov.proveedor_Name ?? 'Sin nombre',
-                        ),
-                      ),
                       const SizedBox(width: 30),
-
-                      //Entidad
                       Expanded(
                         child: CustomListaDesplegableTipo(
                           value: _selectedEntidad,
@@ -327,12 +279,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               ent.entidad_Nombre ?? 'Sin nombre',
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-
-                  Row(
-                    children: [
+                      const SizedBox(width: 30),
                       Expanded(
                         //Junta
                         child: CustomListaDesplegableTipo(
@@ -354,34 +301,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               jun.junta_Name ?? 'Sin nombre',
                         ),
                       ),
-                      const SizedBox(width: 30),
-
-                      //Usuario
-                      Expanded(
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedUser,
-                          labelText: 'Usuario',
-                          items: _users,
-                          onChanged: (user) {
-                            setState(() {
-                              _selectedUser = user;
-                            });
-                          },
-                          validator: (user) {
-                            if (user == null) {
-                              return 'Debe seleccionar un usuario';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (user) =>
-                              user.user_Name ?? 'Sin nombre',
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 30),
 
-                  BuscarProductoWidget(
+                  BuscarProductoWidgetSalida(
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
                     productosController: _productosController,
@@ -423,7 +347,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                   const SizedBox(height: 20),
 
                   //Tabla productos agregados
-                  buildProductosAgregados(_productosAgregados),
+                  buildProductosAgregadosSalida(_productosAgregados),
                   const SizedBox(height: 30),
 
                   //Botónes
@@ -438,10 +362,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             context: context,
                             productosAgregados: _productosAgregados,
                             referenciaController: _referenciaController,
-                            selectedProveedor: _selectedProveedor,
                             selectedEntidad: _selectedEntidad,
                             selectedJunta: _selectedJunta,
-                            selectedUser: _selectedUser,
                           );
 
                           if (!datosCompletos) {
@@ -451,13 +373,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           await generateAndPrintPdf(
                             movimiento: 'Salida',
                             fecha: _fecha,
+                            salidaCodFolio: codFolio!,
                             referencia: _referenciaController.text,
-                            proveedor: _selectedProveedor?.proveedor_Name ??
-                                'Sin Proveedor',
                             entidad: _selectedEntidad?.entidad_Nombre ??
                                 'Sin Entidad',
                             junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
-                            usuario: _selectedUser?.user_Name ?? 'Sin Usuario',
+                            usuario: widget.userName!,
                             productos: _productosAgregados,
                           );
                         },
@@ -511,7 +432,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 30),
                 ],
               ),
