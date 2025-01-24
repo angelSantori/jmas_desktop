@@ -24,7 +24,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
-  String? _userName;
+  String? userName;
   String? userRole;
 
   @override
@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadUserData() async {
     final decodeToken = await _authService.decodeToken();
     setState(() {
-      _userName = decodeToken?['User_Name'];
+      userName = decodeToken?['User_Name'];
       userRole = decodeToken?[
           'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
     });
@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToAddEntrada() {
     setState(() {
-      _currentPage = const AddEntradaPage();
+      _currentPage = AddEntradaPage(userName: userName);
     });
   }
 
@@ -187,9 +187,9 @@ class _HomePageState extends State<HomePage> {
                         child: Image.asset('assets/images/logo_jmas_sf.png'),
                       ),
                       const SizedBox(height: 10),
-                      if (_userName != null)
+                      if (userName != null)
                         Text(
-                          _userName!,
+                          userName!,
                           style: const TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
