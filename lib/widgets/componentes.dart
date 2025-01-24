@@ -10,6 +10,9 @@ import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:html' as html;
+import 'dart:typed_data';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:ui' as ui;
 
 //ListTitle
 class CustomListTile extends StatelessWidget {
@@ -224,16 +227,30 @@ Future<void> generateAndPrintPdf({
   }
 }
 
+Future<Uint8List> generateQrCode(String data) async {
+  final qrCode = QrPainter(
+    data: data,
+    version: QrVersions.auto,
+    gapless: false,
+  );
+  final image = await qrCode.toImage(200);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return byteData!.buffer.asUint8List();
+}
+
 // Función para generar el archivo PDF
 Future<void> generateAndPrintPdfEntrada({
   required String movimiento,
   required String fecha,
   required String referencia,
-  required String proveedor,
-  required String usuario,
+  required String userName,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
+
+  //Generar código QR
+  final qrBytes = await generateQrCode(referencia);
+  final qrImage = pw.MemoryImage(qrBytes);
 
   // Cálculo del total
   final total = productos.fold<double>(
@@ -246,31 +263,51 @@ Future<void> generateAndPrintPdfEntrada({
     pw.Page(
       pageFormat: PdfPageFormat.a4,
       build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+        return pw.Stack(
           children: [
-            pw.Text('Reporte de $movimiento',
-                style: const pw.TextStyle(fontSize: 24)),
-            pw.SizedBox(height: 16),
-            pw.Text('Fecha: $fecha'),
-            pw.Text('Referencia: $referencia'),
-            pw.Text('Proveedor: $proveedor'),
-            pw.Text('Usuario: $usuario'),
-            pw.SizedBox(height: 16),
-            pw.Table.fromTextArray(
-              headers: ['Clave', 'Descripción', 'Costo', 'Cantidad', 'Total'],
-              data: productos.map((producto) {
-                return [
-                  producto['id'].toString(),
-                  producto['descripcion'] ?? '',
-                  '\$${producto['costo'].toString()}',
-                  producto['cantidad'].toString(),
-                  '\$${producto['precio'].toStringAsFixed(2)}',
-                ];
-              }).toList(),
+            //Contenido principal
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Reporte de $movimiento',
+                    style: const pw.TextStyle(fontSize: 24)),
+                pw.SizedBox(height: 16),
+                pw.Text('Fecha: $fecha'),
+                pw.Text('Referencia: $referencia'),
+                pw.Text('Realizado por: $userName'),
+                pw.SizedBox(height: 30),
+                pw.Table.fromTextArray(
+                  headers: [
+                    'Clave',
+                    'Descripción',
+                    'Costo',
+                    'Cantidad',
+                    'Total'
+                  ],
+                  data: productos.map((producto) {
+                    return [
+                      producto['id'].toString(),
+                      producto['descripcion'] ?? '',
+                      '\$${producto['costo'].toString()}',
+                      producto['cantidad'].toString(),
+                      '\$${producto['precio'].toStringAsFixed(2)}',
+                    ];
+                  }).toList(),
+                ),
+                pw.SizedBox(height: 16),
+                pw.Text('Total: \$${total.toStringAsFixed(2)}'),
+              ],
             ),
-            pw.SizedBox(height: 16),
-            pw.Text('Total: \$${total.toStringAsFixed(2)}'),
+            //QR
+            pw.Positioned(
+              top: 0,
+              right: 0,
+              child: pw.Container(
+                width: 100,
+                height: 100,
+                child: pw.Image(qrImage),
+              ),
+            ),
           ],
         );
       },
@@ -387,23 +424,39 @@ Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(producto['id'].toString()),
+                  child: Text(
+                    producto['id'].toString(),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(producto['descripcion'] ?? 'Sin descripción'),
+                  child: Text(
+                    producto['descripcion'] ?? 'Sin descripción',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text('\$${producto['costo'].toString()}'),
+                  child: Text(
+                    '\$${producto['costo'].toString()}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(producto['cantidad'].toString()),
+                  child: Text(
+                    producto['cantidad'].toString(),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text('\$${producto['precio'].toStringAsFixed(2)}'),
+                  child: Text(
+                    '\$${producto['precio'].toStringAsFixed(2)}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             );
@@ -557,14 +610,12 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
         // Información del Producto
         if (widget.selectedProducto != null)
           Expanded(
-            flex: 2,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  flex: 2,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const Text(
                         'Información del Producto:',
@@ -574,37 +625,43 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                       Text(
                         'Descripción: ${widget.selectedProducto!.prodDescripcion ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         'Precio: \$${widget.selectedProducto!.prodPrecio?.toStringAsFixed(2) ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         'Existencia: ${widget.selectedProducto!.prodExistencia ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 15),
-
                 // Imagen del producto
-                Container(
-                  height: 100,
-                  width: 100,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    color: Colors.grey.shade200,
-                  ),
-                  child: widget.selectedProducto!.prodImgB64 != null
-                      ? Image.memory(
-                          _decodeImage(widget.selectedProducto!.prodImgB64)!,
-                          fit: BoxFit.cover,
-                        )
-                      : Image.asset(
-                          'assets/images/sinFoto.jpg',
-                          fit: BoxFit.cover,
-                        ),
+                Row(
+                  children: [
+                    Container(
+                      height: 100,
+                      width: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        color: Colors.grey.shade200,
+                      ),
+                      child: widget.selectedProducto!.prodImgB64 != null
+                          ? Image.memory(
+                              _decodeImage(
+                                  widget.selectedProducto!.prodImgB64)!,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              'assets/images/sinFoto.jpg',
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                  ],
                 )
               ],
             ),
@@ -617,7 +674,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
               style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
             ),
           ),
-        const SizedBox(width: 50),
+        const SizedBox(width: 10),
 
         // Campo para la cantidad
         Column(
@@ -685,30 +742,11 @@ Future<bool> validarCamposAntesDeImprimir({
 Future<bool> validarCamposAntesDeImprimirEntrada({
   required BuildContext context,
   required List productosAgregados,
-  required TextEditingController referenciaController,
-  required var selectedProveedor,
-  required var selectedUser,
 }) async {
   if (productosAgregados.isEmpty) {
     showAdvertence(context, 'Debe agregar productos antes de imprimir.');
     return false;
   }
-
-  if (referenciaController.text.isEmpty) {
-    showAdvertence(context, 'La referencia es obligatoria.');
-    return false;
-  }
-
-  if (selectedProveedor == null) {
-    showAdvertence(context, 'Debe seleccionar un proveedor.');
-    return false;
-  }
-
-  if (selectedUser == null) {
-    showAdvertence(context, 'Debe seleccionar un usuario.');
-    return false;
-  }
-
   return true; // Si pasa todas las validaciones, los datos están completos
 }
 
@@ -777,7 +815,7 @@ Widget buildReferenciaBuscadaEntrada(List<Entradas> entradas) {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(entrada.id_Producto.toString()),
+                    child: Text(entrada.idProducto.toString()),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),

@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, non_constant_identifier_names
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class EntradasController {
@@ -52,10 +54,10 @@ class EntradasController {
     }
   }
 
-  Future<List<Entradas>> getEntradaByFolio(String folio) async {
+  Future<List<Entradas>> getEntradaByReferencia(String referencia) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Entradas/ByFolio/$folio'),
+        Uri.parse('${_authService.apiURL}/Entradas/ByReferencia/$referencia'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -65,77 +67,114 @@ class EntradasController {
         final List<dynamic> jsonData = json.decode(response.body);
         return jsonData.map((entrada) => Entradas.fromMap(entrada)).toList();
       } else if (response.statusCode == 404) {
-        print('No se encontraton entradas con el folio: $folio');
+        print('No se encontraton entradas con el referencia: $referencia');
         return [];
       } else {
         print(
-            'Error al obtener las entradas por folio: ${response.statusCode} - ${response.body}');
+            'Error al obtener las entradas por referencia: ${response.statusCode} - ${response.body}');
         return [];
       }
     } catch (e) {
-      print('Error al obtener las entradas poe folio: $e');
+      print('Error al obtener las entradas poe referencia: $e');
       return [];
+    }
+  }
+
+  Future<List<Entradas>> getEntradaByCodFolio(String codFolio) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Entradas/ByCodFolio/$codFolio'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((entrada) => Entradas.fromMap(entrada)).toList();
+      } else if (response.statusCode == 404) {
+        print('No se encontraton entradas con el referencia: $codFolio');
+        return [];
+      } else {
+        print(
+            'Error al obtener las entradas por referencia: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al obtener las entradas poe referencia: $e');
+      return [];
+    }
+  }
+
+  Future<String> getNextCodFolio() async {
+    final response = await http.get(
+      Uri.parse('${_authService.apiURL}/Entradas/next-codfolio'),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception(
+          'Error al obtener el próximo codFolio: ${response.statusCode} - ${response.body}');
     }
   }
 }
 
 class Entradas {
   int? id_Entradas;
-  String? entrada_Folio;
+  String? entrada_CodFolio;
   double? entrada_Unidades;
   double? entrada_Costo;
   String? entrada_Fecha;
-  int? id_Producto;
-  int? id_Proveedor;
+  String? entrada_ImgB64Factura;
+  int? idProducto;
   int? id_User;
-  int? user_Reporte;
   Entradas({
     this.id_Entradas,
-    this.entrada_Folio,
+    this.entrada_CodFolio,
     this.entrada_Unidades,
     this.entrada_Costo,
     this.entrada_Fecha,
-    this.id_Producto,
-    this.id_Proveedor,
+    this.entrada_ImgB64Factura,
+    this.idProducto,
     this.id_User,
-    this.user_Reporte,
   });
 
   Entradas copyWith({
     int? id_Entradas,
-    String? entrada_Folio,
+    String? entrada_CodFolio,
     double? entrada_Unidades,
     double? entrada_Costo,
     String? entrada_Fecha,
-    int? id_Producto,
-    int? id_Proveedor,
+    String? entrada_ImgB64Factura,
+    int? idProducto,
     int? id_User,
-    int? user_Reporte,
   }) {
     return Entradas(
       id_Entradas: id_Entradas ?? this.id_Entradas,
-      entrada_Folio: entrada_Folio ?? this.entrada_Folio,
+      entrada_CodFolio: entrada_CodFolio ?? this.entrada_CodFolio,
       entrada_Unidades: entrada_Unidades ?? this.entrada_Unidades,
       entrada_Costo: entrada_Costo ?? this.entrada_Costo,
       entrada_Fecha: entrada_Fecha ?? this.entrada_Fecha,
-      id_Producto: id_Producto ?? this.id_Producto,
-      id_Proveedor: id_Proveedor ?? this.id_Proveedor,
+      entrada_ImgB64Factura:
+          entrada_ImgB64Factura ?? this.entrada_ImgB64Factura,
+      idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
-      user_Reporte: user_Reporte ?? this.user_Reporte,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id_Entradas': id_Entradas,
-      'entrada_Folio': entrada_Folio,
+      'entrada_CodFolio': entrada_CodFolio,
       'entrada_Unidades': entrada_Unidades,
       'entrada_Costo': entrada_Costo,
       'entrada_Fecha': entrada_Fecha,
-      'id_Producto': id_Producto,
-      'id_Proveedor': id_Proveedor,
+      'entrada_ImgB64Factura': entrada_ImgB64Factura,
+      'idProducto': idProducto,
       'id_User': id_User,
-      'user_Reporte': user_Reporte,
     };
   }
 
@@ -143,8 +182,9 @@ class Entradas {
     return Entradas(
       id_Entradas:
           map['id_Entradas'] != null ? map['id_Entradas'] as int : null,
-      entrada_Folio:
-          map['entrada_Folio'] != null ? map['entrada_Folio'] as String : null,
+      entrada_CodFolio: map['entrada_CodFolio'] != null
+          ? map['entrada_CodFolio'] as String
+          : null,
       entrada_Unidades: map['entrada_Unidades'] != null
           ? (map['entrada_Unidades'] is int
               ? (map['entrada_Unidades'] as int).toDouble()
@@ -157,13 +197,11 @@ class Entradas {
           : null,
       entrada_Fecha:
           map['entrada_Fecha'] != null ? map['entrada_Fecha'] as String : null,
-      id_Producto:
-          map['id_Producto'] != null ? map['id_Producto'] as int : null,
-      id_Proveedor:
-          map['id_Proveedor'] != null ? map['id_Proveedor'] as int : null,
+      entrada_ImgB64Factura: map['entrada_ImgB64Factura'] != null
+          ? map['entrada_ImgB64Factura'] as String
+          : null,
+      idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
-      user_Reporte:
-          map['user_Reporte'] != null ? map['user_Reporte'] as int : null,
     );
   }
 
@@ -174,7 +212,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_Folio: $entrada_Folio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, id_Producto: $id_Producto, id_Proveedor: $id_Proveedor, id_User: $id_User, user_Reporte: $user_Reporte)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, idProducto: $idProducto, id_User: $id_User)';
   }
 
   @override
@@ -182,26 +220,24 @@ class Entradas {
     if (identical(this, other)) return true;
 
     return other.id_Entradas == id_Entradas &&
-        other.entrada_Folio == entrada_Folio &&
+        other.entrada_CodFolio == entrada_CodFolio &&
         other.entrada_Unidades == entrada_Unidades &&
         other.entrada_Costo == entrada_Costo &&
         other.entrada_Fecha == entrada_Fecha &&
-        other.id_Producto == id_Producto &&
-        other.id_Proveedor == id_Proveedor &&
-        other.id_User == id_User &&
-        other.user_Reporte == user_Reporte;
+        other.entrada_ImgB64Factura == entrada_ImgB64Factura &&
+        other.idProducto == idProducto &&
+        other.id_User == id_User;
   }
 
   @override
   int get hashCode {
     return id_Entradas.hashCode ^
-        entrada_Folio.hashCode ^
+        entrada_CodFolio.hashCode ^
         entrada_Unidades.hashCode ^
         entrada_Costo.hashCode ^
         entrada_Fecha.hashCode ^
-        id_Producto.hashCode ^
-        id_Proveedor.hashCode ^
-        id_User.hashCode ^
-        user_Reporte.hashCode;
+        entrada_ImgB64Factura.hashCode ^
+        idProducto.hashCode ^
+        id_User.hashCode;
   }
 }
