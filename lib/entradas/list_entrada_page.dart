@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
-import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 
@@ -15,7 +15,6 @@ class ListEntradaPage extends StatefulWidget {
 class _ListEntradaPageState extends State<ListEntradaPage> {
   final EntradasController _entradasController = EntradasController();
   final ProductosController _productosController = ProductosController();
-  final ProveedoresController _proveedoresController = ProveedoresController();
   final UsersController _usersController = UsersController();
 
   final TextEditingController _searchController = TextEditingController();
@@ -26,7 +25,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   DateTime? _endDate;
 
   Map<int, Productos> _productosCache = {};
-  Map<int, Proveedores> _proveedoresCache = {};
   Map<int, Users> _usersCache = {};
 
   bool _isLoading = true;
@@ -42,7 +40,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     try {
       final entradas = await _entradasController.listEntradas();
       final productos = await _productosController.listProductos();
-      final proveedores = await _proveedoresController.listProveedores();
       final users = await _usersController.listUsers();
 
       setState(() {
@@ -50,9 +47,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         _filteredEntradas = entradas;
 
         _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
-        _proveedoresCache = {
-          for (var prov in proveedores) prov.id_Proveedor!: prov
-        };
         _usersCache = {for (var us in users) us.id_User!: us};
 
         _isLoading = false;
@@ -69,7 +63,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredEntradas = _allEntradas.where((entrada) {
-        final folio = entrada.entrada_Folio?.toString() ?? '';
+        final folio = entrada.entrada_CodFolio?.toString() ?? '';
         final fechaString = entrada.entrada_Fecha;
 
         //Parsear la fecha del string
@@ -122,30 +116,46 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Buscar por folio',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Row(
                     children: [
                       Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: const InputDecoration(
+                            labelText: 'Buscar por folio',
+                            prefixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _selectDateRange(context),
-                          icon: const Icon(Icons.calendar_today),
-                          label: Text(_startDate != null && _endDate != null
-                              ? 'Desde: ${_startDate!.toLocal()} Hasta: ${_endDate!.toLocal()}'
-                              : 'Seleccionar rango de fechas'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 201, 230, 242),
+                          ),
+                          icon: const Icon(
+                            Icons.calendar_today,
+                            color: Colors.black,
+                          ),
+                          label: Text(
+                            _startDate != null && _endDate != null
+                                ? 'Desde: ${DateFormat('yyyy-MM-dd').format(_startDate!)} Hasta: ${DateFormat('yyyy-MM-dd').format(_endDate!)}'
+                                : 'Seleccionar rango de fechas',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(
+                          Icons.clear,
+                          color: Colors.black,
+                        ),
                         onPressed: () {
                           setState(() {
                             _startDate = null;
@@ -157,7 +167,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
                 Expanded(
                   child: _buildListView(),
                 ),
@@ -184,9 +193,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
       itemCount: _filteredEntradas.length,
       itemBuilder: (context, index) {
         final entrada = _filteredEntradas[index];
-        final producto = _productosCache[entrada.id_Producto];
-        final proveedor = _proveedoresCache[entrada.id_Proveedor];
-        final user = _usersCache[entrada.user_Reporte];
+        final producto = _productosCache[entrada.idProducto];
+        final user = _usersCache[entrada.id_User];
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
@@ -205,17 +213,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
-                proveedor != null
-                    ? Text(
-                        '${proveedor.proveedor_Name}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      )
-                    : const Text('Proveedor no encontrado'),
                 const SizedBox(height: 10),
                 user != null
                     ? Text('Realizado por: ${user.user_Name}',
@@ -243,7 +240,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Folio: ${entrada.entrada_Folio ?? "Sin Folio"}',
+                  'Referencia: ${entrada.entrada_CodFolio ?? "Sin referencia"}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
