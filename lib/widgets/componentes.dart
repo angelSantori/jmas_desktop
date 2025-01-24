@@ -144,14 +144,18 @@ class SubCustomExpansionTile extends StatelessWidget {
 Future<void> generateAndPrintPdf({
   required String movimiento,
   required String fecha,
+  required String salidaCodFolio,
   required String referencia,
-  required String proveedor,
   required String entidad,
   required String junta,
   required String usuario,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
+
+  //QR
+  final qrBytes = await generateQrCode(salidaCodFolio);
+  final qrImage = pw.MemoryImage(qrBytes);
 
   // Cálculo del total
   final total = productos.fold<double>(
@@ -164,33 +168,53 @@ Future<void> generateAndPrintPdf({
     pw.Page(
       pageFormat: PdfPageFormat.a4,
       build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+        return pw.Stack(
+          //Contenido principal
           children: [
-            pw.Text('Reporte de $movimiento',
-                style: const pw.TextStyle(fontSize: 24)),
-            pw.SizedBox(height: 16),
-            pw.Text('Fecha: $fecha'),
-            pw.Text('Referencia: $referencia'),
-            pw.Text('Proveedor: $proveedor'),
-            pw.Text('Entidad: $entidad'),
-            pw.Text('Junta: $junta'),
-            pw.Text('Usuario: $usuario'),
-            pw.SizedBox(height: 16),
-            pw.Table.fromTextArray(
-              headers: ['Clave', 'Descripción', 'Costo', 'Cantidad', 'Total'],
-              data: productos.map((producto) {
-                return [
-                  producto['id'].toString(),
-                  producto['descripcion'] ?? '',
-                  '\$${producto['costo'].toString()}',
-                  producto['cantidad'].toString(),
-                  '\$${producto['precio'].toStringAsFixed(2)}',
-                ];
-              }).toList(),
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Reporte de $movimiento',
+                    style: const pw.TextStyle(fontSize: 24)),
+                pw.SizedBox(height: 16),
+                pw.Text('Fecha: $fecha'),
+                pw.Text('Folio: $salidaCodFolio'),
+                pw.Text('Referencia: $referencia'),
+                pw.Text('Entidad: $entidad'),
+                pw.Text('Junta: $junta'),
+                pw.Text('Realizado por: $usuario'),
+                pw.SizedBox(height: 30),
+                pw.Table.fromTextArray(
+                  headers: [
+                    'Clave',
+                    'Descripción',
+                    'Costo',
+                    'Cantidad',
+                    'Total'
+                  ],
+                  data: productos.map((producto) {
+                    return [
+                      producto['id'].toString(),
+                      producto['descripcion'] ?? '',
+                      '\$${producto['costo'].toString()}',
+                      producto['cantidad'].toString(),
+                      '\$${producto['precio'].toStringAsFixed(2)}',
+                    ];
+                  }).toList(),
+                ),
+                pw.SizedBox(height: 16),
+                pw.Text('Total: \$${total.toStringAsFixed(2)}'),
+              ],
             ),
-            pw.SizedBox(height: 16),
-            pw.Text('Total: \$${total.toStringAsFixed(2)}'),
+            //QR
+            pw.Positioned(
+                top: 0,
+                right: 0,
+                child: pw.Container(
+                  width: 100,
+                  height: 100,
+                  child: pw.Image(qrImage),
+                ))
           ],
         );
       },
@@ -273,7 +297,7 @@ Future<void> generateAndPrintPdfEntrada({
                     style: const pw.TextStyle(fontSize: 24)),
                 pw.SizedBox(height: 16),
                 pw.Text('Fecha: $fecha'),
-                pw.Text('Referencia: $referencia'),
+                pw.Text('Folio: $referencia'),
                 pw.Text('Realizado por: $userName'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(
@@ -529,6 +553,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
     try {
       return base64Decode(base64Image);
     } catch (e) {
+      print('Error al decodificar la imagen: $e');
       return null;
     }
   }
@@ -650,7 +675,10 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                         border: Border.all(color: Colors.grey),
                         color: Colors.grey.shade200,
                       ),
-                      child: widget.selectedProducto!.prodImgB64 != null
+                      child: widget.selectedProducto!.prodImgB64 != null &&
+                              _decodeImage(
+                                      widget.selectedProducto!.prodImgB64) !=
+                                  null
                           ? Image.memory(
                               _decodeImage(
                                   widget.selectedProducto!.prodImgB64)!,
@@ -682,7 +710,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
           children: [
             SizedBox(
               width: 140,
-              child: CustomTextFielTexto(
+              child: CustomTextFieldNumero(
                 controller: widget.cantidadController,
                 prefixIcon: Icons.numbers_outlined,
                 labelText: 'Cantidad',
@@ -700,10 +728,8 @@ Future<bool> validarCamposAntesDeImprimir({
   required BuildContext context,
   required List productosAgregados,
   required TextEditingController referenciaController,
-  required var selectedProveedor,
   required var selectedEntidad,
   required var selectedJunta,
-  required var selectedUser,
 }) async {
   if (productosAgregados.isEmpty) {
     showAdvertence(context, 'Debe agregar productos antes de imprimir.');
@@ -712,11 +738,6 @@ Future<bool> validarCamposAntesDeImprimir({
 
   if (referenciaController.text.isEmpty) {
     showAdvertence(context, 'La referencia es obligatoria.');
-    return false;
-  }
-
-  if (selectedProveedor == null) {
-    showAdvertence(context, 'Debe seleccionar un proveedor.');
     return false;
   }
 
@@ -730,12 +751,7 @@ Future<bool> validarCamposAntesDeImprimir({
     return false;
   }
 
-  if (selectedUser == null) {
-    showAdvertence(context, 'Debe seleccionar un usuario.');
-    return false;
-  }
-
-  return true; // Si pasa todas las validaciones, los datos están completos
+  return true;
 }
 
 // Función para validar campos antes de imprimir
