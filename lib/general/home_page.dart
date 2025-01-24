@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToAddSalida() {
     setState(() {
-      _currentPage = const AddSalidaPage();
+      _currentPage = AddSalidaPage(userName: userName);
     });
   }
 
