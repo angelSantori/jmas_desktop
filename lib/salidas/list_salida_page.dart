@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
-import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
@@ -15,7 +14,6 @@ class ListSalidaPage extends StatefulWidget {
 class _ListSalidaPageState extends State<ListSalidaPage> {
   final SalidasController _salidasController = SalidasController();
   final ProductosController _productosController = ProductosController();
-  final ProveedoresController _proveedoresController = ProveedoresController();
   final UsersController _usersController = UsersController();
 
   final TextEditingController _searchController = TextEditingController();
@@ -26,7 +24,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   DateTime? _endDate;
 
   Map<int, Productos> _productosCache = {};
-  Map<int, Proveedores> _proveedoresCache = {};
   Map<int, Users> _usersCache = {};
 
   bool _isLoading = true;
@@ -43,7 +40,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       // Cargar salidas
       final salidas = await _salidasController.listSalidas();
       final productos = await _productosController.listProductos();
-      final proveedores = await _proveedoresController.listProveedores();
       final users = await _usersController.listUsers();
 
       setState(() {
@@ -51,9 +47,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _filteredSalidas = salidas;
 
         _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
-        _proveedoresCache = {
-          for (var prov in proveedores) prov.id_Proveedor!: prov
-        };
         _usersCache = {for (var us in users) us.id_User!: us};
 
         _isLoading = false;
@@ -70,7 +63,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredSalidas = _allSalidas.where((salida) {
-        final folio = salida.salida_Folio?.toString() ?? '';
+        final folio = salida.salida_CodFolio?.toString() ?? '';
         final fechaString = salida.salida_Fecha;
 
         final fecha = fechaString != null ? parseDate(fechaString) : null;
@@ -179,9 +172,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       itemCount: _filteredSalidas.length,
       itemBuilder: (context, index) {
         final salida = _filteredSalidas[index];
-        final producto = _productosCache[salida.id_Producto];
-        final proveedor = _proveedoresCache[salida.id_Proveedor];
-        final user = _usersCache[salida.user_Reporte];
+        final producto = _productosCache[salida.idProducto];
+        final user = _usersCache[salida.id_User];
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
@@ -200,17 +192,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
-                proveedor != null
-                    ? Text(
-                        '${proveedor.proveedor_Name}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      )
-                    : const Text('Proveedor no encontrado'),
                 const SizedBox(height: 10),
                 user != null
                     ? Text('Realizado por: ${user.user_Name}',
@@ -236,7 +217,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Folio: ${salida.salida_Folio ?? "Sin Folio"}',
+                  'Folio: ${salida.salida_CodFolio ?? "Sin Folio"}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
