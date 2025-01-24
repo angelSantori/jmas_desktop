@@ -1,16 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
-import 'package:jmas_desktop/contollers/proveedores_controller.dart';
-import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
-import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddEntradaPage extends StatefulWidget {
-  const AddEntradaPage({super.key});
+  final String? userName;
+  const AddEntradaPage({super.key, this.userName});
 
   @override
   State<AddEntradaPage> createState() => _AddEntradaPageState();
@@ -19,13 +19,10 @@ class AddEntradaPage extends StatefulWidget {
 class _AddEntradaPageState extends State<AddEntradaPage> {
   final AuthService _authService = AuthService();
   final EntradasController _entradasController = EntradasController();
-  final UsersController _usersController = UsersController();
   final ProductosController _productosController = ProductosController();
-  final ProveedoresController _proveedoresController = ProveedoresController();
 
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _referenciaController = TextEditingController();
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
 
@@ -33,35 +30,24 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   String? idUserReporte;
 
-  List<Users> _users = [];
-  List<Proveedores> _proveedores = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
-  Users? _selectedUser;
   Productos? _selectedProducto;
-  Proveedores? _selectedProveedor;
 
   bool _isLoading = false;
+
+  String? codFolio;
 
   @override
   void initState() {
     super.initState();
-    _loadUsers();
-    _loadProveedores();
+    _loadCodFolio();
   }
 
-  Future<void> _loadUsers() async {
-    List<Users> users = await _usersController.listUsers();
+  Future<void> _loadCodFolio() async {
+    final fetchedCodFolio = await _entradasController.getNextCodFolio();
     setState(() {
-      _users = users;
-    });
-  }
-
-  Future<void> _loadProveedores() async {
-    List<Proveedores> proveedores =
-        await _proveedoresController.listProveedores();
-    setState(() {
-      _proveedores = proveedores;
+      codFolio = fetchedCodFolio;
     });
   }
 
@@ -177,25 +163,21 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   Entradas _crearEntrada(Map<String, dynamic> producto) {
     return Entradas(
-        id_Entradas: 0,
-        entrada_Folio: _referenciaController.text,
-        entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
-        entrada_Costo: double.tryParse(producto['precio'].toString()),
-        entrada_Fecha: _fecha,
-        id_Producto: producto['id'] ?? 0, // Toma el id del producto de la lista
-        id_Proveedor: _selectedProveedor?.id_Proveedor ?? 0, // Proveedor
-        id_User: _selectedUser?.id_User ?? 0, // Usuario
-        user_Reporte: int.parse(idUserReporte ?? '0'));
+      id_Entradas: 0,
+      entrada_CodFolio: codFolio,
+      entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
+      entrada_Costo: double.tryParse(producto['precio'].toString()),
+      entrada_Fecha: _fecha,
+      idProducto: producto['id'] ?? 0,
+      id_User: int.parse(idUserReporte!),
+    );
   }
 
   void _limpiarFormulario() {
     _formKey.currentState!.reset();
     _productosAgregados.clear();
     setState(() {
-      _selectedUser = null;
       _selectedProducto = null;
-      _selectedProveedor = null;
-      _referenciaController.clear();
       _idProductoController.clear();
       _cantidadController.clear();
     });
@@ -205,7 +187,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar Entrada'),
+        title: Text('Entrada: ${codFolio ?? "Cargando ..."}'),
         centerTitle: true,
       ),
       body: Center(
@@ -226,76 +208,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  //Referencia
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextFielTexto(
-                          controller: _referenciaController,
-                          labelText: 'Referencia',
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Refetencia obligatoria';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        //Proveedores
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedProveedor,
-                          labelText: 'Proveedor',
-                          items: _proveedores,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedProveedor = value;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Debe seleccionar un proveedor.';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (proveedor) =>
-                              proveedor.proveedor_Name ?? 'Sin nombre',
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-
-                      //Users
-                      Expanded(
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedUser,
-                          labelText: 'Usuario',
-                          items: _users,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedUser = value;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Debe seleccionar un usuario.';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (user) =>
-                              user.user_Name ?? 'Sin nombre',
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
 
                   BuscarProductoWidget(
                     idProductoController: _idProductoController,
@@ -355,9 +267,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                               await validarCamposAntesDeImprimirEntrada(
                             context: context,
                             productosAgregados: _productosAgregados,
-                            referenciaController: _referenciaController,
-                            selectedProveedor: _selectedProveedor,
-                            selectedUser: _selectedUser,
                           );
 
                           if (!datosCompletos) {
@@ -367,10 +276,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                           await generateAndPrintPdfEntrada(
                             movimiento: 'Entrada',
                             fecha: _fecha,
-                            referencia: _referenciaController.text,
-                            proveedor: _selectedProveedor?.proveedor_Name ??
-                                'Sin Proveedor',
-                            usuario: _selectedUser?.user_Name ?? 'Sin Usuario',
+                            referencia: codFolio!,
+                            userName: widget.userName!,
                             productos: _productosAgregados,
                           );
                         },
