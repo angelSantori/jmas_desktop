@@ -264,6 +264,7 @@ class _BuscarProductoWidgetStateSalida
                 if (widget.selectedProducto != null &&
                     cantidadText.isNotEmpty) {
                   final cantidad = int.parse(cantidadText);
+                  // ignore: unnecessary_null_comparison
                   if (cantidad != null && cantidad > 0) {
                     _agregarProducto(widget.selectedProducto!, cantidad);
                   } else {
