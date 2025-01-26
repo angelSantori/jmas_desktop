@@ -6,6 +6,8 @@ import 'package:jmas_desktop/enitdades/list_entidades_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
+import 'package:jmas_desktop/juntas/add_junta_page.dart';
+import 'package:jmas_desktop/juntas/lsit_juntas_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
@@ -137,6 +139,18 @@ class _HomePageState extends State<HomePage> {
   void _navigateToAddEntidades() {
     setState(() {
       _currentPage = const AddEntidadPage();
+    });
+  }
+
+  void _navigateToListJuntas() {
+    setState(() {
+      _currentPage = LsitJuntasPage(userRole: userRole);
+    });
+  }
+
+  void _navigateToAddJunta() {
+    setState(() {
+      _currentPage = const AddJuntaPage();
     });
   }
 
@@ -290,6 +304,25 @@ class _HomePageState extends State<HomePage> {
                                 title: 'Agregar entidad',
                                 icon: Icons.publish_sharp,
                                 onTap: _navigateToAddEntidades,
+                              ),
+                          ],
+                        ),
+
+                        //Juntas
+                        CustomExpansionTile(
+                          title: 'Juntas',
+                          icon: Icons.factory,
+                          children: [
+                            CustomListTile(
+                              title: 'Lista juntas',
+                              icon: Icons.list,
+                              onTap: _navigateToListJuntas,
+                            ),
+                            if (isAdmin)
+                              CustomListTile(
+                                title: 'Agregar Junta',
+                                icon: Icons.add,
+                                onTap: _navigateToAddJunta,
                               ),
                           ],
                         ),

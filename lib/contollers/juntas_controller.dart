@@ -6,6 +6,30 @@ import 'package:jmas_desktop/service/auth_service.dart';
 class JuntasController {
   final AuthService _authService = AuthService();
 
+  //Add junta
+  Future<bool> addJunta(Juntas junta) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${_authService.apiURL}/Juntas'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: junta.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print(
+            'Errir al agregar junta: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al agregar junta desde controller: $e');
+      return false;
+    }
+  }
+
   //Lista Juntas
   Future<List<Juntas>> listJuntas() async {
     try {
@@ -27,6 +51,29 @@ class JuntasController {
     } catch (e) {
       print('Error lista de juntas: $e');
       return [];
+    }
+  }
+
+  Future<bool> editJunta(Juntas junta) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${_authService.apiURL}/Juntas/${junta.id_Junta}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: junta.toJson(),
+      );
+
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print(
+            'Error al editar junta: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar junta desde controller: $e');
+      return false;
     }
   }
 }
