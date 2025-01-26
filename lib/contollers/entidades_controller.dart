@@ -5,6 +5,30 @@ import 'package:jmas_desktop/service/auth_service.dart';
 class EntidadesController {
   final AuthService _authService = AuthService();
 
+  //Add entidad
+  Future<bool> addEntidad(Entidades entidad) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${_authService.apiURL}/Entidades'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: entidad.toJson(),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print(
+            'Error al agregar entidad: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al agregar entidad: $e');
+      return false;
+    }
+  }
+
   //List Entidades
   Future<List<Entidades>> listEntidades() async {
     try {
@@ -26,6 +50,29 @@ class EntidadesController {
     } catch (e) {
       print('Error lista entidades: $e');
       return [];
+    }
+  }
+
+  Future<bool> editEntidad(Entidades entidad) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${_authService.apiURL}/Entidades/${entidad.id_Entidad}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: entidad.toJson(),
+      );
+
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print(
+            'Error al editar entidad: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar entidad: $e');
+      return false;
     }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
+import 'package:jmas_desktop/enitdades/add_entidad_page.dart';
+import 'package:jmas_desktop/enitdades/list_entidades_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
@@ -123,6 +125,18 @@ class _HomePageState extends State<HomePage> {
   void _navigateToAddAjusteMenos() {
     setState(() {
       _currentPage = const AddAjusteMenosPage();
+    });
+  }
+
+  void _navigateToListEntidades() {
+    setState(() {
+      _currentPage = ListEntidadesPage(userRole: userRole);
+    });
+  }
+
+  void _navigateToAddEntidades() {
+    setState(() {
+      _currentPage = const AddEntidadPage();
     });
   }
 
@@ -257,6 +271,25 @@ class _HomePageState extends State<HomePage> {
                                 title: 'Agregar Proveedor',
                                 icon: Icons.add_box,
                                 onTap: _navigateToAddProveedores,
+                              ),
+                          ],
+                        ),
+
+                        //Entidades
+                        CustomExpansionTile(
+                          title: 'Entidades',
+                          icon: Icons.location_city,
+                          children: [
+                            CustomListTile(
+                              title: 'Lista entidades',
+                              icon: Icons.location_on,
+                              onTap: _navigateToListEntidades,
+                            ),
+                            if (isAdmin)
+                              CustomListTile(
+                                title: 'Agregar entidad',
+                                icon: Icons.publish_sharp,
+                                onTap: _navigateToAddEntidades,
                               ),
                           ],
                         ),
