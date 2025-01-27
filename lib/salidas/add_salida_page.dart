@@ -37,7 +37,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   String? codFolio;
 
-  final ValueNotifier<double?> _precioAjustado = ValueNotifier(null);
+  final ValueNotifier<double> _selectedIncremento = ValueNotifier(0.0);
 
   List<Entidades> _entidades = [];
   List<Juntas> _juntas = [];
@@ -83,18 +83,17 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
       setState(() {
         final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
-        final double porcentaje =
-            _precioAjustado.value != null ? _precioAjustado.value! : 0.0;
-
+        final double? porcentaje = _selectedIncremento.value;
         final double precioAjustado =
-            precioUnitario + (precioUnitario * (porcentaje / 100));
+            precioUnitario + (precioUnitario * (porcentaje! / 100));
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
           'id': _selectedProducto!.id_Producto,
           'descripcion': _selectedProducto!.prodDescripcion,
           'costo': precioUnitario,
-          'precioAjustado': precioAjustado,
+          'porcentaje': porcentaje,
+          'precioIncrementado': precioAjustado,
           'cantidad': cantidad,
           'precio': precioTotal
         });
@@ -196,7 +195,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_CodFolio: codFolio,
       salida_Referencia: _referenciaController.text,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
-      salida_Costo: double.tryParse(producto['precio'].toString()),
+      salida_Costo: double.tryParse(
+          (producto['precioIncrementado'] * producto['cantidad']).toString()),
       salida_Fecha: _fecha,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
@@ -318,6 +318,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                     onAdvertencia: (p0) {
                       showAdvertence(context, p0);
                     },
+                    selectedIncremento: _selectedIncremento,
                   ),
                   const SizedBox(height: 10),
 
@@ -370,7 +371,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             return;
                           }
 
-                          await generateAndPrintPdf(
+                          await generateAndPrintPdfSalida(
                             movimiento: 'Salida',
                             fecha: _fecha,
                             salidaCodFolio: codFolio!,
