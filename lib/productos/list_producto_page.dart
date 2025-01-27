@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/productos/edit_producto_page.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListProductoPage extends StatefulWidget {
   final String? userRole;
@@ -70,13 +71,10 @@ class _ListProductoPageState extends State<ListProductoPage> {
         child: Column(
           children: [
             const SizedBox(height: 5),
-            TextField(
+            CustomTextFielTexto(
               controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Buscar por descripción o clave',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
+              labelText: 'Buscar por descrición o clave',
+              prefixIcon: Icons.search,
             ),
             const SizedBox(height: 16),
             Expanded(

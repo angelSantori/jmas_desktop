@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/entidades_controller.dart';
 import 'package:jmas_desktop/enitdades/edit_entidad_page.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListEntidadesPage extends StatefulWidget {
   final String? userRole;
@@ -67,13 +68,10 @@ class _ListEntidadesPageState extends State<ListEntidadesPage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
-              child: TextField(
+              child: CustomTextFielTexto(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  labelText: 'Buscar entidad',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Buscar entidad',
+                prefixIcon: Icons.search,
               ),
             ),
             Expanded(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/proveedores/edit_proveedor_page.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListProveedorPage extends StatefulWidget {
   final String? userRole;
@@ -70,14 +71,11 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
-              child: TextField(
+              child: CustomTextFielTexto(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  labelText: 'Buscar por nombre o contacto',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
-              ),
+                labelText: 'Buscar por nombre o contacto',
+                prefixIcon: Icons.search,
+              ),  
             ),
             Expanded(
               child: _isLoading
