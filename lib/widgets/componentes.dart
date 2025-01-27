@@ -141,7 +141,7 @@ class SubCustomExpansionTile extends StatelessWidget {
 }
 
 // Función para generar el archivo PDF
-Future<void> generateAndPrintPdf({  
+Future<void> generateAndPrintPdf({
   required String movimiento,
   required String fecha,
   required String salidaCodFolio,
@@ -192,18 +192,27 @@ Future<void> generateAndPrintPdf({
                     'Cantidad',
                     'Total'
                   ],
-                  data: productos.map((producto) {
-                    return [
-                      producto['id'].toString(),
-                      producto['descripcion'] ?? '',
-                      '\$${producto['costo'].toString()}',
-                      producto['cantidad'].toString(),
-                      '\$${producto['precio'].toStringAsFixed(2)}',
-                    ];
-                  }).toList(),
+                  data: [
+                    ...productos.map((producto) {
+                      return [
+                        producto['id'].toString(),
+                        producto['descripcion'] ?? '',
+                        '\$${producto['costo'].toString()}',
+                        producto['cantidad'].toString(),
+                        '\$${producto['precio'].toStringAsFixed(2)}',
+                      ];
+                    }).toList(),
+                    [
+                      '',
+                      '',
+                      '',
+                      '',
+                      '',
+                      'Total',
+                      '\$${total.toStringAsFixed(2)}',
+                    ]
+                  ],
                 ),
-                pw.SizedBox(height: 16),
-                pw.Text('Total: \$${total.toStringAsFixed(2)}'),
               ],
             ),
             //QR
