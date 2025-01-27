@@ -4,6 +4,7 @@ import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListEntradaPage extends StatefulWidget {
   const ListEntradaPage({super.key});
@@ -116,13 +117,10 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: TextField(
+                        child: CustomTextFielTexto(
                           controller: _searchController,
-                          decoration: const InputDecoration(
-                            labelText: 'Buscar por folio',
-                            prefixIcon: Icon(Icons.search),
-                            border: OutlineInputBorder(),
-                          ),
+                          labelText: 'Buscar por folio',
+                          prefixIcon: Icons.search,
                         ),
                       ),
                       const SizedBox(width: 10),
