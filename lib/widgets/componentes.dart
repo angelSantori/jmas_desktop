@@ -141,7 +141,7 @@ class SubCustomExpansionTile extends StatelessWidget {
 }
 
 // Función para generar el archivo PDF
-Future<void> generateAndPrintPdf({
+Future<void> generateAndPrintPdf({  
   required String movimiento,
   required String fecha,
   required String salidaCodFolio,
