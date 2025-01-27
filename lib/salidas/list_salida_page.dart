@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/entidades_controller.dart';
+import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListSalidaPage extends StatefulWidget {
   const ListSalidaPage({super.key});
@@ -14,6 +18,8 @@ class ListSalidaPage extends StatefulWidget {
 class _ListSalidaPageState extends State<ListSalidaPage> {
   final SalidasController _salidasController = SalidasController();
   final ProductosController _productosController = ProductosController();
+  final JuntasController _juntasController = JuntasController();
+  final EntidadesController _entidadesController = EntidadesController();
   final UsersController _usersController = UsersController();
 
   final TextEditingController _searchController = TextEditingController();
@@ -25,6 +31,11 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
   Map<int, Productos> _productosCache = {};
   Map<int, Users> _usersCache = {};
+  List<Juntas> _juntas = [];
+  List<Entidades> _entidades = [];
+
+  String? _selectedJunta;
+  String? _selectedEntidad;
 
   bool _isLoading = true;
 
@@ -41,6 +52,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final salidas = await _salidasController.listSalidas();
       final productos = await _productosController.listProductos();
       final users = await _usersController.listUsers();
+      final juntas = await _juntasController.listJuntas();
+      final entidades = await _entidadesController.listEntidades();
 
       setState(() {
         _allSalidas = salidas;
@@ -48,6 +61,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
         _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
         _usersCache = {for (var us in users) us.id_User!: us};
+        _juntas = juntas;
+        _entidades = entidades;
 
         _isLoading = false;
       });
@@ -65,7 +80,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       _filteredSalidas = _allSalidas.where((salida) {
         final folio = salida.salida_CodFolio?.toString() ?? '';
         final fechaString = salida.salida_Fecha;
-
         final fecha = fechaString != null ? parseDate(fechaString) : null;
 
         final matchesFolio =
@@ -75,7 +89,13 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
             (_startDate == null || !fecha.isBefore(_startDate!)) &&
             (_endDate == null || !fecha.isAfter(_endDate!));
 
-        return matchesFolio && matchesDate;
+        final matchesJunta = _selectedJunta == null ||
+            salida.id_Junta.toString() == _selectedJunta;
+
+        final matchesEntidad = _selectedEntidad == null ||
+            salida.id_Entidad.toString() == _selectedEntidad;
+
+        return matchesFolio && matchesDate && matchesJunta && matchesEntidad;
       }).toList();
     });
   }
@@ -98,40 +118,67 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     }
   }
 
+  void _clearJuntaFilter() {
+    setState(() {
+      _selectedJunta = null;
+      _filterSalidas();
+    });
+  }
+
+  void _clearEntidadFilter() {
+    setState(() {
+      _selectedEntidad = null;
+      _filterSalidas();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lista de Salidas'),
-      ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue.shade900,
+              ),
             )
           : Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Buscar por folio',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Row(
                     children: [
+                      //Folio
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _searchController,
+                          labelText: 'Buscar por folio',
+                          prefixIcon: Icons.search,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      //Fecha
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _selectDateRange(context),
-                          icon: const Icon(Icons.calendar_today),
-                          label: Text(_startDate != null && _endDate != null
-                              ? 'Desde: ${_startDate!.toLocal()} - Hasta: ${_endDate!.toLocal()}'
-                              : 'Seleccionar rango de fechas'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 201, 230, 242),
+                          ),
+                          icon: Icon(
+                            Icons.calendar_today,
+                            color: Colors.blue.shade900,
+                          ),
+                          label: Text(
+                            _startDate != null && _endDate != null
+                                ? 'Desde: ${DateFormat('yyyy-MM-dd').format(_startDate!)} Hasta: ${DateFormat('yyyy-MM-dd').format(_endDate!)}'
+                                : 'Seleccionar rango de fechas',
+                            style: TextStyle(
+                              color: Colors.blue.shade900,
+                              fontWeight: FontWeight.bold,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                       ),
                       IconButton(
@@ -147,9 +194,68 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     ],
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      //Juntas
+                      Expanded(
+                        child: CustomListaDesplegableTipo<Juntas>(
+                          value: _selectedJunta != null
+                              ? _juntas.firstWhere((junta) =>
+                                  junta.id_Junta.toString() == _selectedJunta)
+                              : null,
+                          labelText: 'Seleccionar Junta',
+                          items: _juntas,
+                          onChanged: (Juntas? newValue) {
+                            setState(() {
+                              _selectedJunta = newValue?.id_Junta.toString();
+                            });
+                            _filterSalidas();
+                          },
+                          itemLabelBuilder: (junta) => junta.junta_Name ?? '',
+                        ),
+                      ),
+                      if (_selectedJunta != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: _clearJuntaFilter,
+                        ),
+                      const SizedBox(width: 10),
+
+                      //Entidades
+                      Expanded(
+                        child: CustomListaDesplegableTipo<Entidades>(
+                          value: _selectedEntidad != null
+                              ? _entidades.firstWhere((entidad) =>
+                                  entidad.id_Entidad.toString() ==
+                                  _selectedEntidad)
+                              : null,
+                          labelText: 'Seleccionar Entidad',
+                          items: _entidades,
+                          onChanged: (Entidades? newValue) {
+                            setState(() {
+                              _selectedEntidad =
+                                  newValue?.id_Entidad.toString();
+                            });
+                            _filterSalidas();
+                          },
+                          itemLabelBuilder: (entidad) =>
+                              entidad.entidad_Nombre ?? '',
+                        ),
+                      ),
+                      if (_selectedEntidad != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: _clearEntidadFilter,
+                        ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: _buildListView(),
                 ),
+                const SizedBox(height: 30),
               ],
             ),
     );
