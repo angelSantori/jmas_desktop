@@ -317,18 +317,25 @@ Future<void> generateAndPrintPdfEntrada({
                     'Cantidad',
                     'Total'
                   ],
-                  data: productos.map((producto) {
-                    return [
-                      producto['id'].toString(),
-                      producto['descripcion'] ?? '',
-                      '\$${producto['costo'].toString()}',
-                      producto['cantidad'].toString(),
-                      '\$${producto['precio'].toStringAsFixed(2)}',
-                    ];
-                  }).toList(),
+                  data: [
+                    ...productos.map((producto) {
+                      return [
+                        producto['id'].toString(),
+                        producto['descripcion'] ?? '',
+                        '\$${producto['costo'].toString()}',
+                        producto['cantidad'].toString(),
+                        '\$${producto['precio'].toStringAsFixed(2)}',
+                      ];
+                    }).toList(),
+                    [
+                      '',
+                      '',
+                      '',
+                      'Total',
+                      '\$${total.toStringAsFixed(2)}',
+                    ]
+                  ],
                 ),
-                pw.SizedBox(height: 16),
-                pw.Text('Total: \$${total.toStringAsFixed(2)}'),
               ],
             ),
             //QR
