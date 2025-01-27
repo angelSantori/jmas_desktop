@@ -1,14 +1,16 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, non_constant_identifier_names
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class EntradasController {
   final AuthService _authService = AuthService();
+  static List<Entradas>? cacheEntradas;
 
   Future<List<Entradas>> listEntradas() async {
+    if (cacheEntradas != null) {
+      return cacheEntradas!;
+    }
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Entradas'),
@@ -42,6 +44,7 @@ class EntradasController {
       );
 
       if (response.statusCode == 201) {
+        cacheEntradas = null;
         return true;
       } else {
         print(

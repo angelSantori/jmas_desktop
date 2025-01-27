@@ -1,12 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class ProductosController {
   final AuthService _authService = AuthService();
+  static List<Productos>? cacheProductos;
 
   //Agregar Producto
   Future<bool> addProducto(Productos prodcuto) async {
@@ -20,6 +19,7 @@ class ProductosController {
       );
 
       if (response.statusCode == 201) {
+        cacheProductos = null;
         return true;
       } else {
         print(
@@ -62,6 +62,9 @@ class ProductosController {
 
   //Lista Productos
   Future<List<Productos>> listProductos() async {
+    if (cacheProductos != null) {
+      return cacheProductos!;
+    }
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Productos'),
@@ -94,6 +97,7 @@ class ProductosController {
         body: producto.toJson(),
       );
       if (response.statusCode == 204) {
+        cacheProductos = null;
         return true;
       } else {
         print(
