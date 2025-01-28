@@ -744,7 +744,7 @@ Future<bool> validarCamposAntesDeImprimir({
   required BuildContext context,
   required List productosAgregados,
   required TextEditingController referenciaController,
-  required var selectedEntidad,
+  required var selectedAlmacen,
   required var selectedJunta,
 }) async {
   if (productosAgregados.isEmpty) {
@@ -757,8 +757,8 @@ Future<bool> validarCamposAntesDeImprimir({
     return false;
   }
 
-  if (selectedEntidad == null) {
-    showAdvertence(context, 'Debe seleccionar una entidad.');
+  if (selectedAlmacen == null) {
+    showAdvertence(context, 'Debe seleccionar un almacen.');
     return false;
   }
 

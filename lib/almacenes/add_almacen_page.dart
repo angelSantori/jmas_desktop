@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/contollers/entidades_controller.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
-class AddEntidadPage extends StatefulWidget {
-  const AddEntidadPage({super.key});
+class AddAlmacenPage extends StatefulWidget {
+  const AddAlmacenPage({super.key});
 
   @override
-  State<AddEntidadPage> createState() => _AddEntidadPageState();
+  State<AddAlmacenPage> createState() => _AddAlmacenPageState();
 }
 
-class _AddEntidadPageState extends State<AddEntidadPage> {
-  final EntidadesController _entidadesController = EntidadesController();
+class _AddAlmacenPageState extends State<AddAlmacenPage> {
+  final AlmacenesController _almacenesController = AlmacenesController();
 
   final TextEditingController _nombreController = TextEditingController();
 
@@ -26,19 +26,19 @@ class _AddEntidadPageState extends State<AddEntidadPage> {
 
     if (_formKey.currentState?.validate() ?? false) {
       try {
-        final entidad = Entidades(
-          id_Entidad: 0,
-          entidad_Nombre: _nombreController.text,
+        final almacen = Almacenes(
+          id_Almacen: 0,
+          almacen_Nombre: _nombreController.text,
         );
 
-        final success = await _entidadesController.addEntidad(entidad);
+        final success = await _almacenesController.addAlmacen(almacen);
 
         if (success) {
-          showOk(context, 'Entidad registrada exitosamente.');
+          showOk(context, 'Almacen registrado exitosamente.');
           _formKey.currentState?.reset();
           _clearForm();
         } else {
-          showError(context, 'Hubo un problema al registrar la entidad.');
+          showError(context, 'Hubo un problema al registrar el almacen.');
         }
       } catch (e) {
         showAdvertence(
@@ -62,7 +62,7 @@ class _AddEntidadPageState extends State<AddEntidadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar Entidad'),
+        title: const Text('Agregar Almacen'),
         centerTitle: true,
       ),
       body: Center(
@@ -97,7 +97,7 @@ class _AddEntidadPageState extends State<AddEntidadPage> {
                               color: Colors.white,
                             )
                           : const Text(
-                              'Registrar entidad',
+                              'Registrar Almacen',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15,

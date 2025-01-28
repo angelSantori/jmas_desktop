@@ -108,7 +108,7 @@ class Salidas {
   int? idProducto;
   int? id_User;
   int? id_Junta;
-  int? id_Entidad;
+  int? id_Almacen;
   Salidas({
     this.id_Salida,
     this.salida_CodFolio,
@@ -119,7 +119,7 @@ class Salidas {
     this.idProducto,
     this.id_User,
     this.id_Junta,
-    this.id_Entidad,
+    this.id_Almacen,
   });
 
   Salidas copyWith({
@@ -132,7 +132,7 @@ class Salidas {
     int? idProducto,
     int? id_User,
     int? id_Junta,
-    int? id_Entidad,
+    int? id_Almacen,
   }) {
     return Salidas(
       id_Salida: id_Salida ?? this.id_Salida,
@@ -144,7 +144,7 @@ class Salidas {
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
-      id_Entidad: id_Entidad ?? this.id_Entidad,
+      id_Almacen: id_Almacen ?? this.id_Almacen,
     );
   }
 
@@ -159,7 +159,7 @@ class Salidas {
       'idProducto': idProducto,
       'id_User': id_User,
       'id_Junta': id_Junta,
-      'id_Entidad': id_Entidad,
+      'id_Almacen': id_Almacen,
     };
   }
 
@@ -187,7 +187,7 @@ class Salidas {
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
-      id_Entidad: map['id_Entidad'] != null ? map['id_Entidad'] as int : null,
+      id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
     );
   }
 
@@ -198,7 +198,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Entidad: $id_Entidad)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen)';
   }
 
   @override
@@ -214,7 +214,7 @@ class Salidas {
         other.idProducto == idProducto &&
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
-        other.id_Entidad == id_Entidad;
+        other.id_Almacen == id_Almacen;
   }
 
   @override
@@ -228,6 +228,6 @@ class Salidas {
         idProducto.hashCode ^
         id_User.hashCode ^
         id_Junta.hashCode ^
-        id_Entidad.hashCode;
+        id_Almacen.hashCode;
   }
 }

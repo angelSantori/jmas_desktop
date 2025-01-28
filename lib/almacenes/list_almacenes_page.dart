@@ -1,44 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/contollers/entidades_controller.dart';
-import 'package:jmas_desktop/enitdades/edit_entidad_page.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/almacenes/edit_almacen_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
-class ListEntidadesPage extends StatefulWidget {
+class ListAlmacenesPage extends StatefulWidget {
   final String? userRole;
-  const ListEntidadesPage({super.key, this.userRole});
+  const ListAlmacenesPage({super.key, this.userRole});
 
   @override
-  State<ListEntidadesPage> createState() => _ListEntidadesPageState();
+  State<ListAlmacenesPage> createState() => _ListAlmacenesPageState();
 }
 
-class _ListEntidadesPageState extends State<ListEntidadesPage> {
-  final EntidadesController _entidadesController = EntidadesController();
+class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
+  final AlmacenesController _almacenesController = AlmacenesController();
   final TextEditingController _searchController = TextEditingController();
 
-  List<Entidades> _allEntidades = [];
-  List<Entidades> _filteredEntidades = [];
+  List<Almacenes> _allAlmacenes = [];
+  List<Almacenes> _filteredAlmacenes = [];
 
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadEntidades();
-    _searchController.addListener(_filterEntidades);
+    _loadAlmacenes();
+    _searchController.addListener(_filterAlmacenes);
   }
 
-  Future<void> _loadEntidades() async {
+  Future<void> _loadAlmacenes() async {
     setState(() {
       _isLoading = true;
     });
     try {
-      final entidades = await _entidadesController.listEntidades();
+      final almacenes = await _almacenesController.listAlmacenes();
       setState(() {
-        _allEntidades = entidades;
-        _filteredEntidades = entidades;
+        _allAlmacenes = almacenes;
+        _filteredAlmacenes = almacenes;
       });
     } catch (e) {
-      print('Error list_entidades_page.dart: $e');
+      print('Error list_almacenes_page.dart: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -46,11 +46,11 @@ class _ListEntidadesPageState extends State<ListEntidadesPage> {
     }
   }
 
-  void _filterEntidades() {
+  void _filterAlmacenes() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredEntidades = _allEntidades.where((entidad) {
-        final name = entidad.entidad_Nombre?.toLowerCase() ?? '';
+      _filteredAlmacenes = _allAlmacenes.where((almacen) {
+        final name = almacen.almacen_Nombre?.toLowerCase() ?? '';
         return name.contains(query);
       }).toList();
     });
@@ -70,7 +70,7 @@ class _ListEntidadesPageState extends State<ListEntidadesPage> {
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: CustomTextFielTexto(
                 controller: _searchController,
-                labelText: 'Buscar entidad',
+                labelText: 'Buscar almacen',
                 prefixIcon: Icons.search,
               ),
             ),
@@ -80,10 +80,10 @@ class _ListEntidadesPageState extends State<ListEntidadesPage> {
                       child: CircularProgressIndicator(
                       color: Colors.blue.shade900,
                     ))
-                  : _filteredEntidades.isEmpty
+                  : _filteredAlmacenes.isEmpty
                       ? const Center(
                           child: Text(
-                              'No hay entidades que coincidan con la búsqueda'),
+                              'No hay almacenes que coincidan con la búsqueda'),
                         )
                       : GridView.builder(
                           gridDelegate:
@@ -105,9 +105,9 @@ class _ListEntidadesPageState extends State<ListEntidadesPage> {
                                         ? 1
                                         : 1.5,
                           ),
-                          itemCount: _filteredEntidades.length,
+                          itemCount: _filteredAlmacenes.length,
                           itemBuilder: (context, index) {
-                            final entidad = _filteredEntidades[index];
+                            final almacen = _filteredAlmacenes[index];
 
                             return Card(
                               color: const Color.fromARGB(255, 201, 230, 242),
@@ -120,7 +120,7 @@ class _ListEntidadesPageState extends State<ListEntidadesPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${entidad.entidad_Nombre}',
+                                      '${almacen.almacen_Nombre}',
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 15,
@@ -143,12 +143,12 @@ class _ListEntidadesPageState extends State<ListEntidadesPage> {
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    EditEntidadPage(
-                                                        entidad: entidad),
+                                                    EditAlmacenPage(
+                                                        almacen: almacen),
                                               ),
                                             );
                                             if (result == true) {
-                                              _loadEntidades();
+                                              _loadAlmacenes();
                                             }
                                           },
                                         ),

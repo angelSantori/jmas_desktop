@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
-import 'package:jmas_desktop/enitdades/add_entidad_page.dart';
-import 'package:jmas_desktop/enitdades/list_entidades_page.dart';
+import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
+import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
@@ -130,15 +130,15 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _navigateToListEntidades() {
+  void _navigateToListAlmacenes() {
     setState(() {
-      _currentPage = ListEntidadesPage(userRole: userRole);
+      _currentPage = ListAlmacenesPage(userRole: userRole);
     });
   }
 
-  void _navigateToAddEntidades() {
+  void _navigateToAddAlmacenes() {
     setState(() {
-      _currentPage = const AddEntidadPage();
+      _currentPage = const AddAlmacenPage();
     });
   }
 
@@ -291,19 +291,19 @@ class _HomePageState extends State<HomePage> {
 
                         //Entidades
                         CustomExpansionTile(
-                          title: 'Entidades',
-                          icon: Icons.location_city,
+                          title: 'Almacenes',
+                          icon: Icons.storage,
                           children: [
                             CustomListTile(
-                              title: 'Lista entidades',
+                              title: 'Lista almacenes',
                               icon: Icons.location_on,
-                              onTap: _navigateToListEntidades,
+                              onTap: _navigateToListAlmacenes,
                             ),
                             if (isAdmin)
                               CustomListTile(
-                                title: 'Agregar entidad',
+                                title: 'Agregar almacen',
                                 icon: Icons.publish_sharp,
-                                onTap: _navigateToAddEntidades,
+                                onTap: _navigateToAddAlmacenes,
                               ),
                           ],
                         ),

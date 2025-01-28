@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:jmas_desktop/contollers/entidades_controller.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -22,7 +22,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final AuthService _authService = AuthService();
   final SalidasController _salidasController = SalidasController();
   final JuntasController _juntasController = JuntasController();
-  final EntidadesController _entidadesController = EntidadesController();
+  final AlmacenesController _entidadesController = AlmacenesController();
   final ProductosController _productosController = ProductosController();
 
   final _formKey = GlobalKey<FormState>();
@@ -39,11 +39,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   final ValueNotifier<double> _selectedIncremento = ValueNotifier(0.0);
 
-  List<Entidades> _entidades = [];
+  List<Almacenes> _entidades = [];
   List<Juntas> _juntas = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
-  Entidades? _selectedEntidad;
+  Almacenes? _selectedAlmacen;
   Juntas? _selectedJunta;
   Productos? _selectedProducto;
 
@@ -57,7 +57,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   Future<void> _loadDataSalidas() async {
     final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
-    List<Entidades> entidades = await _entidadesController.listEntidades();
+    List<Almacenes> entidades = await _entidadesController.listAlmacenes();
     List<Juntas> juntas = await _juntasController.listJuntas();
     setState(() {
       codFolio = fetchedCodFolio;
@@ -201,7 +201,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
-      id_Entidad: _selectedEntidad?.id_Entidad ?? 0, // Entidad
+      id_Almacen: _selectedAlmacen?.id_Almacen ?? 0, // Almacen
     );
   }
 
@@ -209,7 +209,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _formKey.currentState!.reset();
     _productosAgregados.clear();
     setState(() {
-      _selectedEntidad = null;
+      _selectedAlmacen = null;
       _selectedJunta = null;
       _selectedProducto = null;
       _referenciaController.clear();
@@ -261,12 +261,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       const SizedBox(width: 30),
                       Expanded(
                         child: CustomListaDesplegableTipo(
-                          value: _selectedEntidad,
-                          labelText: 'Entidad',
+                          value: _selectedAlmacen,
+                          labelText: 'Almacen',
                           items: _entidades,
                           onChanged: (ent) {
                             setState(() {
-                              _selectedEntidad = ent;
+                              _selectedAlmacen = ent;
                             });
                           },
                           validator: (ent) {
@@ -276,7 +276,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             return null;
                           },
                           itemLabelBuilder: (ent) =>
-                              ent.entidad_Nombre ?? 'Sin nombre',
+                              ent.almacen_Nombre ?? 'Sin nombre',
                         ),
                       ),
                       const SizedBox(width: 30),
@@ -363,7 +363,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             context: context,
                             productosAgregados: _productosAgregados,
                             referenciaController: _referenciaController,
-                            selectedEntidad: _selectedEntidad,
+                            selectedAlmacen: _selectedAlmacen,
                             selectedJunta: _selectedJunta,
                           );
 
@@ -376,8 +376,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             fecha: _fecha,
                             salidaCodFolio: codFolio!,
                             referencia: _referenciaController.text,
-                            entidad: _selectedEntidad?.entidad_Nombre ??
-                                'Sin Entidad',
+                            entidad: _selectedAlmacen?.almacen_Nombre ??
+                                'Sin Almacen',
                             junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
                             usuario: widget.userName!,
                             productos: _productosAgregados,

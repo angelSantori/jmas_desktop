@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/contollers/entidades_controller.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
-class EditEntidadPage extends StatefulWidget {
-  final Entidades entidad;
-  const EditEntidadPage({super.key, required this.entidad});
+class EditAlmacenPage extends StatefulWidget {
+  final Almacenes almacen;
+  const EditAlmacenPage({super.key, required this.almacen});
 
   @override
-  State<EditEntidadPage> createState() => _EditEntidadPageState();
+  State<EditAlmacenPage> createState() => _EditAlmacenPageState();
 }
 
-class _EditEntidadPageState extends State<EditEntidadPage> {
-  final EntidadesController _entidadesController = EntidadesController();
+class _EditAlmacenPageState extends State<EditAlmacenPage> {
+  final AlmacenesController _almacenesController = AlmacenesController();
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
@@ -23,7 +23,7 @@ class _EditEntidadPageState extends State<EditEntidadPage> {
   void initState() {
     super.initState();
     _nameController =
-        TextEditingController(text: widget.entidad.entidad_Nombre);
+        TextEditingController(text: widget.almacen.almacen_Nombre);
   }
 
   @override
@@ -37,19 +37,19 @@ class _EditEntidadPageState extends State<EditEntidadPage> {
       _isLoading = true;
     });
     if (_formKey.currentState!.validate()) {
-      final updateEntidad = widget.entidad.copyWith(
-        id_Entidad: widget.entidad.id_Entidad,
-        entidad_Nombre: _nameController.text,
+      final updateAlmacen = widget.almacen.copyWith(
+        id_Almacen: widget.almacen.id_Almacen,
+        almacen_Nombre: _nameController.text,
       );
 
-      final result = await _entidadesController.editEntidad(updateEntidad);
+      final result = await _almacenesController.editAlmacen(updateAlmacen);
 
       setState(() {
         _isLoading = false;
       });
 
       if (result) {
-        await showOk(context, 'Entidad editada correctamente.');
+        await showOk(context, 'Almacen editada correctamente.');
         Navigator.pop(context, true);
       }
     } else {
@@ -63,7 +63,7 @@ class _EditEntidadPageState extends State<EditEntidadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Editar Entidad: ${widget.entidad.entidad_Nombre}'),
+        title: Text('Editar Almacen: ${widget.almacen.almacen_Nombre}'),
         centerTitle: true,
       ),
       body: Center(
@@ -81,7 +81,7 @@ class _EditEntidadPageState extends State<EditEntidadPage> {
                     labelText: 'Nombre',
                     validator: (entName) {
                       if (entName == null || entName.isEmpty) {
-                        return 'Nombre de entidad obligatorio.';
+                        return 'Nombre de almacen obligatorio.';
                       }
                       return null;
                     },

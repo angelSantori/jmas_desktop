@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:jmas_desktop/contollers/entidades_controller.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -19,7 +19,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   final SalidasController _salidasController = SalidasController();
   final ProductosController _productosController = ProductosController();
   final JuntasController _juntasController = JuntasController();
-  final EntidadesController _entidadesController = EntidadesController();
+  final AlmacenesController _entidadesController = AlmacenesController();
   final UsersController _usersController = UsersController();
 
   final TextEditingController _searchController = TextEditingController();
@@ -32,10 +32,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   Map<int, Productos> _productosCache = {};
   Map<int, Users> _usersCache = {};
   List<Juntas> _juntas = [];
-  List<Entidades> _entidades = [];
+  List<Almacenes> _entidades = [];
 
   String? _selectedJunta;
-  String? _selectedEntidad;
+  String? _selectedAlmacen;
 
   bool _isLoading = true;
 
@@ -53,7 +53,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final productos = await _productosController.listProductos();
       final users = await _usersController.listUsers();
       final juntas = await _juntasController.listJuntas();
-      final entidades = await _entidadesController.listEntidades();
+      final entidades = await _entidadesController.listAlmacenes();
 
       setState(() {
         _allSalidas = salidas;
@@ -92,10 +92,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final matchesJunta = _selectedJunta == null ||
             salida.id_Junta.toString() == _selectedJunta;
 
-        final matchesEntidad = _selectedEntidad == null ||
-            salida.id_Entidad.toString() == _selectedEntidad;
+        final matchesAlmacen = _selectedAlmacen == null ||
+            salida.id_Almacen.toString() == _selectedAlmacen;
 
-        return matchesFolio && matchesDate && matchesJunta && matchesEntidad;
+        return matchesFolio && matchesDate && matchesJunta && matchesAlmacen;
       }).toList();
     });
   }
@@ -125,9 +125,9 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     });
   }
 
-  void _clearEntidadFilter() {
+  void _clearAlmacenFilter() {
     setState(() {
-      _selectedEntidad = null;
+      _selectedAlmacen = null;
       _filterSalidas();
     });
   }
@@ -223,31 +223,31 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         ),
                       const SizedBox(width: 10),
 
-                      //Entidades
+                      //Almacenes
                       Expanded(
-                        child: CustomListaDesplegableTipo<Entidades>(
-                          value: _selectedEntidad != null
+                        child: CustomListaDesplegableTipo<Almacenes>(
+                          value: _selectedAlmacen != null
                               ? _entidades.firstWhere((entidad) =>
-                                  entidad.id_Entidad.toString() ==
-                                  _selectedEntidad)
+                                  entidad.id_Almacen.toString() ==
+                                  _selectedAlmacen)
                               : null,
-                          labelText: 'Seleccionar Entidad',
+                          labelText: 'Seleccionar Almacen',
                           items: _entidades,
-                          onChanged: (Entidades? newValue) {
+                          onChanged: (Almacenes? newValue) {
                             setState(() {
-                              _selectedEntidad =
-                                  newValue?.id_Entidad.toString();
+                              _selectedAlmacen =
+                                  newValue?.id_Almacen.toString();
                             });
                             _filterSalidas();
                           },
                           itemLabelBuilder: (entidad) =>
-                              entidad.entidad_Nombre ?? '',
+                              entidad.almacen_Nombre ?? '',
                         ),
                       ),
-                      if (_selectedEntidad != null)
+                      if (_selectedAlmacen != null)
                         IconButton(
                           icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: _clearEntidadFilter,
+                          onPressed: _clearAlmacenFilter,
                         ),
                     ],
                   ),
