@@ -214,7 +214,7 @@ class CustomListaDesplegable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 500,
+      width: 400,
       child: DropdownButtonFormField<String>(
         value: value,
         decoration: InputDecoration(
@@ -222,8 +222,8 @@ class CustomListaDesplegable extends StatelessWidget {
           labelStyle: TextStyle(
             color: Colors.blue.shade900,
             fontWeight: FontWeight.bold,
+            overflow: TextOverflow.ellipsis,
           ),
-          prefixIcon: Icon(icon, color: Colors.blue.shade900),
           filled: true,
           fillColor: Colors.blue.shade50,
           contentPadding:
@@ -369,16 +369,15 @@ class CustomListaDesplegableTipo<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 500,
+      width: 400,
       child: DropdownButtonFormField<T>(
         value: value,
         decoration: InputDecoration(
           labelText: labelText,
           labelStyle: TextStyle(
-            color: Colors.blue.shade900,
-            fontWeight: FontWeight.bold,
-          ),
-          prefixIcon: Icon(icon, color: Colors.blue.shade900),
+              color: Colors.blue.shade900,
+              fontWeight: FontWeight.bold,
+              overflow: TextOverflow.ellipsis),
           filled: true,
           fillColor: Colors.blue.shade50,
           contentPadding:
