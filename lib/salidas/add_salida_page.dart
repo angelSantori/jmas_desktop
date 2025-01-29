@@ -22,7 +22,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final AuthService _authService = AuthService();
   final SalidasController _salidasController = SalidasController();
   final JuntasController _juntasController = JuntasController();
-  final AlmacenesController _entidadesController = AlmacenesController();
+  final AlmacenesController _almacenesController = AlmacenesController();
   final ProductosController _productosController = ProductosController();
 
   final _formKey = GlobalKey<FormState>();
@@ -39,7 +39,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   final ValueNotifier<double> _selectedIncremento = ValueNotifier(0.0);
 
-  List<Almacenes> _entidades = [];
+  List<Almacenes> _almacenes = [];
   List<Juntas> _juntas = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
@@ -57,11 +57,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   Future<void> _loadDataSalidas() async {
     final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
-    List<Almacenes> entidades = await _entidadesController.listAlmacenes();
+    List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
     List<Juntas> juntas = await _juntasController.listJuntas();
     setState(() {
       codFolio = fetchedCodFolio;
-      _entidades = entidades;
+      _almacenes = almacenes;
       _juntas = juntas;
     });
   }
@@ -263,7 +263,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                         child: CustomListaDesplegableTipo(
                           value: _selectedAlmacen,
                           labelText: 'Almacen',
-                          items: _entidades,
+                          items: _almacenes,
                           onChanged: (ent) {
                             setState(() {
                               _selectedAlmacen = ent;
@@ -271,7 +271,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           },
                           validator: (ent) {
                             if (ent == null) {
-                              return 'Debe seleccionar una entidad.';
+                              return 'Debe seleccionar una almacen.';
                             }
                             return null;
                           },
@@ -300,7 +300,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           itemLabelBuilder: (jun) =>
                               jun.junta_Name ?? 'Sin nombre',
                         ),
-                      ),
+                      ),                      
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -376,7 +376,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             fecha: _fecha,
                             salidaCodFolio: codFolio!,
                             referencia: _referenciaController.text,
-                            entidad: _selectedAlmacen?.almacen_Nombre ??
+                            almacen: _selectedAlmacen?.almacen_Nombre ??
                                 'Sin Almacen',
                             junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
                             usuario: widget.userName!,
