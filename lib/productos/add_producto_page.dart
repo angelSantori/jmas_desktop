@@ -14,7 +14,7 @@ class AddProductoPage extends StatefulWidget {
 }
 
 class _AddProductoPageState extends State<AddProductoPage> {
-  final ProductosController _productosController = ProductosController();  
+  final ProductosController _productosController = ProductosController();
 
   final TextEditingController _descripcionController = TextEditingController();
   final TextEditingController _costoController = TextEditingController();
@@ -52,6 +52,10 @@ class _AddProductoPageState extends State<AddProductoPage> {
     'Un (Unidad)'
   ];
 
+  final List<String> _rack = ['R1', 'R2', 'R3'];
+  final List<String> _nivel = ['N1', 'N2', 'N3', 'N4', 'N5'];
+  final List<String> _letra = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
   final _formKey = GlobalKey<FormState>();
 
   // ignore: unused_field
@@ -59,6 +63,9 @@ class _AddProductoPageState extends State<AddProductoPage> {
   // ignore: unused_field
   bool _isLoading = false;
 
+  String? _selectedRack;
+  String? _selectedNivel;
+  String? _selectedLetra;
   String? _selectedUnMedSalida;
   String? _selectedUnMedEntrada;
   XFile? _selectedImage;
@@ -116,6 +123,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
           prodMax: double.parse(_maxController.text),
           prodMin: double.parse(_minController.text),
           prodCosto: double.parse(_costoController.text),
+          prodUbFisica: _selectedRack! + _selectedNivel! + _selectedLetra!,
           prodUMedSalida: _selectedUnMedSalida,
           prodUMedEntrada: _selectedUnMedEntrada,
           prodPrecio: double.parse(_precioController.text),
@@ -356,6 +364,72 @@ class _AddProductoPageState extends State<AddProductoPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 30),
+                  const Divider(),
+                  const SizedBox(height: 30),
+
+                  //Ubicación física
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedRack,
+                          labelText: 'Rack',
+                          items: _rack,
+                          onChanged: (rack) {
+                            setState(() {
+                              _selectedRack = rack;
+                            });
+                          },
+                          validator: (rack) {
+                            if (rack == null || rack.isEmpty) {
+                              return 'Rack obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedNivel,
+                          labelText: 'Nivel',
+                          items: _nivel,
+                          onChanged: (nivel) {
+                            setState(() {
+                              _selectedNivel = nivel;
+                            });
+                          },
+                          validator: (nivel) {
+                            if (nivel == null || nivel.isEmpty) {
+                              return 'Nivel obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedLetra,
+                          labelText: 'Letra',
+                          items: _letra,
+                          onChanged: (letra) {
+                            setState(() {
+                              _selectedLetra = letra;
+                            });
+                          },
+                          validator: (letra) {
+                            if (letra == null || letra.isEmpty) {
+                              return 'Letra obligatoria';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
                   const SizedBox(height: 30),
                   const Divider(),
                   const SizedBox(height: 30),

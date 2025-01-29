@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class ProductosController {
@@ -118,6 +120,7 @@ class Productos {
   double? prodMax;
   double? prodMin;
   double? prodCosto;
+  String? prodUbFisica;
   String? prodUMedSalida;
   String? prodUMedEntrada;
   double? prodPrecio;
@@ -130,6 +133,7 @@ class Productos {
     this.prodMax,
     this.prodMin,
     this.prodCosto,
+    this.prodUbFisica,
     this.prodUMedSalida,
     this.prodUMedEntrada,
     this.prodPrecio,
@@ -144,6 +148,7 @@ class Productos {
     double? prodMax,
     double? prodMin,
     double? prodCosto,
+    String? prodUbFisica,
     String? prodUMedSalida,
     String? prodUMedEntrada,
     double? prodPrecio,
@@ -157,6 +162,7 @@ class Productos {
       prodMax: prodMax ?? this.prodMax,
       prodMin: prodMin ?? this.prodMin,
       prodCosto: prodCosto ?? this.prodCosto,
+      prodUbFisica: prodUbFisica ?? this.prodUbFisica,
       prodUMedSalida: prodUMedSalida ?? this.prodUMedSalida,
       prodUMedEntrada: prodUMedEntrada ?? this.prodUMedEntrada,
       prodPrecio: prodPrecio ?? this.prodPrecio,
@@ -173,6 +179,7 @@ class Productos {
       'prodMax': prodMax,
       'prodMin': prodMin,
       'prodCosto': prodCosto,
+      'prodUbFisica': prodUbFisica,
       'prodUMedSalida': prodUMedSalida,
       'prodUMedEntrada': prodUMedEntrada,
       'prodPrecio': prodPrecio,
@@ -208,6 +215,8 @@ class Productos {
               ? (map['prodCosto'] as int).toDouble()
               : map['prodCosto'] as double)
           : null,
+      prodUbFisica:
+          map['prodUbFisica'] != null ? map['prodUbFisica'] as String : null,
       prodUMedSalida: map['prodUMedSalida'] != null
           ? map['prodUMedSalida'] as String
           : null,
@@ -233,7 +242,7 @@ class Productos {
 
   @override
   String toString() {
-    return 'Productos(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodImgB64: $prodImgB64, idProveedor: $idProveedor)';
+    return 'Productos(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUbFisica: $prodUbFisica, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodImgB64: $prodImgB64, idProveedor: $idProveedor)';
   }
 
   @override
@@ -246,6 +255,7 @@ class Productos {
         other.prodMax == prodMax &&
         other.prodMin == prodMin &&
         other.prodCosto == prodCosto &&
+        other.prodUbFisica == prodUbFisica &&
         other.prodUMedSalida == prodUMedSalida &&
         other.prodUMedEntrada == prodUMedEntrada &&
         other.prodPrecio == prodPrecio &&
@@ -261,6 +271,7 @@ class Productos {
         prodMax.hashCode ^
         prodMin.hashCode ^
         prodCosto.hashCode ^
+        prodUbFisica.hashCode ^
         prodUMedSalida.hashCode ^
         prodUMedEntrada.hashCode ^
         prodPrecio.hashCode ^

@@ -55,6 +55,14 @@ class _EditProductoPageState extends State<EditProductoPage> {
     'Un (Unidad)'
   ];
 
+  final List<String> _rack = ['R1', 'R2', 'R3'];
+  final List<String> _nivel = ['N1', 'N2', 'N3', 'N4', 'N5'];
+  final List<String> _letra = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
+  String? _selectedRack;
+  String? _selectedNivel;
+  String? _selectedLetra;
+
   final _formkey = GlobalKey<FormState>();
 
   XFile? _selectedImage;
@@ -83,6 +91,19 @@ class _EditProductoPageState extends State<EditProductoPage> {
         widget.producto.prodUMedEntrada ?? _unMedSalida.first;
     _precioController = TextEditingController(
         text: (widget.producto.prodPrecio ?? 0.0).toString());
+
+    if (widget.producto.prodUbFisica != null &&
+        widget.producto.prodUbFisica!.isNotEmpty) {
+      String ubicacion = widget.producto.prodUbFisica!;
+
+      _selectedRack = ubicacion.length >= 2 ? ubicacion.substring(0, 2) : null;
+      _selectedNivel = ubicacion.length >= 4 ? ubicacion.substring(2, 4) : null;
+      _selectedLetra = ubicacion.length == 5 ? ubicacion.substring(4) : null;
+    } else {
+      _selectedRack = null;
+      _selectedNivel = null;
+      _selectedLetra = null;
+    }
 
     _loadProveedores();
 
@@ -141,6 +162,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
         prodMax: double.parse(_maxController.text),
         prodMin: double.parse(_minController.text),
         prodCosto: double.parse(_costoController.text),
+        prodUbFisica: _selectedRack! + _selectedNivel! + _selectedLetra!,
         prodUMedSalida: _selectedUnMedSalida,
         prodUMedEntrada: _selectedUnMedEntrada,
         prodPrecio: double.parse(_precioController.text),
@@ -355,6 +377,75 @@ class _EditProductoPageState extends State<EditProductoPage> {
                           },
                           itemLabelBuilder: (prov) =>
                               prov.proveedor_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  const Divider(),
+                  const SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      //Rack
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedRack,
+                          labelText: 'Rack',
+                          items: _rack,
+                          onChanged: (rack) {
+                            setState(() {
+                              _selectedRack = rack;
+                            });
+                          },
+                          validator: (rack) {
+                            if (rack == null || rack.isEmpty) {
+                              return 'Rack obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+
+                      //Nivel
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedNivel,
+                          labelText: 'Nivel',
+                          items: _nivel,
+                          onChanged: (nivel) {
+                            setState(() {
+                              _selectedNivel = nivel;
+                            });
+                          },
+                          validator: (nivel) {
+                            if (nivel == null || nivel.isEmpty) {
+                              return 'Nivel obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+
+                      //letra
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedLetra,
+                          labelText: 'Letra',
+                          items: _letra,
+                          onChanged: (letra) {
+                            setState(() {
+                              _selectedLetra = letra;
+                            });
+                          },
+                          validator: (letra) {
+                            if (letra == null || letra.isEmpty) {
+                              return 'Letra obligatoria.';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                     ],

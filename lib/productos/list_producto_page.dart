@@ -164,6 +164,15 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            'Ubicación: ${producto.prodUbFisica?.isNotEmpty == true ? producto.prodUbFisica : 'Sin ubicación'}',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
