@@ -1,42 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
+import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/juntas/edit_junta_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
-class LsitJuntasPage extends StatefulWidget {
+class ListJuntasPage extends StatefulWidget {
   final String? userRole;
-  const LsitJuntasPage({super.key, this.userRole});
+  const ListJuntasPage({super.key, this.userRole});
 
   @override
-  State<LsitJuntasPage> createState() => _LsitJuntasPageState();
+  State<ListJuntasPage> createState() => _ListJuntasPageState();
 }
 
-class _LsitJuntasPageState extends State<LsitJuntasPage> {
+class _ListJuntasPageState extends State<ListJuntasPage> {
   final JuntasController _juntasController = JuntasController();
+  final UsersController _usersController = UsersController();
   final TextEditingController _searchController = TextEditingController();
 
   List<Juntas> _allJuntas = [];
   List<Juntas> _filteredJuntas = [];
+  Map<int, Users> _usersCache = {};
 
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadJuntas();
+    _loadData();
     _searchController.addListener(_filterJuntas);
   }
 
-  Future<void> _loadJuntas() async {
+  Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
       final juntas = await _juntasController.listJuntas();
+      final users = await _usersController.listUsers();
+
       setState(() {
         _allJuntas = juntas;
         _filteredJuntas = juntas;
+
+        _usersCache = {for (var us in users) us.id_User!: us};
+
+        _isLoading = false;
       });
     } catch (e) {
       print('Error list_juntas_page: $e');
@@ -113,6 +122,7 @@ class _LsitJuntasPageState extends State<LsitJuntasPage> {
                           itemCount: _filteredJuntas.length,
                           itemBuilder: (context, index) {
                             final junta = _filteredJuntas[index];
+                            final user = _usersCache[junta.id_User];
 
                             return Card(
                               color: const Color.fromARGB(255, 201, 230, 242),
@@ -129,6 +139,26 @@ class _LsitJuntasPageState extends State<LsitJuntasPage> {
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      user != null
+                                          ? 'Encargado: ${user.user_Name}'
+                                          : 'Encargado: No disponible',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      'Teléfono: ${junta.junta_Telefono ?? 'Sin número'}',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -151,7 +181,7 @@ class _LsitJuntasPageState extends State<LsitJuntasPage> {
                                               ),
                                             );
                                             if (result == true) {
-                                              _loadJuntas();
+                                              _loadData();
                                             }
                                           },
                                         ),

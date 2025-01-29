@@ -7,7 +7,7 @@ import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
-import 'package:jmas_desktop/juntas/lsit_juntas_page.dart';
+import 'package:jmas_desktop/juntas/list_juntas_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
@@ -144,7 +144,7 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToListJuntas() {
     setState(() {
-      _currentPage = LsitJuntasPage(userRole: userRole);
+      _currentPage = ListJuntasPage(userRole: userRole);
     });
   }
 

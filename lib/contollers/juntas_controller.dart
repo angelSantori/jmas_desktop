@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class JuntasController {
@@ -81,18 +83,26 @@ class JuntasController {
 class Juntas {
   int? id_Junta;
   String? junta_Name;
+  String? junta_Telefono;
+  int? id_User;
   Juntas({
     this.id_Junta,
     this.junta_Name,
+    this.junta_Telefono,
+    this.id_User,
   });
 
   Juntas copyWith({
     int? id_Junta,
     String? junta_Name,
+    String? junta_Telefono,
+    int? id_User,
   }) {
     return Juntas(
       id_Junta: id_Junta ?? this.id_Junta,
       junta_Name: junta_Name ?? this.junta_Name,
+      junta_Telefono: junta_Telefono ?? this.junta_Telefono,
+      id_User: id_User ?? this.id_User,
     );
   }
 
@@ -100,14 +110,17 @@ class Juntas {
     return <String, dynamic>{
       'id_Junta': id_Junta,
       'junta_Name': junta_Name,
+      'junta_Telefono': junta_Telefono,
+      'id_User': id_User,
     };
   }
 
   factory Juntas.fromMap(Map<String, dynamic> map) {
     return Juntas(
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
-      junta_Name:
-          map['junta_Name'] != null ? map['junta_Name'] as String : null,
+      junta_Name: map['junta_Name'] != null ? map['junta_Name'] as String : null,
+      junta_Telefono: map['junta_Telefono'] != null ? map['junta_Telefono'] as String : null,
+      id_User: map['id_User'] != null ? map['id_User'] as int : null,
     );
   }
 
@@ -117,15 +130,26 @@ class Juntas {
       Juntas.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  String toString() => 'Juntas(id_Junta: $id_Junta, junta_Name: $junta_Name)';
+  String toString() {
+    return 'Juntas(id_Junta: $id_Junta, junta_Name: $junta_Name, junta_Telefono: $junta_Telefono, id_User: $id_User)';
+  }
 
   @override
   bool operator ==(covariant Juntas other) {
     if (identical(this, other)) return true;
-
-    return other.id_Junta == id_Junta && other.junta_Name == junta_Name;
+  
+    return 
+      other.id_Junta == id_Junta &&
+      other.junta_Name == junta_Name &&
+      other.junta_Telefono == junta_Telefono &&
+      other.id_User == id_User;
   }
 
   @override
-  int get hashCode => id_Junta.hashCode ^ junta_Name.hashCode;
+  int get hashCode {
+    return id_Junta.hashCode ^
+      junta_Name.hashCode ^
+      junta_Telefono.hashCode ^
+      id_User.hashCode;
+  }
 }
