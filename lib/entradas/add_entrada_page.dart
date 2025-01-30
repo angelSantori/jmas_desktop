@@ -60,6 +60,15 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         return;
       }
 
+      final double nuevaExistencia =
+          (_selectedProducto!.prodExistencia!) + cantidad;
+      final double totalExceso =
+          nuevaExistencia - (_selectedProducto!.prodMax!);
+      if (nuevaExistencia > (_selectedProducto!.prodMax!)) {
+        showAdvertence(context,
+            'La cantidad excede las existencias máximas del producto: ${_selectedProducto!.prodDescripcion}. \nPor: $totalExceso unidades de más.');
+      }
+
       setState(() {
         final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
         final double precioTotal = precioUnitario * cantidad;

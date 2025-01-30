@@ -81,6 +81,16 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         return;
       }
 
+      final double nuevaExistencia =
+          (_selectedProducto!.prodExistencia!) - cantidad;
+      final double totalDeficit =
+          (_selectedProducto!.prodMin!) - nuevaExistencia;
+
+      if (nuevaExistencia < (_selectedProducto!.prodMin!)) {
+        showAdvertence(context,
+            'La cantidad está por debajo de las existencias mínimas del producto: ${_selectedProducto!.prodDescripcion}. \nPor: $totalDeficit unidades de menos.');
+      }
+
       setState(() {
         final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
         final double? porcentaje = _selectedIncremento.value;
@@ -300,7 +310,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           itemLabelBuilder: (jun) =>
                               jun.junta_Name ?? 'Sin nombre',
                         ),
-                      ),                      
+                      ),
                     ],
                   ),
                   const SizedBox(height: 30),
