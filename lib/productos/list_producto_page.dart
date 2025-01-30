@@ -20,6 +20,8 @@ class _ListProductoPageState extends State<ListProductoPage> {
   List<Productos> _filteredProductos = [];
 
   bool _isLoading = true;
+  bool _showExcess = false;
+  bool _showDeficit = false;
 
   @override
   void initState() {
@@ -53,7 +55,20 @@ class _ListProductoPageState extends State<ListProductoPage> {
       _filteredProductos = _allProductos.where((producto) {
         final descripcion = producto.prodDescripcion?.toLowerCase() ?? '';
         final clave = producto.id_Producto.toString();
-        return descripcion.contains(query) || clave.contains(query);
+
+        bool matchesSearch =
+            descripcion.contains(query) || clave.contains(query);
+
+        bool matchesExcess =
+            _showExcess && (producto.prodExistencia! > producto.prodMax!);
+
+        bool matchesDeficit =
+            _showDeficit && (producto.prodExistencia! < producto.prodMin!);
+
+        return matchesSearch &&
+            (matchesExcess ||
+                matchesDeficit ||
+                (!_showExcess && !_showDeficit));
       }).toList();
     });
   }
@@ -71,10 +86,55 @@ class _ListProductoPageState extends State<ListProductoPage> {
         child: Column(
           children: [
             const SizedBox(height: 5),
-            CustomTextFielTexto(
-              controller: _searchController,
-              labelText: 'Buscar por descrición o clave',
-              prefixIcon: Icons.search,
+            Row(
+              children: [
+                Expanded(
+                  child: CustomTextFielTexto(
+                    controller: _searchController,
+                    labelText: 'Buscar por descrición o clave',
+                    prefixIcon: Icons.search,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: _showExcess,
+                        activeColor: Colors.blue.shade900,
+                        onChanged: (value) {
+                          setState(() {
+                            _showExcess = value ?? false;
+                            _filterProductos();
+                          });
+                        },
+                      ),
+                      const Text(
+                        'Mostrar excesos',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 15),
+                      Checkbox(
+                        value: _showDeficit,
+                        activeColor: Colors.blue.shade900,
+                        onChanged: (value) {
+                          setState(() {
+                            _showDeficit = value ?? false;
+                            _filterProductos();
+                          });
+                        },
+                      ),
+                      const Text(
+                        'Mostrar faltantes',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -92,8 +152,20 @@ class _ListProductoPageState extends State<ListProductoPage> {
                           itemCount: _filteredProductos.length,
                           itemBuilder: (context, index) {
                             final producto = _filteredProductos[index];
+
+                            Color cardColor;
+                            if (producto.prodExistencia! > producto.prodMax!) {
+                              cardColor = Colors.yellow.withOpacity(0.3);
+                            } else if (producto.prodExistencia! <
+                                producto.prodMin!) {
+                              cardColor = Colors.red.withOpacity(0.3);
+                            } else {
+                              cardColor =
+                                  const Color.fromARGB(255, 201, 230, 242);
+                            }
+
                             return Card(
-                              color: const Color.fromARGB(255, 201, 230, 242),
+                              color: cardColor,
                               margin: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               elevation: 4,
