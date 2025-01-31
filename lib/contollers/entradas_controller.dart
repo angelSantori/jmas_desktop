@@ -134,6 +134,7 @@ class Entradas {
   String? entrada_ImgB64Factura;
   int? idProducto;
   int? id_User;
+  bool? entrad_Estado;
   Entradas({
     this.id_Entradas,
     this.entrada_CodFolio,
