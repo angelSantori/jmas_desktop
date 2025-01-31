@@ -29,7 +29,13 @@ class _AddUserPageState extends State<AddUserPage> {
 
   String? _selectedRol;
 
-  final List<String> _roles = ['Admin', 'Sistemas', 'Gestion', 'Electro'];
+  final List<String> _roles = [
+    'Admin',
+    'Sistemas',
+    'Gestion',
+    'Electro',
+    'Empleado',
+  ];
 
   bool _isPasswordVisibles = false;
   bool _isConfirmPasswordVisible = false;
