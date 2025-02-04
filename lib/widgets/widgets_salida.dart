@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:pdf/pdf.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -10,9 +11,12 @@ import 'package:pdf/widgets.dart' as pw;
 import 'dart:html' as html;
 import 'dart:ui' as ui;
 
-//Tabla de productos
+//Tabla de productos salida
 Widget buildProductosAgregadosSalida(
-    List<Map<String, dynamic>> productosAgregados) {
+  List<Map<String, dynamic>> productosAgregados,
+  void Function(int) eliminarProductoSalida,
+  void Function(int, double) actualizarCostoSalida,
+) {
   if (productosAgregados.isEmpty) {
     return const Text(
       'No hay productos agregados.',
@@ -37,6 +41,7 @@ Widget buildProductosAgregadosSalida(
           4: FlexColumnWidth(1), //% Incremento
           5: FlexColumnWidth(1), //Precio incrementado
           6: FlexColumnWidth(1), //Precio total
+          7: FlexColumnWidth(1), //Eliminar
         },
         children: [
           TableRow(
@@ -44,122 +49,62 @@ Widget buildProductosAgregadosSalida(
               color: Colors.blue.shade900,
             ),
             children: const [
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Clave',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Descripción',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Costo',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Cantidad',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  '% Incremento',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Precio incrementado',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Precio Total',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+              TableHeaderCell(texto: 'Calve'),
+              TableHeaderCell(texto: 'Descripción'),
+              TableHeaderCell(texto: 'Costo'),
+              TableHeaderCell(texto: 'Cantidad'),
+              TableHeaderCell(texto: '% Incremento'),
+              TableHeaderCell(texto: 'Precio Incrementado'),
+              TableHeaderCell(texto: 'Precio Total'),
+              TableHeaderCell(texto: 'Eliminar'),
             ],
           ),
-          ...productosAgregados.map((producto) {
+          ...productosAgregados.asMap().entries.map((entry) {
+            int index = entry.key;
+            Map<String, dynamic> producto = entry.value;
+
+            TextEditingController costoSalidaController =
+                TextEditingController(text: producto['costo'].toString());
+
             return TableRow(
               children: [
+                TableCellText(texto: producto['id'].toString()),
+                TableCellText(texto: producto['descripcion'].toString()),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    producto['id'].toString(),
-                    overflow: TextOverflow.ellipsis,
+                  child: TextField(
+                    controller: costoSalidaController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    onSubmitted: (nuevoValor) {
+                      double nuevoCosto =
+                          double.tryParse(nuevoValor) ?? producto['costo'];
+                      actualizarCostoSalida(index, nuevoCosto);
+                    },
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      fillColor: Colors.blue.shade900,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 5, horizontal: 8),
+                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    producto['descripcion'] ?? 'Sin descripción',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '\$${(producto['costo'] ?? 0.0).toStringAsFixed(2)}',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    (producto['cantidad'] ?? 00).toString(),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '${(producto['porcentaje'] ?? 0.0).toStringAsFixed(2)}%',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '\$${(producto['precioIncrementado'] ?? 0.0).toStringAsFixed(2)}',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+                TableCellText(texto: producto['cantidad'].toString()),
+                TableCellText(texto: producto['porcentaje'].toString() + '%'),
+                TableCellText(
+                    texto: '\$${producto['precioIncrementado'].toString()}'),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     '\$${((producto['precioIncrementado'] * producto['cantidad']) ?? 0.0).toStringAsFixed(2)}',
                     overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => eliminarProductoSalida(index),
                   ),
                 ),
               ],
@@ -186,6 +131,7 @@ Widget buildProductosAgregadosSalida(
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
           ])
         ],
       ),
