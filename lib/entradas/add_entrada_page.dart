@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
@@ -93,6 +92,20 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       showAdvertence(
           context, 'Debe seleccionar un producto y definir la cantidad.');
     }
+  }
+
+  void eliminarProducto(int index) {
+    setState(() {
+      _productosAgregados.removeAt(index);
+    });
+  }
+
+  void actualizarCosto(int index, double nuevoCosto) {
+    setState(() {
+      _productosAgregados[index]['costo'] = nuevoCosto;
+      _productosAgregados[index]['precio'] =
+          nuevoCosto * (_productosAgregados[index]['cantidad'] ?? 1);
+    });
   }
 
   Future<void> _guardarEntrada() async {
@@ -284,7 +297,11 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                   const SizedBox(height: 20),
 
                   //Tabla productos agregados
-                  buildProductosAgregados(_productosAgregados),
+                  buildProductosAgregados(
+                    _productosAgregados,
+                    eliminarProducto,
+                    actualizarCosto,
+                  ),
 
                   const SizedBox(height: 30),
 

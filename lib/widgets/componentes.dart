@@ -384,7 +384,11 @@ Future<void> generateAndPrintPdfEntrada({
 }
 
 //Tabla de productos
-Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
+Widget buildProductosAgregados(
+  List<Map<String, dynamic>> productosAgregados,
+  void Function(int) eliminarProducto,
+  void Function(int, double) actualizarCosto,
+) {
   if (productosAgregados.isEmpty) {
     return const Text(
       'No hay productos agregados.',
@@ -407,6 +411,7 @@ Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
           2: FlexColumnWidth(1), //Precio
           3: FlexColumnWidth(1), //Cantidad
           4: FlexColumnWidth(1), //Precio Total
+          5: FlexColumnWidth(1) //Eliminar
         },
         children: [
           TableRow(
@@ -414,95 +419,56 @@ Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
               color: Colors.blue.shade900,
             ),
             children: const [
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Clave',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Descripción',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Costo',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Cantidad',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Precio',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+              TableHeaderCell(texto: 'Clave'),
+              TableHeaderCell(texto: 'Descripción'),
+              TableHeaderCell(texto: 'Costo'),
+              TableHeaderCell(texto: 'Cantidad'),
+              TableHeaderCell(texto: 'Total'),
+              TableHeaderCell(texto: 'Eliminar'),
             ],
           ),
-          ...productosAgregados.map((producto) {
+          ...productosAgregados.asMap().entries.map((entry) {
+            int index = entry.key;
+            Map<String, dynamic> producto = entry.value;
+
+            TextEditingController costoController =
+                TextEditingController(text: producto['costo'].toString());
+
             return TableRow(
               children: [
+                TableCellText(texto: producto['id'].toString()),
+                TableCellText(
+                    texto: producto['descripcion'] ?? 'Sin descripción'),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    producto['id'].toString(),
-                    overflow: TextOverflow.ellipsis,
+                  child: TextField(
+                    controller: costoController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    onSubmitted: (nuevoValor) {
+                      double nuevoCosto =
+                          double.tryParse(nuevoValor) ?? producto['costo'];
+                      actualizarCosto(index, nuevoCosto);
+                    },
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                    ),
                   ),
                 ),
+                TableCellText(texto: producto['cantidad'].toString()),
+                TableCellText(texto: '\$${producto['precio'].toString()}'),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    producto['descripcion'] ?? 'Sin descripción',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '\$${producto['costo'].toString()}',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    producto['cantidad'].toString(),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '\$${producto['precio'].toStringAsFixed(2)}',
-                    overflow: TextOverflow.ellipsis,
+                  child: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => eliminarProducto(index),
                   ),
                 ),
               ],
             );
-          }),
+          }).toList(),
           TableRow(children: [
             const Padding(
               padding: EdgeInsets.all(8.0),
@@ -531,11 +497,50 @@ Widget buildProductosAgregados(List<Map<String, dynamic>> productosAgregados) {
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(''),
+            ),
           ])
         ],
       ),
     ],
   );
+}
+
+class TableHeaderCell extends StatelessWidget {
+  final String texto;
+  const TableHeaderCell({required this.texto, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        texto,
+        style:
+            const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class TableCellText extends StatelessWidget {
+  final String texto;
+  const TableCellText({required this.texto, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        texto,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
 }
 
 //Buscar producto

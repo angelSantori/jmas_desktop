@@ -66,6 +66,20 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
     }
   }
 
+  void eliminarProducto(int index) {
+    setState(() {
+      _productosAgregados.removeAt(index);
+    });
+  }
+
+  void actualizarCosto(int index, double nuevoCosto) {
+    setState(() {
+      _productosAgregados[index]['costo'] = nuevoCosto;
+      _productosAgregados[index]['precio'] =
+          nuevoCosto * (_productosAgregados[index]['cantidad'] ?? 1);
+    });
+  }
+
   Future<void> _guardarAjusteMas() async {
     if (_productosAgregados.isEmpty) {
       showAdvertence(context, 'Debe agregar al menos un producto.');
@@ -253,7 +267,11 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  buildProductosAgregados(_productosAgregados),
+                  buildProductosAgregados(
+                    _productosAgregados,
+                    eliminarProducto,
+                    actualizarCosto,
+                  ),
 
                   const SizedBox(height: 30),
 

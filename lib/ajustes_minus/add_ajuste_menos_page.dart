@@ -66,6 +66,14 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
     }
   }
 
+  void actualizarCosto(int index, double nuevoCosto) {
+    setState(() {
+      _productosAgregados[index]['costo'] = nuevoCosto;
+      _productosAgregados[index]['precio'] =
+          nuevoCosto * (_productosAgregados[index]['cantidad'] ?? 1);
+    });
+  }
+
   Future<void> _guardarAjusteMenos() async {
     if (_productosAgregados.isEmpty) {
       showAdvertence(context, 'Debe agregar al menos un producto');
@@ -134,6 +142,12 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
         _isLoadingGaurdando = false;
       });
     }
+  }
+
+  void eliminarProducto(int index) {
+    setState(() {
+      _productosAgregados.removeAt(index);
+    });
   }
 
   Future<void> _getUserId() async {
@@ -251,7 +265,11 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
 
                   const SizedBox(height: 20),
 
-                  buildProductosAgregados(_productosAgregados),
+                  buildProductosAgregados(
+                    _productosAgregados,
+                    eliminarProducto,
+                    actualizarCosto,
+                  ),
 
                   const SizedBox(height: 20),
 
