@@ -275,14 +275,15 @@ Future<Uint8List> generateQrCode(String data) async {
 Future<void> generateAndPrintPdfEntrada({
   required String movimiento,
   required String fecha,
-  required String referencia,
+  required String folio,
   required String userName,
+  required String referencia,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
 
   //Generar código QR
-  final qrBytes = await generateQrCode(referencia);
+  final qrBytes = await generateQrCode(folio);
   final qrImage = pw.MemoryImage(qrBytes);
 
   // Cálculo del total
@@ -306,7 +307,8 @@ Future<void> generateAndPrintPdfEntrada({
                     style: const pw.TextStyle(fontSize: 24)),
                 pw.SizedBox(height: 16),
                 pw.Text('Fecha: $fecha'),
-                pw.Text('Folio: $referencia'),
+                pw.Text('Folio: $folio'),
+                pw.Text('Referencia: $referencia'),
                 pw.Text('Realizado por: $userName'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(
@@ -774,9 +776,15 @@ Future<bool> validarCamposAntesDeImprimir({
 Future<bool> validarCamposAntesDeImprimirEntrada({
   required BuildContext context,
   required List productosAgregados,
+  required String referencia,
 }) async {
   if (productosAgregados.isEmpty) {
     showAdvertence(context, 'Debe agregar productos antes de imprimir.');
+    return false;
+  }
+
+  if (referencia.isEmpty) {
+    showAdvertence(context, 'Referencia es obligatoria.');
     return false;
   }
   return true; // Si pasa todas las validaciones, los datos están completos
