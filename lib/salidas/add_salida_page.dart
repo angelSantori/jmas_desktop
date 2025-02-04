@@ -4,6 +4,7 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
+import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -24,6 +25,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final JuntasController _juntasController = JuntasController();
   final AlmacenesController _almacenesController = AlmacenesController();
   final ProductosController _productosController = ProductosController();
+  final UsersController _usersController = UsersController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -41,11 +43,13 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   List<Almacenes> _almacenes = [];
   List<Juntas> _juntas = [];
+  List<Users> _users = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
   Almacenes? _selectedAlmacen;
   Juntas? _selectedJunta;
   Productos? _selectedProducto;
+  Users? _selectedUser;
 
   bool _isLoading = false;
 
@@ -66,9 +70,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Future<void> _loadDataSalidas() async {
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
     List<Juntas> juntas = await _juntasController.listJuntas();
+    List<Users> users = await _usersController.listUsers();
+
+    //Filtro usuario donde rol sea empleado
+    List<Users> empleados =
+        users.where((user) => user.user_Rol == "Empleado").toList();
     setState(() {
       _almacenes = almacenes;
       _juntas = juntas;
+      _users = empleados;
     });
   }
 
@@ -244,6 +254,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
       id_Almacen: _selectedAlmacen?.id_Almacen ?? 0, // Almacen
+      id_User_Asignado: _selectedUser?.id_User,
     );
   }
 
@@ -254,6 +265,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedAlmacen = null;
       _selectedJunta = null;
       _selectedProducto = null;
+      _selectedUser = null;
       _referenciaController.clear();
       _idProductoController.clear();
       _cantidadController.clear();
@@ -300,7 +312,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 30),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  Row(
+                    children: [
                       Expanded(
                         child: CustomListaDesplegableTipo(
                           value: _selectedAlmacen,
@@ -341,6 +358,27 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           },
                           itemLabelBuilder: (jun) =>
                               jun.junta_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedUser,
+                          labelText: 'Asignar empleado',
+                          items: _users,
+                          onChanged: (user) {
+                            setState(() {
+                              _selectedUser = user;
+                            });
+                          },
+                          validator: (user) {
+                            if (user == null) {
+                              return 'Debe asignar un empleado.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (user) =>
+                              user.user_Name ?? 'Sin nombre',
                         ),
                       ),
                     ],
@@ -411,6 +449,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             referenciaController: _referenciaController,
                             selectedAlmacen: _selectedAlmacen,
                             selectedJunta: _selectedJunta,
+                            selectedUser: _selectedUser,
                           );
 
                           if (!datosCompletos) {
@@ -427,6 +466,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
                             usuario: widget.userName!,
                             productos: _productosAgregados,
+                            userAsignado: _selectedUser!.user_Name!,
                           );
                         },
                         style: ElevatedButton.styleFrom(

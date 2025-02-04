@@ -1,7 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: non_constant_identifier_names
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class SalidasController {
@@ -109,6 +111,7 @@ class Salidas {
   int? id_User;
   int? id_Junta;
   int? id_Almacen;
+  int? id_User_Asignado;
   Salidas({
     this.id_Salida,
     this.salida_CodFolio,
@@ -120,6 +123,7 @@ class Salidas {
     this.id_User,
     this.id_Junta,
     this.id_Almacen,
+    this.id_User_Asignado,
   });
 
   Salidas copyWith({
@@ -133,6 +137,7 @@ class Salidas {
     int? id_User,
     int? id_Junta,
     int? id_Almacen,
+    int? id_User_Asignado,
   }) {
     return Salidas(
       id_Salida: id_Salida ?? this.id_Salida,
@@ -145,6 +150,7 @@ class Salidas {
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
       id_Almacen: id_Almacen ?? this.id_Almacen,
+      id_User_Asignado: id_User_Asignado ?? this.id_User_Asignado,
     );
   }
 
@@ -160,6 +166,7 @@ class Salidas {
       'id_User': id_User,
       'id_Junta': id_Junta,
       'id_Almacen': id_Almacen,
+      'id_User_Asignado': id_User_Asignado,
     };
   }
 
@@ -188,6 +195,9 @@ class Salidas {
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
       id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
+      id_User_Asignado: map['id_User_Asignado'] != null
+          ? map['id_User_Asignado'] as int
+          : null,
     );
   }
 
@@ -198,7 +208,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado)';
   }
 
   @override
@@ -214,7 +224,8 @@ class Salidas {
         other.idProducto == idProducto &&
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
-        other.id_Almacen == id_Almacen;
+        other.id_Almacen == id_Almacen &&
+        other.id_User_Asignado == id_User_Asignado;
   }
 
   @override
@@ -228,6 +239,7 @@ class Salidas {
         idProducto.hashCode ^
         id_User.hashCode ^
         id_Junta.hashCode ^
-        id_Almacen.hashCode;
+        id_Almacen.hashCode ^
+        id_User_Asignado.hashCode;
   }
 }

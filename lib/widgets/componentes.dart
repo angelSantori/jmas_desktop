@@ -735,18 +735,13 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
 }
 
 // Función para validar campos antes de imprimir
-Future<bool> validarCamposAntesDeImprimir({
-  required BuildContext context,
-  required List productosAgregados,
-  required TextEditingController referenciaController,
-  required var selectedAlmacen,
-  required var selectedJunta,
-}) async {
-  if (productosAgregados.isEmpty) {
-    showAdvertence(context, 'Debe agregar productos antes de imprimir.');
-    return false;
-  }
-
+Future<bool> validarCamposAntesDeImprimir(
+    {required BuildContext context,
+    required List productosAgregados,
+    required TextEditingController referenciaController,
+    required var selectedAlmacen,
+    required var selectedJunta,
+    required var selectedUser}) async {
   if (referenciaController.text.isEmpty) {
     showAdvertence(context, 'La referencia es obligatoria.');
     return false;
@@ -759,6 +754,16 @@ Future<bool> validarCamposAntesDeImprimir({
 
   if (selectedJunta == null) {
     showAdvertence(context, 'Debe seleccionar una junta.');
+    return false;
+  }
+
+  if (selectedUser == null) {
+    showAdvertence(context, 'Debe asignar un empleado.');
+    return false;
+  }
+
+  if (productosAgregados.isEmpty) {
+    showAdvertence(context, 'Debe agregar productos antes de imprimir.');
     return false;
   }
 

@@ -392,6 +392,7 @@ Future<void> generateAndPrintPdfSalida({
   required String almacen,
   required String junta,
   required String usuario,
+  required String userAsignado,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -423,10 +424,11 @@ Future<void> generateAndPrintPdfSalida({
                 pw.SizedBox(height: 16),
                 pw.Text('Fecha: $fecha'),
                 pw.Text('Folio: $salidaCodFolio'),
+                pw.Text('Realizado por: $usuario'),
                 pw.Text('Referencia: $referencia'),
                 pw.Text('Almacen: $almacen'),
                 pw.Text('Junta: $junta'),
-                pw.Text('Realizado por: $usuario'),
+                pw.Text('Asignado a: $userAsignado'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(headers: [
                   'Clave',
