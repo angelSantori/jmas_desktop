@@ -61,25 +61,32 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   }
 
   void _filterEntradas() {
-    final query = _searchController.text.toLowerCase();
+    final query = _searchController.text.trim().toLowerCase();
+
     setState(() {
       _filteredEntradas = _allEntradas.where((entrada) {
-        final folio = entrada.entrada_CodFolio?.toString() ?? '';
+        final folio = (entrada.entrada_CodFolio ?? '').toString().toLowerCase();
+        final referencia =
+            (entrada.entrada_Referencia ?? '').toString().toLowerCase();
         final fechaString = entrada.entrada_Fecha;
 
         //Parsear la fecha del string
         final fecha = fechaString != null ? parseDate(fechaString) : null;
 
         //Validar folio
-        final matchesFolio =
-            query.isEmpty || folio.toLowerCase().contains(query);
+        final matchesFolio = folio.contains(query);
+
+        //Validar referencia
+        final matchesReferencia = referencia.contains(query);
+
+        final matchesText = query.isEmpty || matchesFolio || matchesReferencia;
 
         //Validar rango de fechas
         final matchesDate = fecha != null &&
             (_startDate == null || !fecha.isBefore(_startDate!)) &&
             (_endDate == null || !fecha.isAfter(_endDate!));
 
-        return matchesFolio && matchesDate;
+        return matchesText && matchesDate;
       }).toList();
     });
   }
@@ -107,8 +114,10 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(),
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue.shade900,
+              ),
             )
           : Column(
               children: [
@@ -119,7 +128,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                       Expanded(
                         child: CustomTextFielTexto(
                           controller: _searchController,
-                          labelText: 'Buscar por folio',
+                          labelText: 'Buscar por folio o referencia',
                           prefixIcon: Icons.search,
                         ),
                       ),
@@ -176,7 +185,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
       return Center(
         child: Text(
           _searchController.text.isNotEmpty
-              ? 'No hay entradas que coincidan con el folio'
+              ? 'No hay entradas que coincidan con el folio o referencia'
               : (_startDate != null || _endDate != null)
                   ? 'No hay entradas que coincidan con el rango de fechas'
                   : 'No hay entradas disponibles',
@@ -228,14 +237,22 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                   style: const TextStyle(
                     fontSize: 15,
                   ),
-                )
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Referencia: ${entrada.entrada_Referencia}',
+                  style: const TextStyle(
+                    fontSize: 15,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
             trailing: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Referencia: ${entrada.entrada_CodFolio ?? "Sin referencia"}',
+                  'Folio: ${entrada.entrada_CodFolio ?? "Sin folio"}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
