@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, non_constant_identifier_names
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class EntradasController {
@@ -132,6 +134,7 @@ class Entradas {
   double? entrada_Costo;
   String? entrada_Fecha;
   String? entrada_ImgB64Factura;
+  String? entrada_Referencia;
   int? idProducto;
   int? id_User;
   bool? entrad_Estado;
@@ -142,8 +145,10 @@ class Entradas {
     this.entrada_Costo,
     this.entrada_Fecha,
     this.entrada_ImgB64Factura,
+    this.entrada_Referencia,
     this.idProducto,
     this.id_User,
+    this.entrad_Estado,
   });
 
   Entradas copyWith({
@@ -153,8 +158,10 @@ class Entradas {
     double? entrada_Costo,
     String? entrada_Fecha,
     String? entrada_ImgB64Factura,
+    String? entrada_Referencia,
     int? idProducto,
     int? id_User,
+    bool? entrad_Estado,
   }) {
     return Entradas(
       id_Entradas: id_Entradas ?? this.id_Entradas,
@@ -164,8 +171,10 @@ class Entradas {
       entrada_Fecha: entrada_Fecha ?? this.entrada_Fecha,
       entrada_ImgB64Factura:
           entrada_ImgB64Factura ?? this.entrada_ImgB64Factura,
+      entrada_Referencia: entrada_Referencia ?? this.entrada_Referencia,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
+      entrad_Estado: entrad_Estado ?? this.entrad_Estado,
     );
   }
 
@@ -177,8 +186,10 @@ class Entradas {
       'entrada_Costo': entrada_Costo,
       'entrada_Fecha': entrada_Fecha,
       'entrada_ImgB64Factura': entrada_ImgB64Factura,
+      'entrada_Referencia': entrada_Referencia,
       'idProducto': idProducto,
       'id_User': id_User,
+      'entrad_Estado': entrad_Estado,
     };
   }
 
@@ -204,8 +215,13 @@ class Entradas {
       entrada_ImgB64Factura: map['entrada_ImgB64Factura'] != null
           ? map['entrada_ImgB64Factura'] as String
           : null,
+      entrada_Referencia: map['entrada_Referencia'] != null
+          ? map['entrada_Referencia'] as String
+          : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
+      entrad_Estado:
+          map['entrad_Estado'] != null ? map['entrad_Estado'] as bool : null,
     );
   }
 
@@ -216,7 +232,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, idProducto: $idProducto, id_User: $id_User)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, entrada_Referencia: $entrada_Referencia, idProducto: $idProducto, id_User: $id_User, entrad_Estado: $entrad_Estado)';
   }
 
   @override
@@ -229,8 +245,10 @@ class Entradas {
         other.entrada_Costo == entrada_Costo &&
         other.entrada_Fecha == entrada_Fecha &&
         other.entrada_ImgB64Factura == entrada_ImgB64Factura &&
+        other.entrada_Referencia == entrada_Referencia &&
         other.idProducto == idProducto &&
-        other.id_User == id_User;
+        other.id_User == id_User &&
+        other.entrad_Estado == entrad_Estado;
   }
 
   @override
@@ -241,7 +259,9 @@ class Entradas {
         entrada_Costo.hashCode ^
         entrada_Fecha.hashCode ^
         entrada_ImgB64Factura.hashCode ^
+        entrada_Referencia.hashCode ^
         idProducto.hashCode ^
-        id_User.hashCode;
+        id_User.hashCode ^
+        entrad_Estado.hashCode;
   }
 }
