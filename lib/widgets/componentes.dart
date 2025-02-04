@@ -470,18 +470,9 @@ Widget buildProductosAgregados(
             );
           }).toList(),
           TableRow(children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(''),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(''),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(''),
-            ),
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
             const Padding(
               padding: EdgeInsets.all(8.0),
               child: Text(
@@ -497,10 +488,7 @@ Widget buildProductosAgregados(
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text(''),
-            ),
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
           ])
         ],
       ),
