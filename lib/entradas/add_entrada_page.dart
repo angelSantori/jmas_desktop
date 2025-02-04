@@ -6,6 +6,7 @@ import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddEntradaPage extends StatefulWidget {
@@ -25,6 +26,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
+
+  final TextEditingController _referenciaController = TextEditingController();
 
   final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
@@ -152,6 +155,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         showOk(context, 'Entrada creada exitosamente.');
         setState(() {
           _isLoading = false;
+          _loadCodFolio();
         });
       } else {
         // ignore: use_build_context_synchronously
@@ -176,6 +180,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       entrada_CodFolio: codFolio,
       entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
       entrada_Costo: double.tryParse(producto['precio'].toString()),
+      entrada_Referencia: _referenciaController.text,
       entrada_Fecha: _fecha,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!),
@@ -185,6 +190,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   void _limpiarFormulario() {
     _formKey.currentState!.reset();
     _productosAgregados.clear();
+    _referenciaController.clear();
     setState(() {
       _selectedProducto = null;
       _idProductoController.clear();
@@ -217,6 +223,23 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _referenciaController,
+                          labelText: 'Referencia',
+                          validator: (referencia) {
+                            if (referencia == null || referencia.isEmpty) {
+                              return 'Referencia es obligatoria';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
 
                   BuscarProductoWidget(
                     idProductoController: _idProductoController,
@@ -275,6 +298,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                           bool datosCompletos =
                               await validarCamposAntesDeImprimirEntrada(
                             context: context,
+                            referencia: _referenciaController.text,
                             productosAgregados: _productosAgregados,
                           );
 
@@ -285,8 +309,9 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                           await generateAndPrintPdfEntrada(
                             movimiento: 'Entrada',
                             fecha: _fecha,
-                            referencia: codFolio!,
+                            folio: codFolio!,
                             userName: widget.userName!,
+                            referencia: _referenciaController.text,
                             productos: _productosAgregados,
                           );
                         },
