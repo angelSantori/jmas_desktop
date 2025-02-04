@@ -37,7 +37,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   String? codFolio;
 
-  final ValueNotifier<double> _selectedIncremento = ValueNotifier(0.0);
+  final ValueNotifier<double> _selectedIncremento = ValueNotifier(10.0);
 
   List<Almacenes> _almacenes = [];
   List<Juntas> _juntas = [];
@@ -53,14 +53,20 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   void initState() {
     super.initState();
     _loadDataSalidas();
+    _loadFolioSalida();
+  }
+
+  Future<void> _loadFolioSalida() async {
+    final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
+    setState(() {
+      codFolio = fetchedCodFolio;
+    });
   }
 
   Future<void> _loadDataSalidas() async {
-    final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
     List<Juntas> juntas = await _juntasController.listJuntas();
     setState(() {
-      codFolio = fetchedCodFolio;
       _almacenes = almacenes;
       _juntas = juntas;
     });
@@ -181,6 +187,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         showOk(context, 'Salida creada exitosamente.');
         setState(() {
           _isLoading = false;
+          _loadFolioSalida();
         });
       } else {
         // ignore: use_build_context_synchronously
@@ -192,6 +199,31 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
       _limpiarFormulario();
     }
+  }
+
+  void eliminarProductoSalida(int index) {
+    setState(() {
+      _productosAgregados.removeAt(index);
+    });
+  }
+
+  void actualizarCostoSalida(int index, double nuevoCosto) {
+    setState(() {
+      //Actualizar costo
+      _productosAgregados[index]['costo'] = nuevoCosto;
+
+      //Calcular nuevo precio incrementado
+      double porcentaje = _productosAgregados[index]['porcentaje'];
+      double precioIncrementado =
+          nuevoCosto + (nuevoCosto * (porcentaje / 100));
+
+      //Actualiza precio incrementado
+      _productosAgregados[index]['precioIncrementado'] = precioIncrementado;
+
+      //Calculo de precio total
+      double cantidad = _productosAgregados[index]['cantidad'];
+      _productosAgregados[index]['total'] = precioIncrementado * cantidad;
+    });
   }
 
   Future<void> _getUserId() async {
@@ -358,7 +390,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                   const SizedBox(height: 20),
 
                   //Tabla productos agregados
-                  buildProductosAgregadosSalida(_productosAgregados),
+                  buildProductosAgregadosSalida(
+                    _productosAgregados,
+                    eliminarProductoSalida,
+                    actualizarCostoSalida,
+                  ),
                   const SizedBox(height: 30),
 
                   //Botónes
