@@ -75,15 +75,20 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   }
 
   void _filterSalidas() {
-    final query = _searchController.text.toLowerCase();
+    final query = _searchController.text.trim().toLowerCase();
     setState(() {
       _filteredSalidas = _allSalidas.where((salida) {
-        final folio = salida.salida_CodFolio?.toString() ?? '';
+        final folio = (salida.salida_CodFolio ?? '').toString().toLowerCase();
+        final referencia =
+            (salida.salida_Referencia ?? '').toString().toLowerCase();
         final fechaString = salida.salida_Fecha;
         final fecha = fechaString != null ? parseDate(fechaString) : null;
 
-        final matchesFolio =
-            query.isEmpty || folio.toLowerCase().contains(query);
+        final matchesFolio = folio.contains(query);
+
+        final matchesReferencia = referencia.contains(query);
+
+        final matchesText = query.isEmpty || matchesFolio || matchesReferencia;
 
         final matchesDate = fecha != null &&
             (_startDate == null || !fecha.isBefore(_startDate!)) &&
@@ -95,7 +100,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final matchesAlmacen = _selectedAlmacen == null ||
             salida.id_Almacen.toString() == _selectedAlmacen;
 
-        return matchesFolio && matchesDate && matchesJunta && matchesAlmacen;
+        return matchesText && matchesDate && matchesJunta && matchesAlmacen;
       }).toList();
     });
   }
@@ -151,7 +156,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                       Expanded(
                         child: CustomTextFielTexto(
                           controller: _searchController,
-                          labelText: 'Buscar por folio',
+                          labelText: 'Buscar por folio o referencia',
                           prefixIcon: Icons.search,
                         ),
                       ),
@@ -303,6 +308,13 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     ? Text('Realizado por: ${user.user_Name}',
                         style: const TextStyle(fontSize: 15))
                     : const Text('Usuario no encontrado'),
+                const SizedBox(height: 10),
+                Text(
+                  'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
+                  style: const TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 10),
                 Text(
                   'Unidades: ${salida.salida_Unidades ?? 'No disponible'}',
