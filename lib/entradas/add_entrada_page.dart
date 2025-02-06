@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/generales.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class AddEntradaPage extends StatefulWidget {
@@ -40,16 +42,29 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   String? codFolio;
 
+  final AlmacenesController _almacenesController = AlmacenesController();
+  List<Almacenes> _almacenes = [];
+  Almacenes? _selectedAlmacen;
+
   @override
   void initState() {
     super.initState();
     _loadCodFolio();
+    _loadDataEntrada();
   }
 
   Future<void> _loadCodFolio() async {
     final fetchedCodFolio = await _entradasController.getNextCodFolio();
     setState(() {
       codFolio = fetchedCodFolio;
+    });
+  }
+
+  Future<void> _loadDataEntrada() async {
+    List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
+
+    setState(() {
+      _almacenes = almacenes;
     });
   }
 
@@ -197,6 +212,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       entrada_Fecha: _fecha,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!),
+      id_Almacen: _selectedAlmacen!.id_Almacen,
+      entrada_Estado: true,
     );
   }
 
@@ -214,10 +231,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Entrada: ${codFolio ?? "Cargando ..."}'),
-        centerTitle: true,
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -227,15 +240,25 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 40),
-                  //Fecha
-                  Text(
-                    _fecha,
-                    style: const TextStyle(
-                      fontSize: 18,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: buildCabeceraItem(
+                          'Movimiento',
+                          codFolio ?? 'Cargando...',
+                        ),
+                      ),
+                      Expanded(
+                        child: buildCabeceraItem('Captura', widget.userName!),
+                      ),
+                      Expanded(
+                        child: buildCabeceraItem('Fecha', _fecha),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 30),
                   Row(
                     children: [
                       Expanded(
@@ -248,6 +271,27 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             }
                             return null;
                           },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedAlmacen,
+                          labelText: 'Almacen',
+                          items: _almacenes,
+                          onChanged: (ent) {
+                            setState(() {
+                              _selectedAlmacen = ent;
+                            });
+                          },
+                          validator: (ent) {
+                            if (ent == null) {
+                              return 'Debe seleccionar una almacen.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (ent) =>
+                              ent.almacen_Nombre ?? 'Sin nombre',
                         ),
                       ),
                     ],
@@ -317,6 +361,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             context: context,
                             referencia: _referenciaController.text,
                             productosAgregados: _productosAgregados,
+                            selectedAlmacen: _selectedAlmacen,
                           );
 
                           if (!datosCompletos) {
@@ -327,6 +372,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             movimiento: 'Entrada',
                             fecha: _fecha,
                             folio: codFolio!,
+                            almacen: _selectedAlmacen!.almacen_Nombre!,
                             userName: widget.userName!,
                             referencia: _referenciaController.text,
                             productos: _productosAgregados,

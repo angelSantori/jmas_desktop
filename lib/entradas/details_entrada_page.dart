@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -8,6 +9,7 @@ void showEntradaDetailsDialog(
   BuildContext context,
   Entradas entrada,
   Map<int, Productos> productosCache,
+  Map<int, Almacenes> almacenCache,
   Map<int, Users> userCache,
 ) {
   showDialog(
@@ -41,6 +43,10 @@ void showEntradaDetailsDialog(
                   'Producto',
                   productosCache[entrada.idProducto!]?.prodDescripcion ??
                       'Producto no encontrado'),
+              buildInfoItem(
+                  'Almacen',
+                  almacenCache[entrada.id_Almacen!]?.almacen_Nombre ??
+                      'Almacen no encontrado'),
               buildInfoItem(
                   'Realizado por',
                   userCache[entrada.id_User!]?.user_Name ??

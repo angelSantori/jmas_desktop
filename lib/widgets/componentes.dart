@@ -278,6 +278,7 @@ Future<void> generateAndPrintPdfEntrada({
   required String folio,
   required String userName,
   required String referencia,
+  required String almacen,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -309,6 +310,7 @@ Future<void> generateAndPrintPdfEntrada({
                 pw.Text('Fecha: $fecha'),
                 pw.Text('Folio: $folio'),
                 pw.Text('Referencia: $referencia'),
+                pw.Text('Almacen: $almacen'),
                 pw.Text('Realizado por: $userName'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(
@@ -775,14 +777,20 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
   required BuildContext context,
   required List productosAgregados,
   required String referencia,
+  required var selectedAlmacen,
 }) async {
-  if (productosAgregados.isEmpty) {
-    showAdvertence(context, 'Debe agregar productos antes de imprimir.');
+  if (referencia.isEmpty) {
+    showAdvertence(context, 'Referencia es obligatoria.');
     return false;
   }
 
-  if (referencia.isEmpty) {
-    showAdvertence(context, 'Referencia es obligatoria.');
+  if (selectedAlmacen == null) {
+    showAdvertence(context, 'Debe seleccionar un almacen.');
+    return false;
+  }
+
+  if (productosAgregados.isEmpty) {
+    showAdvertence(context, 'Debe agregar productos antes de imprimir.');
     return false;
   }
   return true; // Si pasa todas las validaciones, los datos están completos

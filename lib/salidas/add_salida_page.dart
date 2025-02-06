@@ -8,6 +8,7 @@ import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/generales.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/widgets_salida.dart';
 
@@ -275,10 +276,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Salida: ${codFolio ?? "Cargando..."}'),
-        centerTitle: true,
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -288,15 +285,23 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 40),
-                  //Fecha
-                  Text(
-                    _fecha,
-                    style: const TextStyle(
-                      fontSize: 18,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: buildCabeceraItem(
+                            'Movimiento', codFolio ?? 'Cargando...'),
+                      ),
+                      Expanded(
+                        child: buildCabeceraItem('Captura', widget.userName!),
+                      ),
+                      Expanded(
+                        child: buildCabeceraItem('Fecha', _fecha),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 30),
 
                   Row(
                     children: [

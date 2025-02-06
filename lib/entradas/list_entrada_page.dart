@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -18,6 +19,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   final EntradasController _entradasController = EntradasController();
   final ProductosController _productosController = ProductosController();
   final UsersController _usersController = UsersController();
+  final AlmacenesController _almacenesController = AlmacenesController();
 
   final TextEditingController _searchController = TextEditingController();
   List<Entradas> _allEntradas = [];
@@ -28,6 +30,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
   Map<int, Productos> _productosCache = {};
   Map<int, Users> _usersCache = {};
+  Map<int, Almacenes> _almacenCache = {};
 
   bool _isLoading = true;
 
@@ -42,6 +45,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     try {
       final entradas = await _entradasController.listEntradas();
       final productos = await _productosController.listProductos();
+      final almacenes = await _almacenesController.listAlmacenes();
       final users = await _usersController.listUsers();
 
       setState(() {
@@ -50,6 +54,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
         _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
         _usersCache = {for (var us in users) us.id_User!: us};
+        _almacenCache = {for (var alm in almacenes) alm.id_Almacen!: alm};
 
         _isLoading = false;
       });
@@ -213,6 +218,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                 context,
                 entrada,
                 _productosCache,
+                _almacenCache,
                 _usersCache,
               );
             },
