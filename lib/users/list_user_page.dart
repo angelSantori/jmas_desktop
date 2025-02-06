@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/users/detiails_user_page.dart';
 import 'package:jmas_desktop/users/edit_user_page.dart';
 
 class ListUserPage extends StatefulWidget {
@@ -85,66 +86,74 @@ class _ListUserPageState extends State<ListUserPage> {
                             elevation: 4,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${user.user_Name}',
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 5),
-
-                                  //Contacto
-                                  Text(
-                                    '${user.user_Contacto}',
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-
-                                  //Nombre
-                                  Text(
-                                    'Palabra de acceso: ${user.user_Access}',
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-
-                                  const Spacer(),
-
-                                  Align(
-                                    alignment: Alignment.bottomRight,
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
+                            child: InkWell(
+                              onTap: () {
+                                showDetailsUserDialog(
+                                  context,
+                                  user,
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${user.user_Name}',
+                                      style: const TextStyle(
                                         color: Colors.black,
-                                        size: 20,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                      onPressed: () async {
-                                        final result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditUserPage(user: user),
-                                          ),
-                                        );
-                                        if (result == true) {
-                                          _loadUsers();
-                                        }
-                                      },
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 5),
+
+                                    //Contacto
+                                    Text(
+                                      '${user.user_Contacto}',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+
+                                    //Nombre
+                                    Text(
+                                      'Palabra de acceso: ${user.user_Access}',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+
+                                    const Spacer(),
+
+                                    Align(
+                                      alignment: Alignment.bottomRight,
+                                      child: IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Colors.black,
+                                          size: 20,
+                                        ),
+                                        onPressed: () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditUserPage(user: user),
+                                            ),
+                                          );
+                                          if (result == true) {
+                                            _loadUsers();
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
