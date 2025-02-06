@@ -1,27 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/cancelado_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/entradas/details_entrada_page.dart';
+import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListEntradaPage extends StatefulWidget {
-  const ListEntradaPage({super.key});
+  final String? userRole;
+  const ListEntradaPage({super.key, required this.userRole});
 
   @override
   State<ListEntradaPage> createState() => _ListEntradaPageState();
 }
 
 class _ListEntradaPageState extends State<ListEntradaPage> {
+  final AuthService _authService = AuthService();
   final EntradasController _entradasController = EntradasController();
   final ProductosController _productosController = ProductosController();
   final UsersController _usersController = UsersController();
   final AlmacenesController _almacenesController = AlmacenesController();
 
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _motivoController = TextEditingController();
+  final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
   List<Entradas> _allEntradas = [];
   List<Entradas> _filteredEntradas = [];
 
@@ -33,11 +41,15 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   Map<int, Almacenes> _almacenCache = {};
 
   bool _isLoading = true;
+  bool _isLoadingCancel = false;
+
+  String? idUserDelete;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _getUserId();
     _searchController.addListener(_filterEntradas);
   }
 
@@ -178,7 +190,12 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                   ),
                 ),
                 Expanded(
-                  child: _buildListView(),
+                  child: _isLoadingCancel
+                      ? Center(
+                          child: CircularProgressIndicator(
+                              color: Colors.blue.shade900),
+                        )
+                      : _buildListView(),
                 ),
                 const SizedBox(height: 30),
               ],
@@ -208,7 +225,9 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
-          color: const Color.fromARGB(255, 201, 230, 242),
+          color: entrada.entrada_Estado == false
+              ? Colors.red.shade300
+              : const Color.fromARGB(255, 201, 230, 242),
           elevation: 4,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -222,69 +241,95 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                 _usersCache,
               );
             },
-            child: ListTile(
-              title: producto != null
-                  ? Text(
-                      '${producto.prodDescripcion}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    )
-                  : const Text('Producto no encontrado'),
-              subtitle: Column(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 10),
-                  user != null
-                      ? Text('Realizado por: ${user.user_Name}',
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        producto != null
+                            ? Text(
+                                '${producto.prodDescripcion}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              )
+                            : const Text('Producto no encontrado'),
+                        const SizedBox(height: 10),
+                        user != null
+                            ? Text('Realizado por: ${user.user_Name}',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                ))
+                            : const Text(
+                                'Realizado por: Usuario no encontrado'),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Unidades: ${entrada.entrada_Unidades ?? 'No disponible'}',
                           style: const TextStyle(
                             fontSize: 15,
-                          ))
-                      : const Text('Rrealizado por: Usuario no encontrado'),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Unidades: ${entrada.entrada_Unidades ?? 'No disponible'}',
-                    style: const TextStyle(
-                      fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Costo: \$${entrada.entrada_Costo}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Referencia: ${entrada.entrada_Referencia}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Costo: \$${entrada.entrada_Costo}',
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Referencia: ${entrada.entrada_Referencia}',
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-              trailing: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Folio: ${entrada.entrada_CodFolio ?? "Sin folio"}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    entrada.entrada_Fecha ?? 'Sin Fecha',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Folio: ${entrada.entrada_CodFolio ?? "Sin folio"}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        entrada.entrada_Fecha ?? 'Sin Fecha',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (widget.userRole == "Admin" &&
+                          entrada.entrada_Estado == true)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 30),
+                            IconButton(
+                              icon: Icon(
+                                size: 40,
+                                Icons.delete_forever,
+                                color: Colors.red.shade900,
+                              ),
+                              onPressed: () => _confirmarCancelacion(entrada),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
                 ],
               ),
@@ -293,5 +338,148 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         );
       },
     );
+  }
+
+  Future<void> _getUserId() async {
+    final decodeToken = await _authService.decodeToken();
+    idUserDelete = decodeToken?['Id_User'] ?? '0';
+  }
+
+  void _confirmarCancelacion(Entradas entrada) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Cancelación'),
+        content: Text(
+            '¿Estás seguro de que deseas cancelar esta entrada? \nFolio entrada: ${entrada.entrada_CodFolio} \nIdEntrada: ${entrada.id_Entradas}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'No',
+              style: TextStyle(
+                color: Colors.blue.shade900,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _mostrarMotivoDialog(entrada);
+            },
+            child: Text(
+              'Sí, cancelar',
+              style: TextStyle(
+                color: Colors.red.shade900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarMotivoDialog(Entradas entrada) {
+    // Limpiar el controlador de motivo
+    _motivoController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Motivo de Cancelación', textAlign: TextAlign.center),
+        content: CustomTextFielTexto(
+          labelText: 'Motivo',
+          controller: _motivoController,
+          validator: (motivo) {
+            if (motivo == null || motivo.isEmpty) {
+              return 'Motivo obligaorio';
+            }
+            return null;
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Colors.blue.shade900,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _cancelarEntrada(entrada);
+            },
+            child: Text(
+              'Registrar Cancelación',
+              style: TextStyle(
+                color: Colors.red.shade900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _cancelarEntrada(Entradas entrada) async {
+    final CanceladoController canceladoController = CanceladoController();
+
+    if (_motivoController.text.isEmpty) {
+      showAdvertence(context, 'Motivo obligatorio');
+      return;
+    }
+
+    setState(() {
+      _isLoadingCancel = true;
+    });
+
+    //Add registro a cancelado
+    final Cancelados cancelacion = Cancelados(
+      idCancelacion: 0,
+      cancelMotivo: _motivoController.text,
+      cancelFecha: _fecha,
+      id_Entrada: entrada.id_Entradas,
+      id_User: int.tryParse(idUserDelete!),
+    );
+
+    final bool success = await canceladoController.addCancelacion(cancelacion);
+
+    if (success) {
+      //Estado entrada
+      final Entradas entradaEdit = entrada.copyWith(
+        entrada_Estado: false,
+      );
+
+      //Retar unidades
+      final Productos? producto = _productosCache[entrada.idProducto];
+      if (producto != null) {
+        final double nuevaExistencia =
+            (producto.prodExistencia ?? 0) - (entrada.entrada_Unidades ?? 0);
+        final Productos productoEdit = producto.copyWith(
+          prodExistencia: nuevaExistencia,
+        );
+
+        //Actualizar entrada y producto
+        final bool entradaUpdated =
+            await _entradasController.editEntrada(entradaEdit);
+        final bool productoUpdated =
+            await _productosController.editProducto(productoEdit);
+
+        if (entradaUpdated && productoUpdated) {
+          showOk(context, 'Entrada cancelada y existencia actualizada.');
+          await _loadData();
+        } else {
+          showError(context, 'Error al cancelar entrada o actualizar produco.');
+        }
+      } else {
+        showError(context, 'Error al registrar la cancelación.');
+      }
+    }
+    setState(() {
+      _isLoadingCancel = false;
+    });
   }
 }
