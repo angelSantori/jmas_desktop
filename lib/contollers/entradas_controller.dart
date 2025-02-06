@@ -125,6 +125,30 @@ class EntradasController {
           'Error al obtener el próximo codFolio: ${response.statusCode} - ${response.body}');
     }
   }
+
+  Future<bool> editEntrada(Entradas entrada) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${_authService.apiURL}/Entradas/${entrada.id_Entradas}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: entrada.toJson(),
+      );
+
+      if (response.statusCode == 204) {
+        cacheEntradas = null;
+        return true;
+      } else {
+        print(
+            'Error al editar entrada | Controller | Ife: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar entrada | Controller | Try: $e');
+      return false;
+    }
+  }
 }
 
 class Entradas {
