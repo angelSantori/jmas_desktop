@@ -5,6 +5,7 @@ import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/salidas/details_salida_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
@@ -19,7 +20,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   final SalidasController _salidasController = SalidasController();
   final ProductosController _productosController = ProductosController();
   final JuntasController _juntasController = JuntasController();
-  final AlmacenesController _entidadesController = AlmacenesController();
+  final AlmacenesController _almacenesController = AlmacenesController();
   final UsersController _usersController = UsersController();
 
   final TextEditingController _searchController = TextEditingController();
@@ -31,8 +32,12 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
   Map<int, Productos> _productosCache = {};
   Map<int, Users> _usersCache = {};
+  Map<int, Juntas> _juntasCache = {};
+  Map<int, Almacenes> _almacenCache = {};
+  Map<int, Users> _userAsignadoCache = {};
+
   List<Juntas> _juntas = [];
-  List<Almacenes> _entidades = [];
+  List<Almacenes> _almacenes = [];
 
   String? _selectedJunta;
   String? _selectedAlmacen;
@@ -53,7 +58,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final productos = await _productosController.listProductos();
       final users = await _usersController.listUsers();
       final juntas = await _juntasController.listJuntas();
-      final entidades = await _entidadesController.listAlmacenes();
+      final almacen = await _almacenesController.listAlmacenes();
 
       setState(() {
         _allSalidas = salidas;
@@ -61,8 +66,12 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
         _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
         _usersCache = {for (var us in users) us.id_User!: us};
+        _userAsignadoCache = {for (var usAs in users) usAs.id_User!: usAs};
+        _juntasCache = {for (var jn in juntas) jn.id_Junta!: jn};
+        _almacenCache = {for (var alm in almacen) alm.id_Almacen!: alm};
+
         _juntas = juntas;
-        _entidades = entidades;
+        _almacenes = almacen;
 
         _isLoading = false;
       });
@@ -232,12 +241,12 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                       Expanded(
                         child: CustomListaDesplegableTipo<Almacenes>(
                           value: _selectedAlmacen != null
-                              ? _entidades.firstWhere((entidad) =>
-                                  entidad.id_Almacen.toString() ==
+                              ? _almacenes.firstWhere((almacen) =>
+                                  almacen.id_Almacen.toString() ==
                                   _selectedAlmacen)
                               : null,
                           labelText: 'Seleccionar Almacen',
-                          items: _entidades,
+                          items: _almacenes,
                           onChanged: (Almacenes? newValue) {
                             setState(() {
                               _selectedAlmacen =
@@ -289,66 +298,82 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
           color: const Color.fromARGB(255, 201, 230, 242),
-          child: ListTile(
-            title: producto != null
-                ? Text(
-                    '${producto.prodDescripcion}',
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: InkWell(
+            onTap: () {
+              showSalidaDetailsDialog(
+                context,
+                salida,
+                _productosCache,
+                _usersCache,
+                _userAsignadoCache,
+                _juntasCache,
+                _almacenCache,
+              );
+            },
+            child: ListTile(
+              title: producto != null
+                  ? Text(
+                      '${producto.prodDescripcion}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    )
+                  : const Text('Producto no encontrado'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  user != null
+                      ? Text('Realizado por: ${user.user_Name}',
+                          style: const TextStyle(fontSize: 15))
+                      : const Text('Usuario no encontrado'),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
                     style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Unidades: ${salida.salida_Unidades ?? 'No disponible'}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Costo: \$${salida.salida_Costo}',
+                    style: const TextStyle(
+                      fontSize: 15,
                     ),
                   )
-                : const Text('Producto no encontrado'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                user != null
-                    ? Text('Realizado por: ${user.user_Name}',
-                        style: const TextStyle(fontSize: 15))
-                    : const Text('Usuario no encontrado'),
-                const SizedBox(height: 10),
-                Text(
-                  'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
-                  style: const TextStyle(
-                    fontSize: 15,
+                ],
+              ),
+              trailing: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Folio: ${salida.salida_CodFolio ?? "Sin Folio"}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Unidades: ${salida.salida_Unidades ?? 'No disponible'}',
-                  style: const TextStyle(
-                    fontSize: 15,
+                  const SizedBox(height: 5),
+                  Text(
+                    salida.salida_Fecha ?? 'Sin Fecha',
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Costo: \$${salida.salida_Costo}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                  ),
-                )
-              ],
-            ),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Folio: ${salida.salida_CodFolio ?? "Sin Folio"}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  salida.salida_Fecha ?? 'Sin Fecha',
-                  style: const TextStyle(
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
