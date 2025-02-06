@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToListEntradas() {
     setState(() {
-      _currentPage = const ListEntradaPage();
+      _currentPage = ListEntradaPage(userRole: userRole);
     });
   }
 
