@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/entradas/details_entrada_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
@@ -203,71 +204,84 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
           color: const Color.fromARGB(255, 201, 230, 242),
-          child: ListTile(
-            title: producto != null
-                ? Text(
-                    '${producto.prodDescripcion}',
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: InkWell(
+            onTap: () {
+              showEntradaDetailsDialog(
+                context,
+                entrada,
+                _productosCache,
+                _usersCache,
+              );
+            },
+            child: ListTile(
+              title: producto != null
+                  ? Text(
+                      '${producto.prodDescripcion}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    )
+                  : const Text('Producto no encontrado'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  user != null
+                      ? Text('Realizado por: ${user.user_Name}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ))
+                      : const Text('Rrealizado por: Usuario no encontrado'),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Unidades: ${entrada.entrada_Unidades ?? 'No disponible'}',
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Costo: \$${entrada.entrada_Costo}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Referencia: ${entrada.entrada_Referencia}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+              trailing: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Folio: ${entrada.entrada_CodFolio ?? "Sin folio"}',
+                    style: const TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
-                  )
-                : const Text('Producto no encontrado'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                user != null
-                    ? Text('Realizado por: ${user.user_Name}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                        ))
-                    : const Text('Rrealizado por: Usuario no encontrado'),
-                const SizedBox(height: 10),
-                Text(
-                  'Unidades: ${entrada.entrada_Unidades ?? 'No disponible'}',
-                  style: const TextStyle(
-                    fontSize: 15,
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Costo: \$${entrada.entrada_Costo}',
-                  style: const TextStyle(
-                    fontSize: 15,
+                  const SizedBox(height: 5),
+                  Text(
+                    entrada.entrada_Fecha ?? 'Sin Fecha',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Referencia: ${entrada.entrada_Referencia}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Folio: ${entrada.entrada_CodFolio ?? "Sin folio"}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  entrada.entrada_Fecha ?? 'Sin Fecha',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

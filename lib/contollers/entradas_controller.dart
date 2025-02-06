@@ -137,7 +137,7 @@ class Entradas {
   String? entrada_Referencia;
   int? idProducto;
   int? id_User;
-  bool? entrad_Estado;
+  bool? entrada_Estado;
   Entradas({
     this.id_Entradas,
     this.entrada_CodFolio,
@@ -148,7 +148,7 @@ class Entradas {
     this.entrada_Referencia,
     this.idProducto,
     this.id_User,
-    this.entrad_Estado,
+    this.entrada_Estado,
   });
 
   Entradas copyWith({
@@ -161,7 +161,7 @@ class Entradas {
     String? entrada_Referencia,
     int? idProducto,
     int? id_User,
-    bool? entrad_Estado,
+    bool? entrada_Estado,
   }) {
     return Entradas(
       id_Entradas: id_Entradas ?? this.id_Entradas,
@@ -174,7 +174,7 @@ class Entradas {
       entrada_Referencia: entrada_Referencia ?? this.entrada_Referencia,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
-      entrad_Estado: entrad_Estado ?? this.entrad_Estado,
+      entrada_Estado: entrada_Estado ?? this.entrada_Estado,
     );
   }
 
@@ -189,7 +189,7 @@ class Entradas {
       'entrada_Referencia': entrada_Referencia,
       'idProducto': idProducto,
       'id_User': id_User,
-      'entrad_Estado': entrad_Estado,
+      'entrada_Estado': entrada_Estado,
     };
   }
 
@@ -220,8 +220,8 @@ class Entradas {
           : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
-      entrad_Estado:
-          map['entrad_Estado'] != null ? map['entrad_Estado'] as bool : null,
+      entrada_Estado:
+          map['entrada_Estado'] != null ? map['entrada_Estado'] as bool : null,
     );
   }
 
@@ -232,7 +232,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, entrada_Referencia: $entrada_Referencia, idProducto: $idProducto, id_User: $id_User, entrad_Estado: $entrad_Estado)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, entrada_Referencia: $entrada_Referencia, idProducto: $idProducto, id_User: $id_User, entrada_Estado: $entrada_Estado)';
   }
 
   @override
@@ -248,7 +248,7 @@ class Entradas {
         other.entrada_Referencia == entrada_Referencia &&
         other.idProducto == idProducto &&
         other.id_User == id_User &&
-        other.entrad_Estado == entrad_Estado;
+        other.entrada_Estado == entrada_Estado;
   }
 
   @override
@@ -262,6 +262,6 @@ class Entradas {
         entrada_Referencia.hashCode ^
         idProducto.hashCode ^
         id_User.hashCode ^
-        entrad_Estado.hashCode;
+        entrada_Estado.hashCode;
   }
 }
