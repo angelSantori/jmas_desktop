@@ -78,7 +78,7 @@ void showAdvertence(BuildContext context, String message) {
             ),
             const SizedBox(width: 5),
             const Text(
-              "Éxito",
+              "Advertencia",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
