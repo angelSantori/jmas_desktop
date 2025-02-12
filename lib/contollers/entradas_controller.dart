@@ -163,6 +163,7 @@ class Entradas {
   int? id_User;
   bool? entrada_Estado;
   int? id_Almacen;
+  int? id_Proveedor;
   Entradas({
     this.id_Entradas,
     this.entrada_CodFolio,
@@ -175,6 +176,7 @@ class Entradas {
     this.id_User,
     this.entrada_Estado,
     this.id_Almacen,
+    this.id_Proveedor,
   });
 
   Entradas copyWith({
@@ -189,6 +191,7 @@ class Entradas {
     int? id_User,
     bool? entrada_Estado,
     int? id_Almacen,
+    int? id_Proveedor,
   }) {
     return Entradas(
       id_Entradas: id_Entradas ?? this.id_Entradas,
@@ -203,6 +206,7 @@ class Entradas {
       id_User: id_User ?? this.id_User,
       entrada_Estado: entrada_Estado ?? this.entrada_Estado,
       id_Almacen: id_Almacen ?? this.id_Almacen,
+      id_Proveedor: id_Proveedor ?? this.id_Proveedor,
     );
   }
 
@@ -219,6 +223,7 @@ class Entradas {
       'id_User': id_User,
       'entrada_Estado': entrada_Estado,
       'id_Almacen': id_Almacen,
+      'id_Proveedor': id_Proveedor,
     };
   }
 
@@ -252,6 +257,8 @@ class Entradas {
       entrada_Estado:
           map['entrada_Estado'] != null ? map['entrada_Estado'] as bool : null,
       id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
+      id_Proveedor:
+          map['id_Proveedor'] != null ? map['id_Proveedor'] as int : null,
     );
   }
 
@@ -262,7 +269,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, entrada_Referencia: $entrada_Referencia, idProducto: $idProducto, id_User: $id_User, entrada_Estado: $entrada_Estado, id_Almacen: $id_Almacen)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, entrada_Referencia: $entrada_Referencia, idProducto: $idProducto, id_User: $id_User, entrada_Estado: $entrada_Estado, id_Almacen: $id_Almacen, id_Proveedor: $id_Proveedor)';
   }
 
   @override
@@ -279,7 +286,8 @@ class Entradas {
         other.idProducto == idProducto &&
         other.id_User == id_User &&
         other.entrada_Estado == entrada_Estado &&
-        other.id_Almacen == id_Almacen;
+        other.id_Almacen == id_Almacen &&
+        other.id_Proveedor == id_Proveedor;
   }
 
   @override
@@ -294,6 +302,7 @@ class Entradas {
         idProducto.hashCode ^
         id_User.hashCode ^
         entrada_Estado.hashCode ^
-        id_Almacen.hashCode;
+        id_Almacen.hashCode ^
+        id_Proveedor.hashCode;
   }
 }

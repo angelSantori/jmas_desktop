@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -27,10 +28,9 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
-
+  final TextEditingController _fechaController = TextEditingController(
+      text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
   final TextEditingController _referenciaController = TextEditingController();
-
-  final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
   String? idUserReporte;
 
@@ -41,6 +41,11 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   bool _isLoading = false;
 
   String? codFolio;
+
+  //Proveedores
+  final ProveedoresController _proveedoresController = ProveedoresController();
+  List<Proveedores> _proveedores = [];
+  Proveedores? _selectedProveedor;
 
   final AlmacenesController _almacenesController = AlmacenesController();
   List<Almacenes> _almacenes = [];
@@ -53,6 +58,21 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     _loadDataEntrada();
   }
 
+  Future<void> _seleccionarFecha(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
+      });
+    }
+  }
+
   Future<void> _loadCodFolio() async {
     final fetchedCodFolio = await _entradasController.getNextCodFolio();
     setState(() {
@@ -62,9 +82,12 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   Future<void> _loadDataEntrada() async {
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
+    List<Proveedores> proveedores =
+        await _proveedoresController.listProveedores();
 
     setState(() {
       _almacenes = almacenes;
+      _proveedores = proveedores;
     });
   }
 
@@ -95,7 +118,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
           'descripcion': _selectedProducto!.prodDescripcion,
           'costo': _selectedProducto!.prodPrecio,
           'cantidad': cantidad,
-          'precio': precioTotal
+          'precio': precioTotal,
+          'idProveedor': _selectedProveedor?.id_Proveedor
         });
 
         //Limpiar campos despuués de agregar
@@ -165,6 +189,9 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         productoActualizado.prodExistencia =
             (productoActualizado.prodExistencia!) + producto['cantidad'];
 
+        //Asignar el Id del proveedor al producto
+        productoActualizado.idProveedor = _selectedProveedor?.id_Proveedor;
+
         bool editResult =
             await _productosController.editProducto(productoActualizado);
 
@@ -209,11 +236,12 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
       entrada_Costo: double.tryParse(producto['precio'].toString()),
       entrada_Referencia: _referenciaController.text,
-      entrada_Fecha: _fecha,
+      entrada_Fecha: _fechaController.text,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!),
       id_Almacen: _selectedAlmacen!.id_Almacen,
       entrada_Estado: true,
+      id_Proveedor: _selectedProveedor!.id_Proveedor,
     );
   }
 
@@ -223,6 +251,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     _referenciaController.clear();
     setState(() {
       _selectedProducto = null;
+      _selectedAlmacen = null;
+      _selectedProveedor = null;
       _idProductoController.clear();
       _cantidadController.clear();
     });
@@ -253,9 +283,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       Expanded(
                         child: buildCabeceraItem('Captura', widget.userName!),
                       ),
-                      Expanded(
-                        child: buildCabeceraItem('Fecha', _fecha),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -274,6 +301,25 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                         ),
                       ),
                       const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomTextFielFecha(
+                          controller: _fechaController,
+                          labelText: 'Fecha',
+                          onTap: () => _seleccionarFecha(context),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Debe seleccionar una fecha';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  Row(
+                    children: [
                       Expanded(
                         child: CustomListaDesplegableTipo(
                           value: _selectedAlmacen,
@@ -294,10 +340,31 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                               ent.almacen_Nombre ?? 'Sin nombre',
                         ),
                       ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedProveedor,
+                          labelText: 'Proveedor',
+                          items: _proveedores,
+                          onChanged: (prov) {
+                            setState(() {
+                              _selectedProveedor = prov;
+                            });
+                          },
+                          validator: (prov) {
+                            if (prov == null) {
+                              return 'Debe seleccionar un proveedor.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (prov) =>
+                              prov.proveedor_Name ?? 'Sin nombre',
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 30),
 
+                  const SizedBox(height: 30),
                   BuscarProductoWidget(
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
@@ -362,6 +429,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             referencia: _referenciaController.text,
                             productosAgregados: _productosAgregados,
                             selectedAlmacen: _selectedAlmacen,
+                            proveedor: _selectedProveedor,
                           );
 
                           if (!datosCompletos) {
@@ -370,12 +438,13 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
                           await generateAndPrintPdfEntrada(
                             movimiento: 'Entrada',
-                            fecha: _fecha,
+                            fecha: _fechaController.text,
                             folio: codFolio!,
                             almacen: _selectedAlmacen!.almacen_Nombre!,
                             userName: widget.userName!,
                             referencia: _referenciaController.text,
                             productos: _productosAgregados,
+                            proveedor: _selectedProveedor!.proveedor_Name!,
                           );
                         },
                         style: ElevatedButton.styleFrom(
