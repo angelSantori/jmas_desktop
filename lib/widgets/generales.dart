@@ -48,3 +48,27 @@ Widget buildCabeceraItem(String title, String value) {
     ),
   );
 }
+
+class DividerWithText extends StatelessWidget {
+  final String text;
+
+  const DividerWithText({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        const Expanded(
+          child: Divider(),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text(text, style: TextStyle(color: Colors.grey.shade600)),
+        ),
+        const Expanded(
+          child: Divider(),
+        ),
+      ],
+    );
+  }
+}
