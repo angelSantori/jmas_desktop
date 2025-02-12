@@ -112,6 +112,7 @@ class Salidas {
   int? id_Junta;
   int? id_Almacen;
   int? id_User_Asignado;
+  int? idPadron;
   Salidas({
     this.id_Salida,
     this.salida_CodFolio,
@@ -124,6 +125,7 @@ class Salidas {
     this.id_Junta,
     this.id_Almacen,
     this.id_User_Asignado,
+    this.idPadron,
   });
 
   Salidas copyWith({
@@ -138,6 +140,7 @@ class Salidas {
     int? id_Junta,
     int? id_Almacen,
     int? id_User_Asignado,
+    int? idPadron,
   }) {
     return Salidas(
       id_Salida: id_Salida ?? this.id_Salida,
@@ -151,6 +154,7 @@ class Salidas {
       id_Junta: id_Junta ?? this.id_Junta,
       id_Almacen: id_Almacen ?? this.id_Almacen,
       id_User_Asignado: id_User_Asignado ?? this.id_User_Asignado,
+      idPadron: idPadron ?? this.idPadron,
     );
   }
 
@@ -167,6 +171,7 @@ class Salidas {
       'id_Junta': id_Junta,
       'id_Almacen': id_Almacen,
       'id_User_Asignado': id_User_Asignado,
+      'idPadron': idPadron,
     };
   }
 
@@ -198,6 +203,7 @@ class Salidas {
       id_User_Asignado: map['id_User_Asignado'] != null
           ? map['id_User_Asignado'] as int
           : null,
+      idPadron: map['idPadron'] != null ? map['idPadron'] as int : null,
     );
   }
 
@@ -208,7 +214,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron)';
   }
 
   @override
@@ -225,7 +231,8 @@ class Salidas {
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
         other.id_Almacen == id_Almacen &&
-        other.id_User_Asignado == id_User_Asignado;
+        other.id_User_Asignado == id_User_Asignado &&
+        other.idPadron == idPadron;
   }
 
   @override
@@ -240,6 +247,7 @@ class Salidas {
         id_User.hashCode ^
         id_Junta.hashCode ^
         id_Almacen.hashCode ^
-        id_User_Asignado.hashCode;
+        id_User_Asignado.hashCode ^
+        idPadron.hashCode;
   }
 }

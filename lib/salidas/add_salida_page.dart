@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
+import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -27,14 +28,16 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final AlmacenesController _almacenesController = AlmacenesController();
   final ProductosController _productosController = ProductosController();
   final UsersController _usersController = UsersController();
+  final PadronController _padronController = PadronController();
 
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _referenciaController = TextEditingController();
   final TextEditingController _idProductoController = TextEditingController();
+  final TextEditingController _idPadronController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
-
-  final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
+  final TextEditingController _fechaController = TextEditingController(
+      text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
 
   String? idUserReporte;
 
@@ -51,6 +54,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Juntas? _selectedJunta;
   Productos? _selectedProducto;
   Users? _selectedUser;
+  Padron? _selectedPadron;
 
   bool _isLoading = false;
 
@@ -59,6 +63,21 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     super.initState();
     _loadDataSalidas();
     _loadFolioSalida();
+  }
+
+  Future<void> _seleccionarFecha(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
+      });
+    }
   }
 
   Future<void> _loadFolioSalida() async {
@@ -127,6 +146,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
         //Limpiar campos despuués de agregar
         _idProductoController.clear();
+        _idPadronController.clear();
         _cantidadController.clear();
         _selectedProducto = null;
       });
@@ -250,12 +270,13 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
       salida_Costo: double.tryParse(
           (producto['precioIncrementado'] * producto['cantidad']).toString()),
-      salida_Fecha: _fecha,
+      salida_Fecha: _fechaController.text,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
       id_Almacen: _selectedAlmacen?.id_Almacen ?? 0, // Almacen
       id_User_Asignado: _selectedUser?.id_User,
+      idPadron: _selectedPadron?.idPadron,
     );
   }
 
@@ -266,9 +287,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedAlmacen = null;
       _selectedJunta = null;
       _selectedProducto = null;
+      _selectedPadron = null;
       _selectedUser = null;
       _referenciaController.clear();
       _idProductoController.clear();
+      _idPadronController.clear();
+      _idPadronController.clear();
       _cantidadController.clear();
     });
   }
@@ -296,9 +320,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       Expanded(
                         child: buildCabeceraItem('Captura', widget.userName!),
                       ),
-                      Expanded(
-                        child: buildCabeceraItem('Fecha', _fecha),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 30),
@@ -312,6 +333,20 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           validator: (p0) {
                             if (p0 == null || p0.isEmpty) {
                               return 'Referencia obligatoria.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomTextFielFecha(
+                          controller: _fechaController,
+                          labelText: 'Fecha',
+                          onTap: () => _seleccionarFecha(context),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Debe seleccionar una fecha';
                             }
                             return null;
                           },
@@ -388,6 +423,27 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 30),
+                  const DividerWithText(text: 'Selección de Padrón'),
+                  const SizedBox(height: 30),
+
+                  BuscarPadronWidgetSalida(
+                    idPadronController: _idPadronController,
+                    padronController: _padronController,
+                    selectedPadron: _selectedPadron,
+                    onPadronSeleccionado: (padron) {
+                      setState(() {
+                        _selectedPadron = padron;
+                      });
+                    },
+                    onAdvertencia: (p0) {
+                      showAdvertence(context, p0);
+                    },
+                  ),
+
+                  const SizedBox(height: 30),
+                  const DividerWithText(text: 'Selección de Producto'),
                   const SizedBox(height: 30),
 
                   BuscarProductoWidgetSalida(
@@ -452,6 +508,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             context: context,
                             productosAgregados: _productosAgregados,
                             referenciaController: _referenciaController,
+                            padron: _idPadronController,
                             selectedAlmacen: _selectedAlmacen,
                             selectedJunta: _selectedJunta,
                             selectedUser: _selectedUser,
@@ -463,7 +520,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
                           await generateAndPrintPdfSalida(
                             movimiento: 'Salida',
-                            fecha: _fecha,
+                            fecha: _fechaController.text,
                             salidaCodFolio: codFolio!,
                             referencia: _referenciaController.text,
                             almacen: _selectedAlmacen?.almacen_Nombre ??
@@ -472,6 +529,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             usuario: widget.userName!,
                             productos: _productosAgregados,
                             userAsignado: _selectedUser!.user_Name!,
+                            padron: _selectedPadron!.idPadron!,
                           );
                         },
                         style: ElevatedButton.styleFrom(

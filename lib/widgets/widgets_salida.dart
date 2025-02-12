@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -215,7 +216,7 @@ class _BuscarProductoWidgetSalidaState
         // Campo para ID del Producto
         SizedBox(
           width: 160,
-          child: CustomTextFielTexto(
+          child: CustomTextFieldNumero(
             controller: widget.idProductoController,
             prefixIcon: Icons.search,
             labelText: 'Id Producto',
@@ -372,6 +373,146 @@ class _BuscarProductoWidgetSalidaState
   }
 }
 
+//Padron
+class BuscarPadronWidgetSalida extends StatefulWidget {
+  final TextEditingController idPadronController;
+  final PadronController padronController;
+  final Padron? selectedPadron;
+  final Function(Padron?) onPadronSeleccionado;
+  final Function(String) onAdvertencia;
+
+  BuscarPadronWidgetSalida({
+    super.key,
+    required this.idPadronController,
+    required this.padronController,
+    required this.selectedPadron,
+    required this.onPadronSeleccionado,
+    required this.onAdvertencia,
+  });
+
+  @override
+  State<BuscarPadronWidgetSalida> createState() =>
+      _BuscarPadronWidgetSalidaState();
+}
+
+class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
+  final ValueNotifier<bool> _isLoading = ValueNotifier(false);
+
+  Future<void> _buscarPadron() async {
+    final id = widget.idPadronController.text;
+    if (id.isNotEmpty) {
+      widget.onPadronSeleccionado(null); // Limpiar el padrón antes de buscar
+      _isLoading.value = true; // Iniciar el estado de carga
+
+      try {
+        final padronList = await widget.padronController.listPadron();
+        final foundPadron = padronList.firstWhere(
+            (p) => p.idPadron.toString() == id,
+            orElse: () =>
+                Padron()); // Devuelve un Padron vacío si no se encuentra
+        if (foundPadron.idPadron != null) {
+          widget.onPadronSeleccionado(foundPadron);
+        } else {
+          widget.onAdvertencia('Padrón con ID: $id, no encontrado');
+          widget.idPadronController.clear();
+        }
+      } catch (e) {
+        widget.onAdvertencia('Error al buscar el padrón: $e');
+      } finally {
+        _isLoading.value = false; // Finalizar el estado de carga
+      }
+    } else {
+      widget.onAdvertencia('Por favor, ingrese un ID de padrón.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Campo para ID del Padrón
+        SizedBox(
+          width: 160,
+          child: CustomTextFieldNumero(
+            controller: widget.idPadronController,
+            prefixIcon: Icons.search,
+            labelText: 'Id Padrón',
+          ),
+        ),
+        const SizedBox(width: 15),
+
+        // Botón para buscar padrón
+        ValueListenableBuilder<bool>(
+          valueListenable: _isLoading,
+          builder: (context, isLoading, child) {
+            return ElevatedButton(
+              onPressed: isLoading ? null : _buscarPadron,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isLoading
+                    ? Colors.grey
+                    : Colors.blue.shade900, // Cambiar color si está cargando
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Buscar padrón',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            );
+          },
+        ),
+        const SizedBox(width: 15),
+
+        // Información del Padrón
+        if (widget.selectedPadron != null &&
+            widget.selectedPadron!.idPadron != null)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Información del Padrón:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Nombre: ${widget.selectedPadron!.padronNombre ?? 'No disponible'}',
+                  style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Dirección: ${widget.selectedPadron!.padronDireccion ?? 'No disponible'}',
+                  style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          )
+        else
+          const Expanded(
+            flex: 2,
+            child: Text(
+              'No se ha buscado un padrón.',
+              style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 //PDF
 Future<Uint8List> generateQrCode(String data) async {
   final qrCode = QrPainter(
@@ -393,6 +534,7 @@ Future<void> generateAndPrintPdfSalida({
   required String junta,
   required String usuario,
   required String userAsignado,
+  required int padron,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -429,6 +571,7 @@ Future<void> generateAndPrintPdfSalida({
                 pw.Text('Almacen: $almacen'),
                 pw.Text('Junta: $junta'),
                 pw.Text('Asignado a: $userAsignado'),
+                pw.Text('ID padron: $padron'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(headers: [
                   'Clave',

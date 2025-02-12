@@ -279,6 +279,7 @@ Future<void> generateAndPrintPdfEntrada({
   required String userName,
   required String referencia,
   required String almacen,
+  required String proveedor,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -311,6 +312,7 @@ Future<void> generateAndPrintPdfEntrada({
                 pw.Text('Folio: $folio'),
                 pw.Text('Referencia: $referencia'),
                 pw.Text('Almacen: $almacen'),
+                pw.Text('Proveedor: $proveedor'),
                 pw.Text('Realizado por: $userName'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(
@@ -743,6 +745,7 @@ Future<bool> validarCamposAntesDeImprimir(
     required TextEditingController referenciaController,
     required var selectedAlmacen,
     required var selectedJunta,
+    required var padron,
     required var selectedUser}) async {
   if (referenciaController.text.isEmpty) {
     showAdvertence(context, 'La referencia es obligatoria.');
@@ -764,6 +767,11 @@ Future<bool> validarCamposAntesDeImprimir(
     return false;
   }
 
+  if (padron.text.isEmpty) {
+    showAdvertence(context, 'Padrón es obligatorio.');
+    return false;
+  }
+
   if (productosAgregados.isEmpty) {
     showAdvertence(context, 'Debe agregar productos antes de imprimir.');
     return false;
@@ -778,6 +786,7 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
   required List productosAgregados,
   required String referencia,
   required var selectedAlmacen,
+  required var proveedor,
 }) async {
   if (referencia.isEmpty) {
     showAdvertence(context, 'Referencia es obligatoria.');
@@ -786,6 +795,11 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
 
   if (selectedAlmacen == null) {
     showAdvertence(context, 'Debe seleccionar un almacen.');
+    return false;
+  }
+
+  if (proveedor == null) {
+    showAdvertence(context, 'Debe seleccionar un proveedor.');
     return false;
   }
 
