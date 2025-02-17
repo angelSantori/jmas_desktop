@@ -146,7 +146,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
         //Limpiar campos despuués de agregar
         _idProductoController.clear();
-        _idPadronController.clear();
         _cantidadController.clear();
         _selectedProducto = null;
       });
