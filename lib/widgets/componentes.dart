@@ -280,6 +280,7 @@ Future<void> generateAndPrintPdfEntrada({
   required String referencia,
   required String almacen,
   required String proveedor,
+  required Uint8List factura,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -342,6 +343,7 @@ Future<void> generateAndPrintPdfEntrada({
                     ]
                   ],
                 ),
+                pw.SizedBox(height: 30),
               ],
             ),
             //QR
@@ -359,6 +361,50 @@ Future<void> generateAndPrintPdfEntrada({
       },
     ),
   );
+
+  final image = pw.MemoryImage(factura);
+  final imageWidth = 600.0;
+  final imageHeight = 600.0;
+
+  // Verificar si la imagen cabe en la página
+  if (imageHeight > PdfPageFormat.a4.height - 100) {
+    // 100 es un margen
+    // Si la imagen es demasiado alta, dividirla en varias páginas
+    int pages = (imageHeight / (PdfPageFormat.a4.height - 100)).ceil();
+    for (int i = 0; i < pages; i++) {
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return pw.Center(
+              child: pw.Image(
+                image,
+                width: imageWidth,
+                height: PdfPageFormat.a4.height -
+                    100, // Ajustar a la altura de la página
+              ),
+            );
+          },
+        ),
+      );
+    }
+  } else {
+    // Si la imagen cabe en la página, agregarla normalmente
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Center(
+            child: pw.Image(
+              image,
+              width: imageWidth,
+              height: imageHeight,
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   try {
     // Generar nombre del archivo con la fecha actual
@@ -787,6 +833,7 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
   required String referencia,
   required var selectedAlmacen,
   required var proveedor,
+  required Uint8List? factura,
 }) async {
   if (referencia.isEmpty) {
     showAdvertence(context, 'Referencia es obligatoria.');
@@ -807,6 +854,12 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
     showAdvertence(context, 'Debe agregar productos antes de imprimir.');
     return false;
   }
+
+  if (factura == null) {
+    showAdvertence(context, 'Factura obligatoria.');
+    return false;
+  }
+
   return true; // Si pasa todas las validaciones, los datos están completos
 }
 

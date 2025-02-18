@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
@@ -51,11 +54,27 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   List<Almacenes> _almacenes = [];
   Almacenes? _selectedAlmacen;
 
+  //Factura / Imagen
+  Uint8List? _imagenFactura;
+
   @override
   void initState() {
     super.initState();
     _loadCodFolio();
     _loadDataEntrada();
+  }
+
+  Future<void> _seleccionarImagen() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? imagen = await picker.pickImage(source: ImageSource.gallery);
+
+    if (imagen != null) {
+      final Uint8List bytes = await imagen.readAsBytes();
+
+      setState(() {
+        _imagenFactura = bytes;
+      });
+    }
   }
 
   Future<void> _seleccionarFecha(BuildContext context) async {
@@ -153,6 +172,12 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
           context, 'Debe agregar productos antes de guardar la entrada.');
       return;
     }
+
+    if (_imagenFactura == null) {
+      showAdvertence(context, 'Factura obligatoria');
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -242,6 +267,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       id_Almacen: _selectedAlmacen!.id_Almacen,
       entrada_Estado: true,
       id_Proveedor: _selectedProveedor!.id_Proveedor,
+      entrada_ImgB64Factura:
+          _imagenFactura != null ? base64Encode(_imagenFactura!) : null,
     );
   }
 
@@ -253,6 +280,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       _selectedProducto = null;
       _selectedAlmacen = null;
       _selectedProveedor = null;
+      _imagenFactura = null;
       _idProductoController.clear();
       _cantidadController.clear();
     });
@@ -312,6 +340,37 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             }
                             return null;
                           },
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _imagenFactura != null
+                                ? Image.memory(
+                                    _imagenFactura!,
+                                    width: 200,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  )
+                                : const Text(
+                                    "No se ha seleccionado ninguna imagen"),
+                            const SizedBox(height: 10),
+                            ElevatedButton.icon(
+                              onPressed: _seleccionarImagen,
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue.shade900),
+                              icon: const Icon(
+                                Icons.image,
+                                color: Colors.white,
+                              ),
+                              label: const Text("Seleccionar factura",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -430,6 +489,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             productosAgregados: _productosAgregados,
                             selectedAlmacen: _selectedAlmacen,
                             proveedor: _selectedProveedor,
+                            factura: _imagenFactura,
                           );
 
                           if (!datosCompletos) {
@@ -445,6 +505,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             referencia: _referenciaController.text,
                             productos: _productosAgregados,
                             proveedor: _selectedProveedor!.proveedor_Name!,
+                            factura: _imagenFactura!,
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -499,7 +560,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 30),
                 ],
               ),
