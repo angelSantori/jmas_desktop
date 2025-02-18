@@ -3,6 +3,7 @@ import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
 import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
+import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
@@ -151,6 +152,12 @@ class _HomePageState extends State<HomePage> {
   void _navigateToAddJunta() {
     setState(() {
       _currentPage = const AddJuntaPage();
+    });
+  }
+
+  void _navigateToListCancelados() {
+    setState(() {
+      _currentPage = const ListCanceladosPage();
     });
   }
 
@@ -366,6 +373,11 @@ class _HomePageState extends State<HomePage> {
                                   title: 'Lista de entradas',
                                   icon: Icons.line_style_sharp,
                                   onTap: _navigateToListEntradas,
+                                ),
+                                CustomListTile(
+                                  title: 'Cancelados',
+                                  icon: Icons.cancel_outlined,
+                                  onTap: _navigateToListCancelados,
                                 ),
                               ],
                             ),

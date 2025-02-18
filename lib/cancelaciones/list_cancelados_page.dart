@@ -112,10 +112,8 @@ class _ListCanceladosPageState extends State<ListCanceladosPage> {
                             backgroundColor:
                                 const Color.fromARGB(255, 201, 230, 242),
                           ),
-                          icon: const Icon(
-                            Icons.calendar_today,
-                            color: Colors.black,
-                          ),
+                          icon: const Icon(Icons.calendar_today,
+                              color: Colors.black),
                           label: Text(
                             _startDate != null && _endDate != null
                                 ? 'Desde: ${DateFormat('yyyy-MM-dd').format(_startDate!)} Hasta: ${DateFormat('yyyy-MM-dd').format(_endDate!)}'
@@ -128,10 +126,7 @@ class _ListCanceladosPageState extends State<ListCanceladosPage> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(
-                          Icons.clear,
-                          color: Colors.black,
-                        ),
+                        icon: const Icon(Icons.clear, color: Colors.black),
                         onPressed: () {
                           setState(() {
                             _startDate = null;
@@ -140,78 +135,76 @@ class _ListCanceladosPageState extends State<ListCanceladosPage> {
                           });
                         },
                       ),
-                      Expanded(
-                        child: _buildListView(),
-                      ),
-                      const SizedBox(height: 30),
                     ],
                   ),
-                )
+                ),
+                Expanded(
+                  // SOLUCIÓN: Envolver `_buildListView()` en `Expanded`
+                  child: _buildListView(),
+                ),
               ],
             ),
     );
   }
 
   Widget _buildListView() {
-    return ListView.builder(
-      itemCount: _filteredCancelados.length,
-      itemBuilder: (context, index) {
-        final cancelado = _filteredCancelados[index];
-        final entrada = _entradasCache[cancelado.id_Entrada];
-        final user = _usersCache[cancelado.id_User];
+    return _filteredCancelados.isEmpty
+        ? const Center(
+            child: Text(
+              'No hay cancelaciones disponibles',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          )
+        : ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            itemCount: _filteredCancelados.length,
+            itemBuilder: (context, index) {
+              final cancelado = _filteredCancelados[index];
+              final entrada = _entradasCache[cancelado.id_Entrada];
+              final user = _usersCache[cancelado.id_User];
 
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
-          color: const Color.fromARGB(255, 201, 230, 242),
-          child: ListTile(
-            // ignore: unnecessary_null_comparison
-            title: cancelado != null
-                ? Text(
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                color: const Color.fromARGB(255, 201, 230, 242),
+                child: ListTile(
+                  title: Text(
                     'Id cancelación: ${cancelado.idCancelacion}',
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
-                  )
-                : const Text('Cancelación no encontrada.'),
-            subtitle:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const SizedBox(height: 10),
-              user != null
-                  ? Text(
-                      'Realizado por: ${user.user_Name}',
-                      style: const TextStyle(
-                        fontSize: 15,
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      Text(
+                        'Realizado por: ${user?.user_Name ?? 'Usuario no encontrado'}',
+                        style: const TextStyle(fontSize: 15),
                       ),
-                    )
-                  : const Text('Realizado por: Usuario no encontado'),
-              const SizedBox(height: 10),
-              Text(
-                'Fecha ${cancelado.cancelFecha ?? 'Fecha no disponible'}',
-                style: const TextStyle(
-                  fontSize: 15,
+                      const SizedBox(height: 10),
+                      Text(
+                        'Fecha: ${cancelado.cancelFecha ?? 'Fecha no disponible'}',
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Motivo: ${cancelado.cancelMotivo ?? 'Motivo no encontrado'}',
+                        style: const TextStyle(fontSize: 15),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 10),
+                      if (entrada != null)
+                        Text(
+                          'Id de Entrada: ${entrada.id_Entradas} - Folio: ${entrada.entrada_CodFolio}',
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Motivo: ${cancelado.cancelMotivo ?? 'Motivo no encontrado'}',
-                style: const TextStyle(
-                  fontSize: 15,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Id de Entrada: ${entrada!.id_Entradas} - Folio: ${entrada.entrada_CodFolio}',
-                style: const TextStyle(
-                  fontSize: 15,
-                ),
-              )
-            ]),
-          ),
-        );
-      },
-    );
+              );
+            },
+          );
   }
 }
