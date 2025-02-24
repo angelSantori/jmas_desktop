@@ -143,10 +143,13 @@ class _AddProveedorPageState extends State<AddProveedorPage> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade900,
-                        textStyle: const TextStyle(
-                          fontSize: 15,
-                        )),
+                      backgroundColor: Colors.blue.shade900,
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.blue.shade900,
+                    ),
                     child: _isLoading
                         ? const CircularProgressIndicator(
                             color: Colors.white,

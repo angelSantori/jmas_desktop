@@ -178,256 +178,312 @@ class _AddProductoPageState extends State<AddProductoPage> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
                   const SizedBox(height: 50),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      //Descripción
-                      Expanded(
-                        child: CustomTextFielTexto(
-                          controller: _descripcionController,
-                          labelText: 'Descripción',
-                          prefixIcon: Icons.arrow_forward_ios_rounded,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Descripción obligatoria.';
-                            }
-                            return null;
-                          },
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        //Descripción
+                        Expanded(
+                          child: CustomTextFielTexto(
+                            controller: _descripcionController,
+                            labelText: 'Descripción',
+                            prefixIcon: Icons.arrow_forward_ios_rounded,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Descripción obligatoria.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
+                        const SizedBox(width: 30),
 
-                      //Costo
-                      Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _costoController,
-                          labelText: 'Costo',
-                          prefixIcon: Icons.monetization_on_outlined,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Costo obligatorio.';
-                            }
-                            return null;
-                          },
+                        //Costo
+                        Expanded(
+                          child: CustomTextFieldNumero(
+                            controller: _costoController,
+                            labelText: 'Costo',
+                            prefixIcon: Icons.monetization_on_outlined,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Costo obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(width: 30),
+                        const SizedBox(width: 30),
 
-                      //Existencia
-                      Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _existenciaController,
-                          labelText: 'Existencias',
-                          prefixIcon: Icons.numbers_rounded,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Existencias obligatorio.';
-                            }
-                            return null;
-                          },
+                        //Existencia
+                        Expanded(
+                          child: CustomTextFieldNumero(
+                            controller: _existenciaController,
+                            labelText: 'Existencias',
+                            prefixIcon: Icons.numbers_rounded,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Existencias obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 30),
                   const Divider(),
                   const SizedBox(height: 30),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      //Precio
-                      Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _precioController,
-                          labelText: 'Precio',
-                          prefixIcon: Icons.attach_money_rounded,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Precio obligatorio.';
-                            }
-                            return null;
-                          },
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        //Precio
+                        Expanded(
+                          child: CustomTextFieldNumero(
+                            controller: _precioController,
+                            labelText: 'Precio',
+                            prefixIcon: Icons.attach_money_rounded,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Precio obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
+                        const SizedBox(width: 30),
 
-                      //Max
-                      Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _maxController,
-                          labelText: 'Máximas unidades',
-                          prefixIcon: Icons.numbers_rounded,
-                          validator: (max) {
-                            if (max == null || max.isEmpty) {
-                              return 'Máximas unidades obligatorias.';
-                            }
-                            return null;
-                          },
+                        //Max
+                        Expanded(
+                          child: CustomTextFieldNumero(
+                            controller: _maxController,
+                            labelText: 'Máximas unidades',
+                            prefixIcon: Icons.numbers_rounded,
+                            validator: (max) {
+                              if (max == null || max.isEmpty) {
+                                return 'Máximas unidades obligatorias.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
+                        const SizedBox(width: 30),
 
-                      //Min
-                      Expanded(
-                        child: CustomTextFieldNumero(
-                          controller: _minController,
-                          labelText: 'Mínimas unidades',
-                          prefixIcon: Icons.numbers_rounded,
-                          validator: (min) {
-                            if (min == null || min.isEmpty) {
-                              return 'Mínimas unidades obligatorias.';
-                            }
-                            return null;
-                          },
+                        //Min
+                        Expanded(
+                          child: CustomTextFieldNumero(
+                            controller: _minController,
+                            labelText: 'Mínimas unidades',
+                            prefixIcon: Icons.numbers_rounded,
+                            validator: (min) {
+                              if (min == null || min.isEmpty) {
+                                return 'Mínimas unidades obligatorias.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 30),
                   const Divider(),
                   const SizedBox(height: 30),
 
                   //Existencia
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedUnMedEntrada,
-                          labelText: 'Unidad de Medida Entrada',
-                          items: _unMedEntrada,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedUnMedEntrada = value;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Unidad de medida entrada obligatoria.';
-                            }
-                            return null;
-                          },
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: CustomListaDesplegable(
+                            value: _selectedUnMedEntrada,
+                            labelText: 'Unidad de Medida Entrada',
+                            items: _unMedEntrada,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedUnMedEntrada = value;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Unidad de medida entrada obligatoria.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
+                        const SizedBox(width: 30),
 
-                      //UnMedSalida
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedUnMedSalida,
-                          labelText: 'Unidad de Medida Salida',
-                          items: _unMedSalida,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedUnMedSalida = value;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Unidad de medida salida obligatoria.';
-                            }
-                            return null;
-                          },
+                        //UnMedSalida
+                        Expanded(
+                          child: CustomListaDesplegable(
+                            value: _selectedUnMedSalida,
+                            labelText: 'Unidad de Medida Salida',
+                            items: _unMedSalida,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedUnMedSalida = value;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Unidad de medida salida obligatoria.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
+                        const SizedBox(width: 30),
 
-                      //Proveedor
-                      Expanded(
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedProveedor,
-                          labelText: 'Proveedor',
-                          items: _proveedores,
-                          onChanged: (prov) {
-                            setState(() {
-                              _selectedProveedor = prov;
-                            });
-                          },
-                          validator: (prov) {
-                            if (prov == null) {
-                              return 'Proveedor obligatorio.';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (prov) =>
-                              prov.proveedor_Name ?? 'Sin nombre',
+                        //Proveedor
+                        Expanded(
+                          child: CustomListaDesplegableTipo(
+                            value: _selectedProveedor,
+                            labelText: 'Proveedor',
+                            items: _proveedores,
+                            onChanged: (prov) {
+                              setState(() {
+                                _selectedProveedor = prov;
+                              });
+                            },
+                            validator: (prov) {
+                              if (prov == null) {
+                                return 'Proveedor obligatorio.';
+                              }
+                              return null;
+                            },
+                            itemLabelBuilder: (prov) =>
+                                prov.proveedor_Name ?? 'Sin nombre',
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 30),
                   const Divider(),
                   const SizedBox(height: 30),
 
                   //Ubicación física
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedRack,
-                          labelText: 'Rack',
-                          items: _rack,
-                          onChanged: (rack) {
-                            setState(() {
-                              _selectedRack = rack;
-                            });
-                          },
-                          validator: (rack) {
-                            if (rack == null || rack.isEmpty) {
-                              return 'Rack obligatorio.';
-                            }
-                            return null;
-                          },
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomListaDesplegable(
+                            value: _selectedRack,
+                            labelText: 'Rack',
+                            items: _rack,
+                            onChanged: (rack) {
+                              setState(() {
+                                _selectedRack = rack;
+                              });
+                            },
+                            validator: (rack) {
+                              if (rack == null || rack.isEmpty) {
+                                return 'Rack obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedNivel,
-                          labelText: 'Nivel',
-                          items: _nivel,
-                          onChanged: (nivel) {
-                            setState(() {
-                              _selectedNivel = nivel;
-                            });
-                          },
-                          validator: (nivel) {
-                            if (nivel == null || nivel.isEmpty) {
-                              return 'Nivel obligatorio.';
-                            }
-                            return null;
-                          },
+                        const SizedBox(width: 30),
+                        Expanded(
+                          child: CustomListaDesplegable(
+                            value: _selectedNivel,
+                            labelText: 'Nivel',
+                            items: _nivel,
+                            onChanged: (nivel) {
+                              setState(() {
+                                _selectedNivel = nivel;
+                              });
+                            },
+                            validator: (nivel) {
+                              if (nivel == null || nivel.isEmpty) {
+                                return 'Nivel obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedLetra,
-                          labelText: 'Letra',
-                          items: _letra,
-                          onChanged: (letra) {
-                            setState(() {
-                              _selectedLetra = letra;
-                            });
-                          },
-                          validator: (letra) {
-                            if (letra == null || letra.isEmpty) {
-                              return 'Letra obligatoria';
-                            }
-                            return null;
-                          },
+                        const SizedBox(width: 30),
+                        Expanded(
+                          child: CustomListaDesplegable(
+                            value: _selectedLetra,
+                            labelText: 'Letra',
+                            items: _letra,
+                            onChanged: (letra) {
+                              setState(() {
+                                _selectedLetra = letra;
+                              });
+                            },
+                            validator: (letra) {
+                              if (letra == null || letra.isEmpty) {
+                                return 'Letra obligatoria';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 30),
@@ -435,9 +491,23 @@ class _AddProductoPageState extends State<AddProductoPage> {
                   const SizedBox(height: 30),
 
                   //Seleccionar imagen
-                  CustomImagePicker(
-                    onPickImage: _pickImage,
-                    selectedImage: _selectedImage,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: CustomImagePicker(
+                      onPickImage: _pickImage,
+                      selectedImage: _selectedImage,
+                    ),
                   ),
 
                   const SizedBox(height: 50),
@@ -446,11 +516,14 @@ class _AddProductoPageState extends State<AddProductoPage> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            _isLoading ? Colors.grey : Colors.blue.shade900,
-                        textStyle: const TextStyle(
-                          fontSize: 20,
-                        )),
+                      backgroundColor:
+                          _isLoading ? Colors.grey : Colors.blue.shade900,
+                      textStyle: const TextStyle(
+                        fontSize: 20,
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.blue.shade900,
+                    ),
                     child: _isLoading
                         ? const Row(
                             mainAxisSize: MainAxisSize.min,

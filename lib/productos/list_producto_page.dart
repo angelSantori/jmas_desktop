@@ -99,7 +99,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
         title: const Text('Lista de productos'),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 60, right: 60),
+        padding: const EdgeInsets.symmetric(horizontal: 25),
         child: Column(
           children: [
             const SizedBox(height: 5),

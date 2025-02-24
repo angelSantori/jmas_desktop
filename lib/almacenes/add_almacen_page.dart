@@ -91,6 +91,8 @@ class _AddAlmacenPageState extends State<AddAlmacenPage> {
                       onPressed: _isLoading ? null : _submitForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade900,
+                        elevation: 8,
+                        shadowColor: Colors.blue.shade900,
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(

@@ -63,7 +63,7 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
 
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 25),
         child: Column(
           children: [
             Padding(
@@ -74,6 +74,7 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                 prefixIcon: Icons.search,
               ),
             ),
+            const SizedBox(height: 30),
             Expanded(
               child: _isLoading
                   ? Center(

@@ -301,7 +301,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 25),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -533,6 +533,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
+                          elevation: 8,
+                          shadowColor: Colors.blue.shade900,
                         ),
                         child: const Text(
                           'PDF',
@@ -548,7 +550,10 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       ElevatedButton(
                         onPressed: _isLoading ? null : _guardarSalida,
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade900),
+                          backgroundColor: Colors.blue.shade900,
+                          elevation: 8,
+                          shadowColor: Colors.blue.shade900,
+                        ),
                         child: _isLoading
                             ? const Row(
                                 mainAxisSize: MainAxisSize.min,

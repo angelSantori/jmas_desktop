@@ -88,61 +88,80 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar entidad'),
+        title: const Text('Agregar Junta'),
         centerTitle: true,
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 50),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
                   //Name
-                  CustomTextFielTexto(
-                    controller: _nombreController,
-                    labelText: 'Nombre de junta',
-                    validator: (nomJnt) {
-                      if (nomJnt == null || nomJnt.isEmpty) {
-                        return 'Nombre obligatorio.';
-                      }
-                      return null;
-                    },
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _nombreController,
+                          labelText: 'Nombre de junta',
+                          validator: (nomJnt) {
+                            if (nomJnt == null || nomJnt.isEmpty) {
+                              return 'Nombre obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 30),
 
                   //Phone
-                  CustomTextFieldNumero(
-                    controller: _phoneController,
-                    prefixIcon: Icons.phone,
-                    labelText: 'Teléfono de junta',
-                    validator: (phJnt) {
-                      if (phJnt == null || phJnt.isEmpty) {
-                        return 'Teléfono obligatorio.';
-                      }
-                      return null;
-                    },
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFieldNumero(
+                          controller: _phoneController,
+                          prefixIcon: Icons.phone,
+                          labelText: 'Teléfono de junta',
+                          validator: (phJnt) {
+                            if (phJnt == null || phJnt.isEmpty) {
+                              return 'Teléfono obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 30),
 
                   //Encargado
-                  CustomListaDesplegableTipo(
-                    value: _selectedUser,
-                    labelText: 'Encargado',
-                    items: _users,
-                    onChanged: (user) {
-                      setState(() {
-                        _selectedUser = user;
-                      });
-                    },
-                    validator: (user) {
-                      if (user == null) {
-                        return 'Encargado obligatorio.';
-                      }
-                      return null;
-                    },
-                    itemLabelBuilder: (user) => user.user_Name ?? 'Sin nombre',
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomListaDesplegableTipo(
+                          value: _selectedUser,
+                          labelText: 'Encargado',
+                          items: _users,
+                          onChanged: (user) {
+                            setState(() {
+                              _selectedUser = user;
+                            });
+                          },
+                          validator: (user) {
+                            if (user == null) {
+                              return 'Encargado obligatorio.';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (user) =>
+                              user.user_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 30),
 
@@ -151,6 +170,8 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
                       onPressed: _isLoading ? null : _submitForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade900,
+                        elevation: 8,
+                        shadowColor: Colors.blue.shade900,
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(

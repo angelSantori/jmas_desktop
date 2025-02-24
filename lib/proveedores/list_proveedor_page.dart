@@ -75,8 +75,9 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                 controller: _searchController,
                 labelText: 'Buscar por nombre o contacto',
                 prefixIcon: Icons.search,
-              ),  
+              ),
             ),
+            const SizedBox(height: 30),
             Expanded(
               child: _isLoading
                   ? Center(

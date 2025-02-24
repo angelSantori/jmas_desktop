@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/users_controller.dart';
-import 'package:jmas_desktop/juntas/edit_junta_page.dart';
+import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
-class ListJuntasPage extends StatefulWidget {
+class ListPadronPage extends StatefulWidget {
   final String? userRole;
-  const ListJuntasPage({super.key, this.userRole});
+  const ListPadronPage({super.key, this.userRole});
 
   @override
-  State<ListJuntasPage> createState() => _ListJuntasPageState();
+  State<ListPadronPage> createState() => _ListPadronPageState();
 }
 
-class _ListJuntasPageState extends State<ListJuntasPage> {
-  final JuntasController _juntasController = JuntasController();
-  final UsersController _usersController = UsersController();
+class _ListPadronPageState extends State<ListPadronPage> {
+  final PadronController _padronController = PadronController();
+
   final TextEditingController _searchController = TextEditingController();
 
-  List<Juntas> _allJuntas = [];
-  List<Juntas> _filteredJuntas = [];
-  Map<int, Users> _usersCache = {};
+  List<Padron> _allPadron = [];
+  List<Padron> _filteredPadron = [];
 
   bool _isLoading = false;
 
@@ -27,7 +24,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
   void initState() {
     super.initState();
     _loadData();
-    _searchController.addListener(_filterJuntas);
+    _searchController.addListener(_filterPadron);
   }
 
   Future<void> _loadData() async {
@@ -36,19 +33,16 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
     });
 
     try {
-      final juntas = await _juntasController.listJuntas();
-      final users = await _usersController.listUsers();
+      final padrones = await _padronController.listPadron();
 
       setState(() {
-        _allJuntas = juntas;
-        _filteredJuntas = juntas;
-
-        _usersCache = {for (var us in users) us.id_User!: us};
+        _allPadron = padrones;
+        _filteredPadron = padrones;
 
         _isLoading = false;
       });
     } catch (e) {
-      print('Error list_juntas_page: $e');
+      print('Error list_padron_pdage: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -56,12 +50,17 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
     }
   }
 
-  void _filterJuntas() {
+  void _filterPadron() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredJuntas = _allJuntas.where((junta) {
-        final name = junta.junta_Name?.toLowerCase() ?? '';
-        return name.contains(query);
+      _filteredPadron = _allPadron.where((padron) {
+        final nombre = padron.padronNombre?.toLowerCase() ?? '';
+        final direccion = padron.padronDireccion?.toLowerCase() ?? '';
+        final id = padron.idPadron.toString();
+
+        return nombre.contains(query) ||
+            direccion.contains(query) ||
+            id.contains(query);
       }).toList();
     });
   }
@@ -72,19 +71,15 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lista de Jutnas'),
-        centerTitle: true,
-      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: CustomTextFielTexto(
                 controller: _searchController,
-                labelText: 'Buscar junta',
+                labelText: 'Buscar padron',
                 prefixIcon: Icons.search,
               ),
             ),
@@ -93,12 +88,13 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
               child: _isLoading
                   ? Center(
                       child: CircularProgressIndicator(
-                      color: Colors.blue.shade900,
-                    ))
-                  : _filteredJuntas.isEmpty
+                        color: Colors.blue.shade900,
+                      ),
+                    )
+                  : _filteredPadron.isEmpty
                       ? const Center(
                           child: Text(
-                              'No hay juntas que coincidan con la búsqueda.'),
+                              'No hay algún padron que conicida con la búsqueda.'),
                         )
                       : GridView.builder(
                           gridDelegate:
@@ -120,10 +116,9 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                         ? 1
                                         : 1.5,
                           ),
-                          itemCount: _filteredJuntas.length,
+                          itemCount: _filteredPadron.length,
                           itemBuilder: (context, index) {
-                            final junta = _filteredJuntas[index];
-                            final user = _usersCache[junta.id_User];
+                            final padron = _filteredPadron[index];
 
                             return Card(
                               color: const Color.fromARGB(255, 201, 230, 242),
@@ -136,18 +131,17 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${junta.junta_Name}',
+                                      '${padron.padronNombre}',
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      user != null
-                                          ? 'Encargado: ${user.user_Name}'
-                                          : 'Encargado: No disponible',
+                                      'Id: ${padron.idPadron}',
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 12,
@@ -156,7 +150,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      'Teléfono: ${junta.junta_Telefono ?? 'Sin número'}',
+                                      'Dirección: ${padron.padronDireccion}',
                                       style: const TextStyle(
                                         color: Colors.black,
                                         fontSize: 12,
@@ -173,18 +167,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                             color: Colors.black,
                                             size: 20,
                                           ),
-                                          onPressed: () async {
-                                            final result = await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditJuntaPage(junta: junta),
-                                              ),
-                                            );
-                                            if (result == true) {
-                                              _loadData();
-                                            }
-                                          },
+                                          onPressed: () {},
                                         ),
                                       )
                                   ],

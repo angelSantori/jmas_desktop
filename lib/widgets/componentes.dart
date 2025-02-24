@@ -15,9 +15,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:ui' as ui;
 
 //ListTitle
-class CustomListTile extends StatelessWidget {
+class CustomListTile extends StatefulWidget {
   final String title;
-  final IconData icon;
+  final Widget icon;
   final VoidCallback onTap;
 
   const CustomListTile({
@@ -28,33 +28,72 @@ class CustomListTile extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _CustomListTileState createState() => _CustomListTileState();
+}
+
+class _CustomListTileState extends State<CustomListTile> {
+  bool _isHovered = false; // Estado para controlar el hover
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16),
-      child: ListTile(
-        title: Row(
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click, // Cambia el cursor al pasar el mouse
+      onEnter: (_) =>
+          setState(() => _isHovered = true), // Detecta cuando el cursor entra
+      onExit: (_) =>
+          setState(() => _isHovered = false), // Detecta cuando el cursor sale
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200), // Duración de la animación
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: _isHovered
+                ? Colors.blue.shade600
+                : Colors.transparent, // Color de fondo al hacer hover
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color:
+                          Colors.black.withOpacity(0.3), // Color de la sombra
+                      blurRadius: 10, // Difuminado de la sombra
+                      offset: Offset(0, 5), // Desplazamiento de la sombra
+                    ),
+                  ]
+                : [], // Sin sombra cuando no hay hover
+          ),
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(8),
+            hoverColor:
+                Colors.transparent, // Desactiva el hoverColor de InkWell
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  widget.icon,
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
-        onTap: onTap,
       ),
     );
   }
 }
 
 //ExpansionTitle
-class CustomExpansionTile extends StatelessWidget {
+class CustomExpansionTile extends StatefulWidget {
   final String title;
-  final IconData icon;
+  final Widget icon;
   final List<Widget> children;
 
   const CustomExpansionTile({
@@ -65,39 +104,71 @@ class CustomExpansionTile extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _CustomExpansionTileState createState() => _CustomExpansionTileState();
+}
+
+class _CustomExpansionTileState extends State<CustomExpansionTile> {
+  bool _isHovered = false; // Estado para controlar el hover
+
+  @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        expansionTileTheme: const ExpansionTileThemeData(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          collapsedIconColor: Colors.white,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) =>
+          setState(() => _isHovered = true), // Detecta cuando el cursor entra
+      onExit: (_) =>
+          setState(() => _isHovered = false), // Detecta cuando el cursor sale
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200), // Duración de la animación
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: _isHovered
+              ? Colors.blue.shade800
+              : Colors.transparent, // Color de fondo al hacer hover
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3), // Color de la sombra
+                    blurRadius: 10, // Difuminado de la sombra
+                    offset: Offset(0, 5), // Desplazamiento de la sombra
+                  ),
+                ]
+              : [], // Sin sombra cuando no hay hover
         ),
-      ),
-      child: ExpansionTile(
-        title: Row(
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            expansionTileTheme: const ExpansionTileThemeData(
+              iconColor: Colors.white,
+              textColor: Colors.white,
+              collapsedIconColor: Colors.white,
             ),
-          ],
+          ),
+          child: ExpansionTile(
+            title: Row(
+              children: [
+                widget.icon,
+                const SizedBox(width: 8),
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            children: widget.children,
+          ),
         ),
-        children: children,
       ),
     );
   }
 }
 
 //SubExpansionTitle
-class SubCustomExpansionTile extends StatelessWidget {
+class SubCustomExpansionTile extends StatefulWidget {
   final String title;
-  final IconData icon;
+  final Widget icon;
   final List<Widget> children;
 
   const SubCustomExpansionTile({
@@ -108,32 +179,65 @@ class SubCustomExpansionTile extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _SubCustomExpansionTileState createState() => _SubCustomExpansionTileState();
+}
+
+class _SubCustomExpansionTileState extends State<SubCustomExpansionTile> {
+  bool _isHovered = false; // Estado para controlar el hover
+
+  @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        expansionTileTheme: const ExpansionTileThemeData(
-          iconColor: Colors.white,
-          textColor: Colors.white,
-          collapsedIconColor: Colors.white,
-        ),
-      ),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) =>
+          setState(() => _isHovered = true), // Detecta cuando el cursor entra
+      onExit: (_) =>
+          setState(() => _isHovered = false), // Detecta cuando el cursor sale
       child: Padding(
         padding: const EdgeInsets.only(left: 16),
-        child: ExpansionTile(
-          title: Row(
-            children: [
-              Icon(icon, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200), // Duración de la animación
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: _isHovered
+                ? Colors.blue.shade700
+                : Colors.transparent, // Color de fondo al hacer hover
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color:
+                          Colors.black.withOpacity(0.3), // Color de la sombra
+                      blurRadius: 10, // Difuminado de la sombra
+                      offset: Offset(0, 5), // Desplazamiento de la sombra
+                    ),
+                  ]
+                : [], // Sin sombra cuando no hay hover
           ),
-          children: children,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              expansionTileTheme: const ExpansionTileThemeData(
+                iconColor: Colors.white,
+                textColor: Colors.white,
+                collapsedIconColor: Colors.white,
+              ),
+            ),
+            child: ExpansionTile(
+              title: Row(
+                children: [
+                  widget.icon,
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              children: widget.children,
+            ),
+          ),
         ),
       ),
     );

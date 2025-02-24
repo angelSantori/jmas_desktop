@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
-class CustomTextFieldAzul extends StatelessWidget {
+class CustomTextFieldAzul extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final String? Function(String?)? validator;
@@ -23,60 +23,115 @@ class CustomTextFieldAzul extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomTextFieldAzul> createState() => _CustomTextFieldAzulState();
+}
+
+class _CustomTextFieldAzulState extends State<CustomTextFieldAzul>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa el AnimationController
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1000), // Duración de la animación
+    );
+
+    // Define la animación de desplazamiento
+    _animation = Tween<Offset>(
+      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
+      end: Offset.zero, // Termina en su posición original
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart, // Curva suave
+      ),
+    );
+    // Inicia la animación cuando el widget se construye
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Limpia el AnimationController
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 500,
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(
-            color: Colors.blue.shade900,
-            fontWeight: FontWeight.bold,
-          ),
-          prefixIcon: Icon(prefixIcon, color: Colors.blue.shade900),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    isVisible ? Icons.visibility : Icons.visibility_off,
-                    color: Colors.blue.shade900,
-                  ),
-                  onPressed: onVisibilityToggle,
-                )
-              : null,
-          filled: true,
-          fillColor: Colors.blue.shade50,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          enabledBorder: OutlineInputBorder(
+    return SlideTransition(
+      position: _animation,
+      child: SizedBox(
+        width: 500,
+        child: Container(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade900, // Color de la sombra
+                blurRadius: 8, // Difuminado de la sombra
+                offset: Offset(0, 4), // Desplazamiento de la sombra
+              ),
+            ],
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
+          child: TextFormField(
+            controller: widget.controller,
+            decoration: InputDecoration(
+              labelText: widget.labelText,
+              labelStyle: TextStyle(
+                color: Colors.blue.shade900,
+                fontWeight: FontWeight.bold,
+              ),
+              prefixIcon: Icon(widget.prefixIcon, color: Colors.blue.shade900),
+              suffixIcon: widget.isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        widget.isVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.blue.shade900,
+                      ),
+                      onPressed: widget.onVisibilityToggle,
+                    )
+                  : null,
+              filled: true,
+              fillColor: Colors.blue.shade50,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              ),
+            ),
+            style: const TextStyle(fontSize: 18, color: Colors.black),
+            validator: widget.validator,
+            obscureText: widget.isPassword && !widget.isVisible,
+            inputFormatters: widget.isPassword
+                ? null
+                : [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
           ),
         ),
-        style: const TextStyle(fontSize: 18, color: Colors.black),
-        validator: validator,
-        obscureText: isPassword && !isVisible,
-        inputFormatters: isPassword
-            ? null
-            : [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
       ),
     );
   }
 }
 
-class CustomTextFielTexto extends StatelessWidget {
+class CustomTextFielTexto extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final String? Function(String?)? validator;
@@ -93,48 +148,101 @@ class CustomTextFielTexto extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomTextFielTexto> createState() => _CustomTextFielTextoState();
+}
+
+class _CustomTextFielTextoState extends State<CustomTextFielTexto>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa el AnimationController
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1000), // Duración de la animación
+    );
+
+    // Define la animación de desplazamiento
+    _animation = Tween<Offset>(
+      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
+      end: Offset.zero, // Termina en su posición original
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart, // Curva suave
+      ),
+    );
+    // Inicia la animación cuando el widget se construye
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Limpia el AnimationController
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 500,
-      child: TextFormField(
-        controller: controller,
-        inputFormatters: inputFormatters,
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(
-            color: Colors.blue.shade900,
-            fontWeight: FontWeight.bold,
-          ),
-          prefixIcon: Icon(prefixIcon, color: Colors.blue.shade900),
-          filled: true,
-          fillColor: Colors.blue.shade50,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          enabledBorder: OutlineInputBorder(
+    return SlideTransition(
+      position: _animation,
+      child: SizedBox(
+        width: 500,
+        child: Container(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade900, // Color de la sombra
+                blurRadius: 8, // Difuminado de la sombra
+                offset: Offset(0, 4), // Desplazamiento de la sombra
+              ),
+            ],
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
+          child: TextFormField(
+            controller: widget.controller,
+            inputFormatters: widget.inputFormatters,
+            decoration: InputDecoration(
+              labelText: widget.labelText,
+              labelStyle: TextStyle(
+                color: Colors.blue.shade900,
+                fontWeight: FontWeight.bold,
+              ),
+              prefixIcon: Icon(widget.prefixIcon, color: Colors.blue.shade900),
+              filled: true,
+              fillColor: Colors.blue.shade50,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              ),
+            ),
+            style: const TextStyle(fontSize: 18, color: Colors.black),
+            validator: widget.validator,
           ),
         ),
-        style: const TextStyle(fontSize: 18, color: Colors.black),
-        validator: validator,
       ),
     );
   }
 }
 
-class CustomTextFielFecha extends StatelessWidget {
+class CustomTextFielFecha extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final String? Function(String?)? validator;
@@ -153,50 +261,103 @@ class CustomTextFielFecha extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomTextFielFecha> createState() => _CustomTextFielFechaState();
+}
+
+class _CustomTextFielFechaState extends State<CustomTextFielFecha>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa el AnimationController
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1000), // Duración de la animación
+    );
+
+    // Define la animación de desplazamiento
+    _animation = Tween<Offset>(
+      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
+      end: Offset.zero, // Termina en su posición original
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart, // Curva suave
+      ),
+    );
+    // Inicia la animación cuando el widget se construye
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Limpia el AnimationController
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 500,
-      child: TextFormField(
-        controller: controller,
-        inputFormatters: inputFormatters,
-        readOnly: true, // Hace que el campo sea de solo lectura
-        onTap: onTap, // Llama al callback cuando se toca el campo
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(
-            color: Colors.blue.shade900,
-            fontWeight: FontWeight.bold,
-          ),
-          prefixIcon: Icon(prefixIcon, color: Colors.blue.shade900),
-          filled: true,
-          fillColor: Colors.blue.shade50,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          enabledBorder: OutlineInputBorder(
+    return SlideTransition(
+      position: _animation,
+      child: SizedBox(
+        width: 500,
+        child: Container(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade900, // Color de la sombra
+                blurRadius: 8, // Difuminado de la sombra
+                offset: Offset(0, 4), // Desplazamiento de la sombra
+              ),
+            ],
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
+          child: TextFormField(
+            controller: widget.controller,
+            inputFormatters: widget.inputFormatters,
+            readOnly: true, // Hace que el campo sea de solo lectura
+            onTap: widget.onTap, // Llama al callback cuando se toca el campo
+            decoration: InputDecoration(
+              labelText: widget.labelText,
+              labelStyle: TextStyle(
+                color: Colors.blue.shade900,
+                fontWeight: FontWeight.bold,
+              ),
+              prefixIcon: Icon(widget.prefixIcon, color: Colors.blue.shade900),
+              filled: true,
+              fillColor: Colors.blue.shade50,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              ),
+            ),
+            style: const TextStyle(fontSize: 18, color: Colors.black),
+            validator: widget.validator,
           ),
         ),
-        style: const TextStyle(fontSize: 18, color: Colors.black),
-        validator: validator,
       ),
     );
   }
 }
 
-class CustomTextFieldNumero extends StatelessWidget {
+class CustomTextFieldNumero extends StatefulWidget {
   final TextEditingController controller;
   final String labelText;
   final String? Function(String?)? validator;
@@ -211,51 +372,104 @@ class CustomTextFieldNumero extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomTextFieldNumero> createState() => _CustomTextFieldNumeroState();
+}
+
+class _CustomTextFieldNumeroState extends State<CustomTextFieldNumero>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa el AnimationController
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1000), // Duración de la animación
+    );
+
+    // Define la animación de desplazamiento
+    _animation = Tween<Offset>(
+      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
+      end: Offset.zero, // Termina en su posición original
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart, // Curva suave
+      ),
+    );
+    // Inicia la animación cuando el widget se construye
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Limpia el AnimationController
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 500,
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(
-            color: Colors.blue.shade900,
-            fontWeight: FontWeight.bold,
-          ),
-          prefixIcon: Icon(prefixIcon, color: Colors.blue.shade900),
-          filled: true,
-          fillColor: Colors.blue.shade50,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          enabledBorder: OutlineInputBorder(
+    return SlideTransition(
+      position: _animation,
+      child: SizedBox(
+        width: 500,
+        child: Container(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade900, // Color de la sombra
+                blurRadius: 8, // Difuminado de la sombra
+                offset: Offset(0, 4), // Desplazamiento de la sombra
+              ),
+            ],
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
+          child: TextFormField(
+            controller: widget.controller,
+            decoration: InputDecoration(
+              labelText: widget.labelText,
+              labelStyle: TextStyle(
+                color: Colors.blue.shade900,
+                fontWeight: FontWeight.bold,
+              ),
+              prefixIcon: Icon(widget.prefixIcon, color: Colors.blue.shade900),
+              filled: true,
+              fillColor: Colors.blue.shade50,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              ),
+            ),
+            style: const TextStyle(fontSize: 18, color: Colors.black),
+            validator: widget.validator,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+            ],
           ),
         ),
-        style: const TextStyle(fontSize: 18, color: Colors.black),
-        validator: validator,
-        keyboardType: TextInputType.number,
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-        ],
       ),
     );
   }
 }
 
-class CustomListaDesplegable extends StatelessWidget {
+class CustomListaDesplegable extends StatefulWidget {
   final String? value;
   final String labelText;
   final List<String> items;
@@ -274,47 +488,100 @@ class CustomListaDesplegable extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomListaDesplegable> createState() => _CustomListaDesplegableState();
+}
+
+class _CustomListaDesplegableState extends State<CustomListaDesplegable>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa el AnimationController
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1000), // Duración de la animación
+    );
+
+    // Define la animación de desplazamiento
+    _animation = Tween<Offset>(
+      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
+      end: Offset.zero, // Termina en su posición original
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart, // Curva suave
+      ),
+    );
+    // Inicia la animación cuando el widget se construye
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Limpia el AnimationController
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 400,
-      child: DropdownButtonFormField<String>(
-        value: value,
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(
-            color: Colors.blue.shade900,
-            fontWeight: FontWeight.bold,
-            overflow: TextOverflow.ellipsis,
-          ),
-          filled: true,
-          fillColor: Colors.blue.shade50,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          enabledBorder: OutlineInputBorder(
+    return SlideTransition(
+      position: _animation,
+      child: SizedBox(
+        width: 500,
+        child: Container(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade900, // Color de la sombra
+                blurRadius: 8, // Difuminado de la sombra
+                offset: Offset(0, 4), // Desplazamiento de la sombra
+              ),
+            ],
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
+          child: DropdownButtonFormField<String>(
+            value: widget.value,
+            decoration: InputDecoration(
+              labelText: widget.labelText,
+              labelStyle: TextStyle(
+                color: Colors.blue.shade900,
+                fontWeight: FontWeight.bold,
+                overflow: TextOverflow.ellipsis,
+              ),
+              filled: true,
+              fillColor: Colors.blue.shade50,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              ),
+            ),
+            items: widget.items.map((item) {
+              return DropdownMenuItem(
+                value: item,
+                child: Text(item),
+              );
+            }).toList(),
+            onChanged: widget.onChanged,
+            validator: widget.validator,
           ),
         ),
-        items: items.map((item) {
-          return DropdownMenuItem(
-            value: item,
-            child: Text(item),
-          );
-        }).toList(),
-        onChanged: onChanged,
-        validator: validator,
       ),
     );
   }
@@ -340,14 +607,26 @@ class CustomImagePicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (selectedImage != null)
-          Center(
-            child: ClipRRect(
+          Container(
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                selectedImage!.path,
-                height: 180,
-                width: 180,
-                fit: BoxFit.cover,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade900, // Color de la sombra
+                  blurRadius: 8, // Difuminado de la sombra
+                  offset: Offset(0, 4), // Desplazamiento de la sombra
+                ),
+              ],
+            ),
+            child: Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  selectedImage!.path,
+                  height: 180,
+                  width: 180,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           )
@@ -389,6 +668,8 @@ class CustomImagePicker extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
+              elevation: 6,
+              shadowColor: Colors.blue.shade900,
             ),
           ),
         ),
@@ -408,7 +689,7 @@ class CustomImagePicker extends StatelessWidget {
   }
 }
 
-class CustomListaDesplegableTipo<T> extends StatelessWidget {
+class CustomListaDesplegableTipo<T> extends StatefulWidget {
   final T? value;
   final String labelText;
   final List<T> items;
@@ -429,46 +710,101 @@ class CustomListaDesplegableTipo<T> extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CustomListaDesplegableTipo<T>> createState() =>
+      _CustomListaDesplegableTipoState<T>();
+}
+
+class _CustomListaDesplegableTipoState<T>
+    extends State<CustomListaDesplegableTipo<T>>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa el AnimationController
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1000), // Duración de la animación
+    );
+
+    // Define la animación de desplazamiento
+    _animation = Tween<Offset>(
+      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
+      end: Offset.zero, // Termina en su posición original
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutQuart, // Curva suave
+      ),
+    );
+    // Inicia la animación cuando el widget se construye
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose(); // Limpia el AnimationController
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 400,
-      child: DropdownButtonFormField<T>(
-        value: value,
-        decoration: InputDecoration(
-          labelText: labelText,
-          labelStyle: TextStyle(
-              color: Colors.blue.shade900,
-              fontWeight: FontWeight.bold,
-              overflow: TextOverflow.ellipsis),
-          filled: true,
-          fillColor: Colors.blue.shade50,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          enabledBorder: OutlineInputBorder(
+    return SlideTransition(
+      position: _animation,
+      child: SizedBox(
+        width: 500,
+        child: Container(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.shade900, // Color de la sombra
+                blurRadius: 8, // Difuminado de la sombra
+                offset: Offset(0, 4), // Desplazamiento de la sombra
+              ),
+            ],
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 1.5),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.red, width: 2.0),
+          child: DropdownButtonFormField<T>(
+            value: widget.value,
+            decoration: InputDecoration(
+              labelText: widget.labelText,
+              labelStyle: TextStyle(
+                  color: Colors.blue.shade900,
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.ellipsis),
+              filled: true,
+              fillColor: Colors.blue.shade50,
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2.0),
+              ),
+            ),
+            items: widget.items.map((item) {
+              return DropdownMenuItem(
+                value: item,
+                child: Text(widget.itemLabelBuilder(item)),
+              );
+            }).toList(),
+            onChanged: widget.onChanged,
+            validator: widget.validator,
           ),
         ),
-        items: items.map((item) {
-          return DropdownMenuItem(
-            value: item,
-            child: Text(itemLabelBuilder(item)),
-          );
-        }).toList(),
-        onChanged: onChanged,
-        validator: validator,
       ),
     );
   }

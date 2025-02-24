@@ -24,7 +24,13 @@ class _EditUserPageState extends State<EditUserPage> {
       TextEditingController();
 
   String? _selectedRole;
-  final List<String> _roles = ['Admin', 'Sistemas', 'Gestion', 'Electro'];
+  final List<String> _roles = [
+    'Admin',
+    'Sistemas',
+    'Gestion',
+    'Electro',
+    'Empleado',
+  ];
 
   bool _isLoading = false;
 

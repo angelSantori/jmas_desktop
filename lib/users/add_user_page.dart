@@ -107,7 +107,7 @@ class _AddUserPageState extends State<AddUserPage> {
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(left: 100, right: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 25),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -244,6 +244,8 @@ class _AddUserPageState extends State<AddUserPage> {
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
+                      elevation: 8,
+                      shadowColor: Colors.blue.shade900,
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(

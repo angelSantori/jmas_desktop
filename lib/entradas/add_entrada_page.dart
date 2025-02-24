@@ -291,7 +291,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 25),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -354,7 +354,9 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                     fit: BoxFit.cover,
                                   )
                                 : const Text(
-                                    "No se ha seleccionado ninguna imagen"),
+                                    "No se ha seleccionado ninguna imagen",
+                                    textAlign: TextAlign.center,
+                                  ),
                             const SizedBox(height: 10),
                             ElevatedButton.icon(
                               onPressed: _seleccionarImagen,
@@ -510,6 +512,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
+                          elevation: 8,
+                          shadowColor: Colors.blue.shade900,
                         ),
                         child: const Text(
                           'PDF',
@@ -527,6 +531,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                         onPressed: _isLoading ? null : _guardarEntrada,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade900,
+                          elevation: 8,
+                          shadowColor: Colors.blue.shade900,
                         ),
                         child: _isLoading
                             ? const Row(
