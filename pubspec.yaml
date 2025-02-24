@@ -21,7 +21,8 @@ dependencies:
   file_picker: ^8.1.6 #Seleccionar carpeta
   image_picker: ^1.1.2 #Seleccionar imagen   
   bitsdojo_window: ^0.1.0 #Tamaño pantaña
-  qr_flutter: ^4.1.0 #QR  
+  qr_flutter: ^4.1.0 #QR
+  flutter_svg: ^2.0.17 #SVG  
 
 dev_dependencies:
   flutter_test:
