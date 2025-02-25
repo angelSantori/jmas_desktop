@@ -58,6 +58,14 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   bool _isLoading = false;
 
+  String? _selectedTipoTrabajo;
+  final List<String> _tipoTrabajos = [
+    'General',
+    'Precaución',
+    'Mantenimiento',
+    'Otro',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -270,6 +278,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Costo: double.tryParse(
           (producto['precioIncrementado'] * producto['cantidad']).toString()),
       salida_Fecha: _fechaController.text,
+      salida_TipoTrabajo: _selectedTipoTrabajo,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
@@ -288,6 +297,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedProducto = null;
       _selectedPadron = null;
       _selectedUser = null;
+      _selectedTipoTrabajo = null;
       _referenciaController.clear();
       _idProductoController.clear();
       _idPadronController.clear();
@@ -346,6 +356,25 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Debe seleccionar una fecha';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedTipoTrabajo,
+                          labelText: 'Tipo de trabajo',
+                          items: _tipoTrabajos,
+                          onChanged: (trabajo) {
+                            setState(() {
+                              _selectedTipoTrabajo = trabajo;
+                            });
+                          },
+                          validator: (trabajo) {
+                            if (trabajo == null || trabajo.isEmpty) {
+                              return 'Seleccione un tipo de trabajo.';
                             }
                             return null;
                           },
@@ -511,6 +540,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             selectedAlmacen: _selectedAlmacen,
                             selectedJunta: _selectedJunta,
                             selectedUser: _selectedUser,
+                            selectedTrabajo: _selectedTipoTrabajo,
                           );
 
                           if (!datosCompletos) {
@@ -529,6 +559,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             productos: _productosAgregados,
                             userAsignado: _selectedUser!.user_Name!,
                             padron: _selectedPadron!.idPadron!,
+                            tipoTabajo: _selectedTipoTrabajo!,
                           );
                         },
                         style: ElevatedButton.styleFrom(

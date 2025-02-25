@@ -896,9 +896,15 @@ Future<bool> validarCamposAntesDeImprimir(
     required var selectedAlmacen,
     required var selectedJunta,
     required var padron,
+    required var selectedTrabajo,
     required var selectedUser}) async {
   if (referenciaController.text.isEmpty) {
     showAdvertence(context, 'La referencia es obligatoria.');
+    return false;
+  }
+
+  if (selectedTrabajo == null) {
+    showAdvertence(context, 'Debe seleccionar un tipo de trabajo.');
     return false;
   }
 

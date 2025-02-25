@@ -107,6 +107,7 @@ class Salidas {
   double? salida_Unidades;
   double? salida_Costo;
   String? salida_Fecha;
+  String? salida_TipoTrabajo;
   int? idProducto;
   int? id_User;
   int? id_Junta;
@@ -120,6 +121,7 @@ class Salidas {
     this.salida_Unidades,
     this.salida_Costo,
     this.salida_Fecha,
+    this.salida_TipoTrabajo,
     this.idProducto,
     this.id_User,
     this.id_Junta,
@@ -135,6 +137,7 @@ class Salidas {
     double? salida_Unidades,
     double? salida_Costo,
     String? salida_Fecha,
+    String? salida_TipoTrabajo,
     int? idProducto,
     int? id_User,
     int? id_Junta,
@@ -149,6 +152,7 @@ class Salidas {
       salida_Unidades: salida_Unidades ?? this.salida_Unidades,
       salida_Costo: salida_Costo ?? this.salida_Costo,
       salida_Fecha: salida_Fecha ?? this.salida_Fecha,
+      salida_TipoTrabajo: salida_TipoTrabajo ?? this.salida_TipoTrabajo,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
@@ -166,6 +170,7 @@ class Salidas {
       'salida_Unidades': salida_Unidades,
       'salida_Costo': salida_Costo,
       'salida_Fecha': salida_Fecha,
+      'salida_TipoTrabajo': salida_TipoTrabajo,
       'idProducto': idProducto,
       'id_User': id_User,
       'id_Junta': id_Junta,
@@ -196,6 +201,9 @@ class Salidas {
           : null,
       salida_Fecha:
           map['salida_Fecha'] != null ? map['salida_Fecha'] as String : null,
+      salida_TipoTrabajo: map['salida_TipoTrabajo'] != null
+          ? map['salida_TipoTrabajo'] as String
+          : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
@@ -214,7 +222,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron)';
   }
 
   @override
@@ -227,6 +235,7 @@ class Salidas {
         other.salida_Unidades == salida_Unidades &&
         other.salida_Costo == salida_Costo &&
         other.salida_Fecha == salida_Fecha &&
+        other.salida_TipoTrabajo == salida_TipoTrabajo &&
         other.idProducto == idProducto &&
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
@@ -243,6 +252,7 @@ class Salidas {
         salida_Unidades.hashCode ^
         salida_Costo.hashCode ^
         salida_Fecha.hashCode ^
+        salida_TipoTrabajo.hashCode ^
         idProducto.hashCode ^
         id_User.hashCode ^
         id_Junta.hashCode ^

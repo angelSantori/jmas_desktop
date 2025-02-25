@@ -534,6 +534,7 @@ Future<void> generateAndPrintPdfSalida({
   required String junta,
   required String usuario,
   required String userAsignado,
+  required String tipoTabajo,
   required int padron,
   required List<Map<String, dynamic>> productos,
 }) async {
@@ -572,6 +573,7 @@ Future<void> generateAndPrintPdfSalida({
                 pw.Text('Junta: $junta'),
                 pw.Text('Asignado a: $userAsignado'),
                 pw.Text('ID padron: $padron'),
+                pw.Text('Tipo de trabajo: $tipoTabajo'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(headers: [
                   'Clave',
