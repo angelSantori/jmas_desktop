@@ -34,6 +34,29 @@ class PadronController {
       return [];
     }
   }
+
+  //Edit padron
+  Future<bool> editPadron(Padron padron) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${_authService.apiURL}/Padrons/${padron.idPadron}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: padron.toJson(),
+      );
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print(
+            'Error al editar padron ife | editPadron | Controller: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar padron tryCatch | editPadron | Controller : $e');
+      return false;
+    }
+  }
 }
 
 class Padron {

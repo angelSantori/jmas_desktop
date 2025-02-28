@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
+import 'package:jmas_desktop/padron/edit_padron_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListPadronPage extends StatefulWidget {
@@ -126,7 +127,7 @@ class _ListPadronPageState extends State<ListPadronPage> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                               child: Padding(
-                                padding: EdgeInsets.all(12.0),
+                                padding: const EdgeInsets.all(12.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -167,7 +168,19 @@ class _ListPadronPageState extends State<ListPadronPage> {
                                             color: Colors.black,
                                             size: 20,
                                           ),
-                                          onPressed: () {},
+                                          onPressed: () async {
+                                            final result = await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    EditPadronPage(
+                                                        padron: padron),
+                                              ),
+                                            );
+                                            if (result == true) {
+                                              _loadData();
+                                            }
+                                          },
                                         ),
                                       )
                                   ],
