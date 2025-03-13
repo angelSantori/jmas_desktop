@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
-import 'package:jmas_desktop/padron/edit_padron_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListPadronPage extends StatefulWidget {
@@ -68,7 +67,6 @@ class _ListPadronPageState extends State<ListPadronPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -158,31 +156,6 @@ class _ListPadronPageState extends State<ListPadronPage> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const Spacer(),
-                                    if (isAdmin)
-                                      Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.edit,
-                                            color: Colors.black,
-                                            size: 20,
-                                          ),
-                                          onPressed: () async {
-                                            final result = await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditPadronPage(
-                                                        padron: padron),
-                                              ),
-                                            );
-                                            if (result == true) {
-                                              _loadData();
-                                            }
-                                          },
-                                        ),
-                                      )
                                   ],
                                 ),
                               ),
