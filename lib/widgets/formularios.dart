@@ -248,7 +248,7 @@ class CustomTextFielFecha extends StatefulWidget {
   final String? Function(String?)? validator;
   final IconData prefixIcon;
   final List<TextInputFormatter>? inputFormatters;
-  final VoidCallback onTap; // Callback para abrir el selector de fecha
+  final VoidCallback onTap;
 
   const CustomTextFielFecha({
     Key? key,
