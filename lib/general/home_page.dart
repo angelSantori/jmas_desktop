@@ -5,6 +5,7 @@ import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
 import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
+import 'package:jmas_desktop/ccontables/list_ccontables_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
@@ -18,6 +19,7 @@ import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
 import 'package:jmas_desktop/salidas/add_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
+import 'package:jmas_desktop/universal/consulta_universal_page.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
@@ -99,6 +101,10 @@ class _HomePageState extends State<HomePage>
       'addJunta': () => const AddJuntaPage(),
       'listCancelados': () => const ListCanceladosPage(),
       'listPadron': () => ListPadronPage(userRole: userRole),
+      'listCC': () => const ListCcontablesPage(),
+
+      //Consulta universal
+      'ConsultaU': () => const ConsultaUniversalPage(),
     };
   }
 
@@ -491,16 +497,33 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
+                              CustomListTile(
+                                title: 'Consulta Universal',
+                                icon: const Icon(
+                                  Icons.webhook_rounded,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('ConsultaU'),
+                              ),
                             ],
                           ),
 
                           //REportes
-                          const CustomExpansionTile(
+                          CustomExpansionTile(
                             title: 'Reportes',
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.paste_rounded,
                             ),
-                            children: [],
+                            children: [
+                              CustomListTile(
+                                title: 'CContable',
+                                icon: const Icon(
+                                  Icons.list,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listCC'),
+                              ),
+                            ],
                           ),
                         ],
                       ),
