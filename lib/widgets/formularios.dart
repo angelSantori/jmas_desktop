@@ -137,6 +137,7 @@ class CustomTextFielTexto extends StatefulWidget {
   final String? Function(String?)? validator;
   final IconData prefixIcon;
   final List<TextInputFormatter>? inputFormatters;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextFielTexto({
     Key? key,
@@ -145,6 +146,7 @@ class CustomTextFielTexto extends StatefulWidget {
     this.validator,
     this.prefixIcon = Icons.text_fields,
     this.inputFormatters,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -205,6 +207,7 @@ class _CustomTextFielTextoState extends State<CustomTextFielTexto>
           child: TextFormField(
             controller: widget.controller,
             inputFormatters: widget.inputFormatters,
+            onChanged: widget.onChanged,
             decoration: InputDecoration(
               labelText: widget.labelText,
               labelStyle: TextStyle(
