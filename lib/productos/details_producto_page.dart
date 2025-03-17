@@ -1,11 +1,24 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/widgets/generales.dart';
 
-void showProductDetailsDialog(BuildContext context, Productos producto,
-    Map<int, Proveedores> proveedoresCache) {
+void showProductDetailsDialog(
+  BuildContext context,
+  Productos producto,
+  Map<int, Proveedores> proveedoresCache,
+  List<Capturainvini> capturaList,
+) {
+  //Buscar el invIniconteo del producto
+  double? esInvIniConteo = capturaList
+      .firstWhere(
+        (captura) => captura.id_Producto == producto.id_Producto,
+        orElse: () => Capturainvini(invIniConteo: null),
+      )
+      .invIniConteo;
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -26,7 +39,8 @@ void showProductDetailsDialog(BuildContext context, Productos producto,
             mainAxisSize: MainAxisSize.min,
             children: [
               buildInfoItem('Clave', producto.id_Producto.toString()),
-              buildInfoItem('Existencias', producto.prodExistencia.toString()),
+              buildInfoItem(
+                  'Existencias', esInvIniConteo?.toString() ?? 'No disponible'),
               buildInfoItem('Existencias máximas', producto.prodMax.toString()),
               buildInfoItem('Existencias mínimas', producto.prodMin.toString()),
               buildInfoItem('Costo', '\$${producto.prodCosto}'),

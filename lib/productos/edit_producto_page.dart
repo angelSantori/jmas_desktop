@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -16,11 +17,13 @@ class EditProductoPage extends StatefulWidget {
 
 class _EditProductoPageState extends State<EditProductoPage> {
   final ProductosController _productosController = ProductosController();
+  final CapturainviniController _capturainviniController =
+      CapturainviniController();
 
   late TextEditingController _descripcionController;
   late TextEditingController _costoController;
   late TextEditingController _precioController;
-  late TextEditingController _existenciaController;
+  TextEditingController? _existenciaController;
   late TextEditingController _maxController = TextEditingController();
   late TextEditingController _minController = TextEditingController();
 
@@ -77,8 +80,6 @@ class _EditProductoPageState extends State<EditProductoPage> {
 
     _descripcionController =
         TextEditingController(text: widget.producto.prodDescripcion);
-    _existenciaController = TextEditingController(
-        text: (widget.producto.prodExistencia ?? 0.0).toString());
     _maxController = TextEditingController(
         text: (widget.producto.prodMax ?? 0.0).toString());
     _minController = TextEditingController(
@@ -91,6 +92,8 @@ class _EditProductoPageState extends State<EditProductoPage> {
         widget.producto.prodUMedEntrada ?? _unMedSalida.first;
     _precioController = TextEditingController(
         text: (widget.producto.prodPrecio ?? 0.0).toString());
+
+    _existenciaController = TextEditingController(text: '0.0');
 
     if (widget.producto.prodUbFisica != null &&
         widget.producto.prodUbFisica!.isNotEmpty) {
@@ -106,6 +109,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
     }
 
     _loadProveedores();
+    _loadInvIniConteo();
 
     if (widget.producto.prodImgB64 != null &&
         widget.producto.prodImgB64!.isNotEmpty) {
@@ -113,6 +117,26 @@ class _EditProductoPageState extends State<EditProductoPage> {
       _selectedImage = XFile.fromData(
         base64Decode(widget.producto.prodImgB64!),
       );
+    }
+  }
+
+  Future<void> _loadInvIniConteo() async {
+    try {
+      final capturaList = await _capturainviniController.listCapturaI();
+      final captura = capturaList.firstWhere(
+        (captura) => captura.id_Producto == widget.producto.id_Producto,
+        orElse: () => Capturainvini(invIniConteo: 0.0),
+      );
+      setState(() {
+        _existenciaController = TextEditingController(
+          text: (captura.invIniConteo ?? '0.0').toString(),
+        );
+      });
+    } catch (e) {
+      print('Error al cargar invIniConteo: $e');
+      setState(() {
+        _existenciaController = TextEditingController(text: '0.0');
+      });
     }
   }
 
@@ -143,7 +167,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
   @override
   void dispose() {
     _descripcionController.dispose();
-    _existenciaController.dispose();
+    _existenciaController!.dispose();
     _maxController.dispose();
     _minController.dispose();
     _costoController.dispose();
@@ -158,7 +182,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
     if (_formkey.currentState!.validate()) {
       final updateProducto = widget.producto.copyWith(
         prodDescripcion: _descripcionController.text,
-        prodExistencia: double.parse(_existenciaController.text),
+        prodExistencia: double.parse(_existenciaController!.text),
         prodMax: double.parse(_maxController.text),
         prodMin: double.parse(_minController.text),
         prodCosto: double.parse(_costoController.text),
@@ -176,6 +200,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
       });
 
       if (result) {
+        await _updateCapturaIni();
         await showOk(context, 'Producto editado correctamente.');
         Navigator.pop(context, true);
       } else {
@@ -188,21 +213,45 @@ class _EditProductoPageState extends State<EditProductoPage> {
     }
   }
 
+  Future<void> _updateCapturaIni() async {
+    try {
+      double newInvIniConteo = double.parse(_existenciaController!.text);
+
+      final capturaList = await _capturainviniController.listCapturaI();
+      final captura = capturaList.firstWhere(
+        (captura) => captura.id_Producto == widget.producto.id_Producto,
+        orElse: () => Capturainvini(
+          id_Producto: widget.producto.id_Producto,
+          invIniConteo: 0.0,
+        ),
+      );
+      final updateCaptura = captura.copyWith(invIniConteo: newInvIniConteo);
+
+      final result = await _capturainviniController.editCapturaI(updateCaptura);
+      if (!result) {
+        print('Errir al actualizar Capturainini | If');
+      }
+    } catch (e) {
+      print('Error en _updateCapturaIni | TryCatch: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Producto'),
+        title: Text('Editar Producto: ${widget.producto.prodDescripcion}'),
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 100),
+          padding: const EdgeInsets.symmetric(horizontal: 50),
           child: Form(
             key: _formkey,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 30),
                   Row(
                     children: [
                       Expanded(
@@ -240,7 +289,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
                       //Existencia
                       Expanded(
                         child: CustomTextFieldNumero(
-                          controller: _existenciaController,
+                          controller: _existenciaController!,
                           labelText: 'Existencias',
                           prefixIcon: Icons.numbers_rounded,
                           validator: (value) {

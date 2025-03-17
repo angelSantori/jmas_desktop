@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/productos/details_producto_page.dart';
@@ -18,11 +19,14 @@ class ListProductoPage extends StatefulWidget {
 class _ListProductoPageState extends State<ListProductoPage> {
   final ProductosController _productosController = ProductosController();
   final ProveedoresController _proveedoresController = ProveedoresController();
+  final CapturainviniController _capturainviniController =
+      CapturainviniController();
   final TextEditingController _searchController = TextEditingController();
   Map<int, Proveedores> proveedoresCache = {};
 
   List<Productos> _allProductos = [];
   List<Productos> _filteredProductos = [];
+  List<Capturainvini> capturaList = [];
 
   bool _isLoading = true;
   bool _showExcess = false;
@@ -34,6 +38,16 @@ class _ListProductoPageState extends State<ListProductoPage> {
     _loadProductos();
     _searchController.addListener(_filterProductos);
     _loadProveedores();
+    _loadCaoturaList();
+  }
+
+  Future<void> _loadCaoturaList() async {
+    try {
+      capturaList = await _capturainviniController.listCapturaI();
+      setState(() {});
+    } catch (e) {
+      print('Error al cargar capturaList: $e');
+    }
   }
 
   Future<void> _loadProveedores() async {
@@ -73,14 +87,22 @@ class _ListProductoPageState extends State<ListProductoPage> {
         final descripcion = producto.prodDescripcion?.toLowerCase() ?? '';
         final clave = producto.id_Producto.toString();
 
+        // Buscar el invIniConteo del producto en capturaList
+        double? invIniConteo = capturaList
+            .firstWhere(
+              (captura) => captura.id_Producto == producto.id_Producto,
+              orElse: () => Capturainvini(invIniConteo: null),
+            )
+            .invIniConteo;
+
         bool matchesSearch =
             descripcion.contains(query) || clave.contains(query);
 
-        bool matchesExcess =
-            _showExcess && (producto.prodExistencia! > producto.prodMax!);
+        bool matchesExcess = _showExcess &&
+            (invIniConteo != null && invIniConteo > producto.prodMax!);
 
-        bool matchesDeficit =
-            _showDeficit && (producto.prodExistencia! < producto.prodMin!);
+        bool matchesDeficit = _showDeficit &&
+            (invIniConteo != null && invIniConteo < producto.prodMin!);
 
         return matchesSearch &&
             (matchesExcess ||
@@ -170,16 +192,18 @@ class _ListProductoPageState extends State<ListProductoPage> {
                           itemBuilder: (context, index) {
                             final producto = _filteredProductos[index];
 
-                            Color cardColor;
-                            if (producto.prodExistencia! > producto.prodMax!) {
-                              cardColor = Colors.yellow.withOpacity(0.3);
-                            } else if (producto.prodExistencia! <
-                                producto.prodMin!) {
-                              cardColor = Colors.red.withOpacity(0.3);
-                            } else {
-                              cardColor =
-                                  const Color.fromARGB(255, 201, 230, 242);
-                            }
+                            double? invIniConteo = capturaList
+                                .firstWhere(
+                                  (captura) =>
+                                      captura.id_Producto ==
+                                      producto.id_Producto,
+                                  orElse: () =>
+                                      Capturainvini(invIniConteo: null),
+                                )
+                                .invIniConteo;
+
+                            Color cardColor =
+                                const Color.fromARGB(255, 201, 230, 242);
 
                             return Card(
                               color: cardColor,
@@ -195,6 +219,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                     context,
                                     producto,
                                     proveedoresCache,
+                                    capturaList,
                                   );
                                 },
                                 child: Padding(
@@ -255,7 +280,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                             ),
                                             const SizedBox(height: 10),
                                             Text(
-                                              'Existencias: ${producto.prodExistencia} ${producto.prodUMedSalida}',
+                                              'Cantidad: ${invIniConteo ?? 'N/A'}',
                                               style: const TextStyle(
                                                 color: Colors.black,
                                                 fontSize: 15,
