@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -29,6 +30,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final ProductosController _productosController = ProductosController();
   final UsersController _usersController = UsersController();
   final PadronController _padronController = PadronController();
+  final CapturainviniController _capturainviniController =
+      CapturainviniController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -214,6 +217,34 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           // ignore: use_build_context_synchronously
           showAdvertence(context,
               'Error al actualizar las existencias del producto con ID ${producto['id_Producto']}');
+          success = false;
+          break;
+        }
+
+        // Actualizar las existencias en la tabla Capturainvini
+        final capturaList = await _capturainviniController.listCapturaI();
+        final captura = capturaList.firstWhere(
+          (captura) => captura.id_Producto == producto['id'],
+          orElse: () => Capturainvini(
+            id_Producto: producto['id'],
+            invIniConteo: 0.0,
+          ),
+        );
+
+        final nuevaCantidadCaptura =
+            (captura.invIniConteo ?? 0.0) - producto['cantidad'];
+
+        final updatedCaptura = captura.copyWith(
+          invIniConteo: nuevaCantidadCaptura,
+        );
+
+        bool capturaResult =
+            await _capturainviniController.editCapturaI(updatedCaptura);
+
+        if (!capturaResult) {
+          // ignore: use_build_context_synchronously
+          showAdvertence(context,
+              'Error al actualizar las existencias en Capturainvini para el producto con ID ${producto['id']}');
           success = false;
           break;
         }
@@ -478,6 +509,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
                     productosController: _productosController,
+                    capturainviniController: _capturainviniController,
                     selectedProducto: _selectedProducto,
                     onProductoSeleccionado: (p0) {
                       setState(() {
