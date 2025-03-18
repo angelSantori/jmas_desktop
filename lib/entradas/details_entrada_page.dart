@@ -123,6 +123,7 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                               DataColumn(label: Text('ID Producto')),
                               DataColumn(label: Text('Nombre')),
                               DataColumn(label: Text('Cantidad')),
+                              DataColumn(label: Text('Precio unitario')),
                               DataColumn(label: Text('Total (\$)')),
                             ],
                             rows: groupedProducts.entries.map((entry) {
@@ -137,6 +138,8 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                                 DataCell(Text(idProducto.toString())),
                                 DataCell(Text(nombreProducto)),
                                 DataCell(Text(cantidad.toString())),
+                                DataCell(Text(
+                                    '\$${(total / cantidad).toStringAsFixed(2)}')),
                                 DataCell(Text('\$${total.toStringAsFixed(2)}')),
                               ]);
                             }).toList(),
