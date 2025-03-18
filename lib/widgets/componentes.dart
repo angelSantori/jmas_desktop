@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -693,6 +694,7 @@ class BuscarProductoWidget extends StatefulWidget {
   final Productos? selectedProducto;
   final Function(Productos?) onProductoSeleccionado;
   final Function(String) onAdvertencia;
+  final CapturainviniController capturainviniController;
 
   const BuscarProductoWidget({
     Key? key,
@@ -702,6 +704,7 @@ class BuscarProductoWidget extends StatefulWidget {
     required this.selectedProducto,
     required this.onProductoSeleccionado,
     required this.onAdvertencia,
+    required this.capturainviniController,
   }) : super(key: key);
 
   @override
@@ -710,6 +713,7 @@ class BuscarProductoWidget extends StatefulWidget {
 
 class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
+  double? _invIniConteo;
 
   Uint8List? _decodeImage(String? base64Image) {
     if (base64Image == null || base64Image.isEmpty) {
@@ -734,6 +738,17 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
         final producto =
             await widget.productosController.getProductoById(int.parse(id));
         if (producto != null) {
+          // Buscar el valor de invIniConteo para el producto
+          final capturaList = await widget.capturainviniController.listCapturaI();
+          final captura = capturaList.firstWhere(
+            (captura) => captura.id_Producto == producto.id_Producto,
+            orElse: () => Capturainvini(invIniConteo: null),
+          );
+
+          setState(() {
+            _invIniConteo = captura.invIniConteo; // Almacenar el valor
+          });
+
           widget.onProductoSeleccionado(producto);
         } else {
           widget.onAdvertencia('Producto con ID: $id, no encontrado');
@@ -774,7 +789,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: isLoading
                     ? Colors.grey
-                    : Colors.blue.shade900, // Cambiar color si está cargando
+                    : Colors.blue.shade900,
               ),
               child: isLoading
                   ? const SizedBox(
@@ -823,7 +838,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'Existencia: ${widget.selectedProducto!.prodExistencia ?? 'No disponible'}',
+                        'Existencia: ${_invIniConteo ?? 'No disponible'}',
                         style: const TextStyle(fontSize: 14),
                         overflow: TextOverflow.ellipsis,
                       ),

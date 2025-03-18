@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/ajuste_menos_controller.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
@@ -18,6 +19,8 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
   final AuthService _authService = AuthService();
   final AjusteMenosController _ajusteMenosController = AjusteMenosController();
   final ProductosController _productosController = ProductosController();
+  final CapturainviniController _capturainviniController =
+      CapturainviniController();
 
   final TextEditingController _cantidadController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -227,6 +230,7 @@ class _AddAjusteMenosPageState extends State<AddAjusteMenosPage> {
                     cantidadController: _cantidadController,
                     productosController: _productosController,
                     selectedProducto: _selectedProducto,
+                    capturainviniController: _capturainviniController,
                     onProductoSeleccionado: (producto) {
                       setState(() {
                         _selectedProducto = producto;

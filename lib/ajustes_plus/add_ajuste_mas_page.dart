@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/ajuste_mas_controller.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
@@ -18,6 +19,8 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
   final AuthService _authService = AuthService();
   final AjusteMasController _ajusteMasController = AjusteMasController();
   final ProductosController _productosController = ProductosController();
+  final CapturainviniController _capturainviniController =
+      CapturainviniController();
 
   final TextEditingController _cantidadController = TextEditingController();
   final TextEditingController _descripctionController = TextEditingController();
@@ -230,6 +233,7 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
                     idProductoController: _idProductoController,
                     cantidadController: _cantidadController,
                     productosController: _productosController,
+                    capturainviniController: _capturainviniController,
                     selectedProducto: _selectedProducto,
                     onProductoSeleccionado: (producto) {
                       setState(() {
