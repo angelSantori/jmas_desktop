@@ -288,15 +288,45 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       );
     }
 
-    return ListView.builder(
-      itemCount: _filteredSalidas.length,
+    Map<String, List<Salidas>> gorupSalidas = {};
+    for (var salida in _filteredSalidas) {
+      gorupSalidas.putIfAbsent(
+        salida.salida_CodFolio!,
+        () => [],
+      );
+      gorupSalidas[salida.salida_CodFolio]!.add(salida);
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(10),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 450,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.6,
+      ),
+      itemCount: gorupSalidas.keys.length,
       itemBuilder: (context, index) {
-        final salida = _filteredSalidas[index];
+        if (index >= gorupSalidas.keys.length) {
+          return const SizedBox.shrink();
+        }
+        String codFolio = gorupSalidas.keys.elementAt(index);
+        List<Salidas> salidas = gorupSalidas[codFolio]!;
+
+        double totalUnidades =
+            salidas.fold(0, (sum, item) => sum + (item.salida_Unidades ?? 0));
+
+        double totalCosto =
+            salidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
+
+        final salidaPrincipal = salidas.first;
+        final salida = salidaPrincipal;
+
         final producto = _productosCache[salida.idProducto];
         final user = _usersCache[salida.id_User];
 
         return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           color: const Color.fromARGB(255, 201, 230, 242),
           elevation: 4,
           shape:
@@ -316,7 +346,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
             child: ListTile(
               title: producto != null
                   ? Text(
-                      '${producto.prodDescripcion}',
+                      'Folio $codFolio',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -334,42 +364,36 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                       : const Text('Usuario no encontrado'),
                   const SizedBox(height: 10),
                   Text(
+                    'Total unidades: $totalUnidades',
+                    style: const TextStyle(
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Costo: \$${totalCosto.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
                     'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Unidades: ${salida.salida_Unidades ?? 'No disponible'}',
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Costo: \$${salida.salida_Costo}',
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                  )
                 ],
               ),
               trailing: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    'Folio: ${salida.salida_CodFolio ?? "Sin Folio"}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
                   Text(
                     salida.salida_Fecha ?? 'Sin Fecha',
                     style: const TextStyle(
                       fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
