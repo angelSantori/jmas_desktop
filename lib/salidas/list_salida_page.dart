@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
+import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -22,6 +23,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   final JuntasController _juntasController = JuntasController();
   final AlmacenesController _almacenesController = AlmacenesController();
   final UsersController _usersController = UsersController();
+  final PadronController _padronController = PadronController();
 
   final TextEditingController _searchController = TextEditingController();
   List<Salidas> _allSalidas = [];
@@ -32,12 +34,17 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
   Map<int, Productos> _productosCache = {};
   Map<int, Users> _usersCache = {};
+  // ignore: unused_field
   Map<int, Juntas> _juntasCache = {};
+  // ignore: unused_field
   Map<int, Almacenes> _almacenCache = {};
+  // ignore: unused_field
   Map<int, Users> _userAsignadoCache = {};
 
   List<Juntas> _juntas = [];
   List<Almacenes> _almacenes = [];
+  List<Padron> _padrones = [];
+  List<Users> _userAsignado = [];
 
   String? _selectedJunta;
   String? _selectedAlmacen;
@@ -59,6 +66,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final users = await _usersController.listUsers();
       final juntas = await _juntasController.listJuntas();
       final almacen = await _almacenesController.listAlmacenes();
+      final padrones = await _padronController.listPadron();
+      final userAsignado = await _usersController.listUsers();
 
       setState(() {
         _allSalidas = salidas;
@@ -72,6 +81,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
         _juntas = juntas;
         _almacenes = almacen;
+        _padrones = padrones;
+        _userAsignado = userAsignado;
 
         _isLoading = false;
       });
@@ -333,14 +344,43 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
             onTap: () {
-              showSalidaDetailsDialog(
+              final almacen = _almacenes.firstWhere(
+                (alm) => alm.id_Almacen == salida.id_Almacen,
+                orElse: () =>
+                    Almacenes(id_Almacen: 0, almacen_Nombre: 'Desconocido'),
+              );
+
+              final junta = _juntas.firstWhere(
+                (jnt) => jnt.id_Junta == salida.id_Junta,
+                orElse: () => Juntas(id_Junta: 0, junta_Name: 'Deconocido'),
+              );
+
+              final padron = _padrones.firstWhere(
+                (pdr) => pdr.idPadron == salida.idPadron,
+                orElse: () => Padron(idPadron: 0, padronNombre: 'Desconocido'),
+              );
+
+              print('Padron: $padron');
+
+              final userAsig = _userAsignado.firstWhere(
+                (uas) => uas.id_User == salida.id_User_Asignado,
+                orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
+              );
+
+              print('Usseer asignado: $userAsig');
+
+              Navigator.push(
                 context,
-                salida,
-                _productosCache,
-                _usersCache,
-                _userAsignadoCache,
-                _juntasCache,
-                _almacenCache,
+                MaterialPageRoute(
+                  builder: (context) => DetailsSalidaPage(
+                    salidas: salidas,
+                    almacen: almacen,
+                    junta: junta,
+                    padron: padron,
+                    user: user!.user_Name!,
+                    userAsignado: userAsig,
+                  ),
+                ),
               );
             },
             child: ListTile(
