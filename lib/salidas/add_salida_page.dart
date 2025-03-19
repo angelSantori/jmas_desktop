@@ -113,7 +113,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     });
   }
 
-  void _agregarProducto() {
+  void _agregarProducto() async {
     if (_selectedProducto != null && _cantidadController.text.isNotEmpty) {
       final int cantidad = int.tryParse(_cantidadController.text) ?? 0;
 
@@ -122,20 +122,28 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         return;
       }
 
-      if (cantidad > (_selectedProducto!.prodExistencia ?? 0)) {
+      // Obtener el valor de invIniConteo desde Capturainvini
+      final capturaList = await _capturainviniController.listCapturaI();
+      final captura = capturaList.firstWhere(
+        (captura) => captura.id_Producto == _selectedProducto!.id_Producto,
+        orElse: () => Capturainvini(invIniConteo: 0.0),
+      );
+
+      final double invIniConteo = captura.invIniConteo ?? 0.0;
+
+      if (cantidad > (invIniConteo)) {
         showAdvertence(context,
             'La cantidad no puede ser mayor a la existencia del producto.');
         return;
       }
 
-      final double nuevaExistencia =
-          (_selectedProducto!.prodExistencia!) - cantidad;
+      final double nuevaExistencia = invIniConteo - cantidad;
       final double totalDeficit =
-          (_selectedProducto!.prodMin!) - nuevaExistencia;
+          nuevaExistencia - (_selectedProducto!.prodMin!);
 
       if (nuevaExistencia < (_selectedProducto!.prodMin!)) {
         showAdvertence(context,
-            'La cantidad está por debajo de las existencias mínimas del producto: ${_selectedProducto!.prodDescripcion}. \nPor: $totalDeficit unidades de menos.');
+            'La cantidad está por debajo de las existencias mínimas del producto: ${_selectedProducto!.prodDescripcion}. \nCantidad mínima: ${_selectedProducto!.prodMin} \nTotal unidades tras salida: $nuevaExistencia  \nDeficit: $totalDeficit unidades de menos.');
       }
 
       setState(() {

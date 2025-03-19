@@ -113,7 +113,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     });
   }
 
-  void _agregarProducto() {
+  void _agregarProducto() async {
     if (_selectedProducto != null && _cantidadController.text.isNotEmpty) {
       final int cantidad = int.tryParse(_cantidadController.text) ?? 0;
 
@@ -122,13 +122,23 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         return;
       }
 
-      final double nuevaExistencia =
-          (_selectedProducto!.prodExistencia!) + cantidad;
+      // Obtener el valor de invIniConteo desde Capturainvini
+      final capturaList = await _capturainviniController.listCapturaI();
+      final captura = capturaList.firstWhere(
+        (captura) => captura.id_Producto == _selectedProducto!.id_Producto,
+        orElse: () => Capturainvini(invIniConteo: 0.0),
+      );
+
+      final double invIniConteo = captura.invIniConteo ?? 0.0;
+
+      // Calcular la nueva existencia
+      final double nuevaExistencia = invIniConteo + cantidad;
       final double totalExceso =
           nuevaExistencia - (_selectedProducto!.prodMax!);
+
       if (nuevaExistencia > (_selectedProducto!.prodMax!)) {
         showAdvertence(context,
-            'La cantidad excede las existencias máximas del producto: ${_selectedProducto!.prodDescripcion}. \nPor: $totalExceso unidades de más.');
+            'La cantidad excede las existencias máximas del producto: ${_selectedProducto!.prodDescripcion}. \nCantidad máxima: ${_selectedProducto!.prodMax} \nTotal unidades tras entrada: $nuevaExistencia \nExceso: $totalExceso unidades de más.');
       }
 
       setState(() {
