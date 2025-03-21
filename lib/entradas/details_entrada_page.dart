@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/entidad_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
+import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 
@@ -8,6 +10,8 @@ class DetailsEntradaPage extends StatefulWidget {
   final List<Entradas> entradas;
   final Proveedores proveedor;
   final Almacenes almacen;
+  final Juntas junta;
+  final Entidad entidad;
   final String user;
 
   const DetailsEntradaPage({
@@ -16,6 +20,8 @@ class DetailsEntradaPage extends StatefulWidget {
     required this.proveedor,
     required this.almacen,
     required this.user,
+    required this.junta,
+    required this.entidad,
   });
 
   @override
@@ -93,6 +99,8 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                   const SizedBox(height: 10),
                   Text('Proveedor: ${widget.proveedor.proveedor_Name}'),
                   Text('Almacén: ${widget.almacen.almacen_Nombre}'),
+                  Text('Junta: ${widget.junta.junta_Name}'),
+                  Text('Entidad: ${widget.entidad.entidad_Nombre}'),
                   Text('Realizado por: ${widget.user}'),
                   Text('Fecha: ${widget.entradas.first.entrada_Fecha}'),
                   const SizedBox(height: 20),

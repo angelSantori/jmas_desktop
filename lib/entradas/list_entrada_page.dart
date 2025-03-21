@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/cancelado_controller.dart';
+import 'package:jmas_desktop/contollers/entidad_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
+import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -27,6 +29,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   final UsersController _usersController = UsersController();
   final AlmacenesController _almacenesController = AlmacenesController();
   final ProveedoresController _proveedoresController = ProveedoresController();
+  final JuntasController _juntasController = JuntasController();
+  final EntidadController _entidadController = EntidadController();
 
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _motivoController = TextEditingController();
@@ -45,6 +49,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
   List<Almacenes> _almacen = [];
   List<Proveedores> _proveedor = [];
+  List<Juntas> _junta = [];
+  List<Entidad> _entidad = [];
 
   String? _selectedAlmacen;
   String? _selectedProveedor;
@@ -68,6 +74,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
       final productos = await _productosController.listProductos();
       final almacenes = await _almacenesController.listAlmacenes();
       final proveedores = await _proveedoresController.listProveedores();
+      final juntas = await _juntasController.listJuntas();
+      final entidad = await _entidadController.listEntidad();
       final users = await _usersController.listUsers();
 
       setState(() {
@@ -80,6 +88,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
         _almacen = almacenes;
         _proveedor = proveedores;
+        _junta = juntas;
+        _entidad = entidad;
 
         _isLoading = false;
       });
@@ -389,6 +399,17 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                     Almacenes(id_Almacen: 0, almacen_Nombre: 'Desconocido'),
               );
 
+              final junta = _junta.firstWhere(
+                (jnt) => jnt.id_Junta == entrada.id_Junta,
+                orElse: () => Juntas(id_Junta: 0, junta_Name: 'Desconocido'),
+              );
+
+              final entidad = _entidad.firstWhere(
+                (ent) => ent.idEntidad == entrada.idEntidad,
+                orElse: () =>
+                    Entidad(idEntidad: 0, entidad_Nombre: 'Desconocido'),
+              );
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -396,6 +417,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                     entradas: entradas,
                     proveedor: proveedor,
                     almacen: almacen,
+                    junta: junta,
+                    entidad: entidad,
                     user: user!.user_Name!,
                   ),
                 ),
