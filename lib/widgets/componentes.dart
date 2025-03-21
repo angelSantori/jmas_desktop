@@ -385,6 +385,8 @@ Future<void> generateAndPrintPdfEntrada({
   required String referencia,
   required String almacen,
   required String proveedor,
+  required String entidad,
+  required String junta,
   required Uint8List factura,
   required List<Map<String, dynamic>> productos,
 }) async {
@@ -419,6 +421,8 @@ Future<void> generateAndPrintPdfEntrada({
                 pw.Text('Referencia: $referencia'),
                 pw.Text('Almacen: $almacen'),
                 pw.Text('Proveedor: $proveedor'),
+                pw.Text('Junta: $junta'),
+                pw.Text('Entidad: $entidad'),
                 pw.Text('Realizado por: $userName'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(
@@ -461,55 +465,33 @@ Future<void> generateAndPrintPdfEntrada({
                 child: pw.Image(qrImage),
               ),
             ),
+            // Sección de firma al pie de página
+            pw.Positioned(
+              bottom: 50, // Ajusta la posición vertical de la firma
+              left: 0,
+              right: 0,
+              child: pw.Center(
+                child: pw.Column(
+                  children: [
+                    pw.Container(
+                      width: 200,
+                      height: 1,
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColor(0, 0, 0),
+                      ),
+                    ),
+                    pw.SizedBox(height: 8),
+                    pw.Text('Autorizó',
+                        style: const pw.TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+            ),
           ],
         );
       },
     ),
   );
-
-  final image = pw.MemoryImage(factura);
-  final imageWidth = 600.0;
-  final imageHeight = 600.0;
-
-  // Verificar si la imagen cabe en la página
-  if (imageHeight > PdfPageFormat.a4.height - 100) {
-    // 100 es un margen
-    // Si la imagen es demasiado alta, dividirla en varias páginas
-    int pages = (imageHeight / (PdfPageFormat.a4.height - 100)).ceil();
-    for (int i = 0; i < pages; i++) {
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (pw.Context context) {
-            return pw.Center(
-              child: pw.Image(
-                image,
-                width: imageWidth,
-                height: PdfPageFormat.a4.height -
-                    100, // Ajustar a la altura de la página
-              ),
-            );
-          },
-        ),
-      );
-    }
-  } else {
-    // Si la imagen cabe en la página, agregarla normalmente
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Center(
-            child: pw.Image(
-              image,
-              width: imageWidth,
-              height: imageHeight,
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   try {
     // Generar nombre del archivo con la fecha actual
@@ -739,7 +721,8 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
             await widget.productosController.getProductoById(int.parse(id));
         if (producto != null) {
           // Buscar el valor de invIniConteo para el producto
-          final capturaList = await widget.capturainviniController.listCapturaI();
+          final capturaList =
+              await widget.capturainviniController.listCapturaI();
           final captura = capturaList.firstWhere(
             (captura) => captura.id_Producto == producto.id_Producto,
             orElse: () => Capturainvini(invIniConteo: null),
@@ -787,9 +770,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
             return ElevatedButton(
               onPressed: isLoading ? null : _buscarProducto,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isLoading
-                    ? Colors.grey
-                    : Colors.blue.shade900,
+                backgroundColor: isLoading ? Colors.grey : Colors.blue.shade900,
               ),
               child: isLoading
                   ? const SizedBox(
@@ -958,6 +939,8 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
   required String referencia,
   required var selectedAlmacen,
   required var proveedor,
+  required var junta,
+  required var entidad,
   required Uint8List? factura,
 }) async {
   if (referencia.isEmpty) {
@@ -972,6 +955,16 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
 
   if (proveedor == null) {
     showAdvertence(context, 'Debe seleccionar un proveedor.');
+    return false;
+  }
+
+  if (junta == null) {
+    showAdvertence(context, 'Debe seleccionar una junta.');
+    return false;
+  }
+
+  if (entidad == null) {
+    showAdvertence(context, 'Debe seleccionar una entidad.');
     return false;
   }
 
