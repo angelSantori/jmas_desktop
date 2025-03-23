@@ -385,7 +385,6 @@ Future<void> generateAndPrintPdfEntrada({
   required String referencia,
   required String almacen,
   required String proveedor,
-  required String entidad,
   required String junta,
   required Uint8List factura,
   required List<Map<String, dynamic>> productos,
@@ -422,7 +421,6 @@ Future<void> generateAndPrintPdfEntrada({
                 pw.Text('Almacen: $almacen'),
                 pw.Text('Proveedor: $proveedor'),
                 pw.Text('Junta: $junta'),
-                pw.Text('Entidad: $entidad'),
                 pw.Text('Realizado por: $userName'),
                 pw.SizedBox(height: 30),
                 pw.Table.fromTextArray(
@@ -940,7 +938,6 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
   required var selectedAlmacen,
   required var proveedor,
   required var junta,
-  required var entidad,
   required Uint8List? factura,
 }) async {
   if (referencia.isEmpty) {
@@ -960,11 +957,6 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
 
   if (junta == null) {
     showAdvertence(context, 'Debe seleccionar una junta.');
-    return false;
-  }
-
-  if (entidad == null) {
-    showAdvertence(context, 'Debe seleccionar una entidad.');
     return false;
   }
 

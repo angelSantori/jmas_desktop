@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
-import 'package:jmas_desktop/contollers/entidad_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -65,11 +64,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   List<Juntas> _juntas = [];
   Juntas? _selectedJunta;
 
-  //Entidades
-  final EntidadController _entidadController = EntidadController();
-  List<Entidad> _entidades = [];
-  Entidad? _selectedEntidad;
-
   //Factura / Imagen
   Uint8List? _imagenFactura;
 
@@ -121,13 +115,11 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         await _proveedoresController.listProveedores();
 
     List<Juntas> juntas = await _juntasController.listJuntas();
-    List<Entidad> entidades = await _entidadController.listEntidad();
 
     setState(() {
       _almacenes = almacenes;
       _proveedores = proveedores;
       _juntas = juntas;
-      _entidades = entidades;
     });
   }
 
@@ -327,7 +319,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       entrada_Estado: true,
       id_Proveedor: _selectedProveedor!.id_Proveedor,
       id_Junta: _selectedJunta!.id_Junta,
-      idEntidad: _selectedEntidad!.idEntidad,
       entrada_ImgB64Factura:
           _imagenFactura != null ? base64Encode(_imagenFactura!) : null,
     );
@@ -341,7 +332,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       _selectedProducto = null;
       _selectedAlmacen = null;
       _selectedProveedor = null;
-      _selectedEntidad = null;
       _selectedJunta = null;
       _imagenFactura = null;
       _idProductoController.clear();
@@ -506,27 +496,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                               jnt.junta_Name ?? 'Sin nombre',
                         ),
                       ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedEntidad,
-                          labelText: 'Entidad',
-                          items: _entidades,
-                          onChanged: (ent) {
-                            setState(() {
-                              _selectedEntidad = ent;
-                            });
-                          },
-                          validator: (ent) {
-                            if (ent == null) {
-                              return 'Debe seleccionar una entidad';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (ent) =>
-                              ent.entidad_Nombre ?? 'Sin nombre',
-                        ),
-                      ),
                     ],
                   ),
 
@@ -597,7 +566,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             productosAgregados: _productosAgregados,
                             selectedAlmacen: _selectedAlmacen,
                             proveedor: _selectedProveedor,
-                            entidad: _selectedEntidad,
                             junta: _selectedJunta,
                             factura: _imagenFactura,
                           );
@@ -615,7 +583,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             referencia: _referenciaController.text,
                             productos: _productosAgregados,
                             proveedor: _selectedProveedor!.proveedor_Name!,
-                            entidad: _selectedEntidad!.entidad_Nombre!,
                             junta: _selectedJunta!.junta_Name!,
                             factura: _imagenFactura!,
                           );

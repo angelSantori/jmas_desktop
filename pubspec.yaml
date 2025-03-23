@@ -38,6 +38,7 @@ flutter:
     - assets/images/sinFoto.jpg
     - assets/icons/
     - assets/images/logo_jmas_sf.png
+    - assets/images/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
