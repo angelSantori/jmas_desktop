@@ -104,6 +104,7 @@ class Salidas {
   int? id_Salida;
   String? salida_CodFolio;
   String? salida_Referencia;
+  bool? salida_Estado;
   double? salida_Unidades;
   double? salida_Costo;
   String? salida_Fecha;
@@ -118,6 +119,7 @@ class Salidas {
     this.id_Salida,
     this.salida_CodFolio,
     this.salida_Referencia,
+    this.salida_Estado,
     this.salida_Unidades,
     this.salida_Costo,
     this.salida_Fecha,
@@ -134,6 +136,7 @@ class Salidas {
     int? id_Salida,
     String? salida_CodFolio,
     String? salida_Referencia,
+    bool? salida_Estado,
     double? salida_Unidades,
     double? salida_Costo,
     String? salida_Fecha,
@@ -149,6 +152,7 @@ class Salidas {
       id_Salida: id_Salida ?? this.id_Salida,
       salida_CodFolio: salida_CodFolio ?? this.salida_CodFolio,
       salida_Referencia: salida_Referencia ?? this.salida_Referencia,
+      salida_Estado: salida_Estado ?? this.salida_Estado,
       salida_Unidades: salida_Unidades ?? this.salida_Unidades,
       salida_Costo: salida_Costo ?? this.salida_Costo,
       salida_Fecha: salida_Fecha ?? this.salida_Fecha,
@@ -167,6 +171,7 @@ class Salidas {
       'id_Salida': id_Salida,
       'salida_CodFolio': salida_CodFolio,
       'salida_Referencia': salida_Referencia,
+      'salida_Estado': salida_Estado,
       'salida_Unidades': salida_Unidades,
       'salida_Costo': salida_Costo,
       'salida_Fecha': salida_Fecha,
@@ -189,6 +194,8 @@ class Salidas {
       salida_Referencia: map['salida_Referencia'] != null
           ? map['salida_Referencia'] as String
           : null,
+      salida_Estado:
+          map['salida_Estado'] != null ? map['salida_Estado'] as bool : null,
       salida_Unidades: map['salida_Unidades'] != null
           ? (map['salida_Unidades'] is int
               ? (map['salida_Unidades'] as int).toDouble()
@@ -222,7 +229,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron)';
   }
 
   @override
@@ -232,6 +239,7 @@ class Salidas {
     return other.id_Salida == id_Salida &&
         other.salida_CodFolio == salida_CodFolio &&
         other.salida_Referencia == salida_Referencia &&
+        other.salida_Estado == salida_Estado &&
         other.salida_Unidades == salida_Unidades &&
         other.salida_Costo == salida_Costo &&
         other.salida_Fecha == salida_Fecha &&
@@ -249,6 +257,7 @@ class Salidas {
     return id_Salida.hashCode ^
         salida_CodFolio.hashCode ^
         salida_Referencia.hashCode ^
+        salida_Estado.hashCode ^
         salida_Unidades.hashCode ^
         salida_Costo.hashCode ^
         salida_Fecha.hashCode ^

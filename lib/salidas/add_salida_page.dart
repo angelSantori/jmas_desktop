@@ -49,11 +49,13 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final ValueNotifier<double> _selectedIncremento = ValueNotifier(10.0);
 
   List<Almacenes> _almacenes = [];
+  // ignore: unused_field
   List<Juntas> _juntas = [];
   List<Users> _users = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
   Almacenes? _selectedAlmacen;
+  // ignore: unused_field
   Juntas? _selectedJunta;
   Productos? _selectedProducto;
   Users? _selectedUser;
@@ -313,6 +315,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       id_Salida: 0,
       salida_CodFolio: codFolio,
       salida_Referencia: _referenciaController.text,
+      salida_Estado: true,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
       salida_Costo: double.tryParse(
           (producto['precioIncrementado'] * producto['cantidad']).toString()),
@@ -320,7 +323,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_TipoTrabajo: _selectedTipoTrabajo,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
-      id_Junta: _selectedJunta?.id_Junta ?? 0, // Junta
+      id_Junta: 1, // Junta
       id_Almacen: _selectedAlmacen?.id_Almacen ?? 0, // Almacen
       id_User_Asignado: _selectedUser?.id_User,
       idPadron: _selectedPadron?.idPadron,
@@ -367,6 +370,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       ),
                       Expanded(
                         child: buildCabeceraItem('Captura', widget.userName!),
+                      ),
+                      Expanded(
+                        child: buildCabeceraItem('Junta', 'Meoqui'),
                       ),
                     ],
                   ),
@@ -443,28 +449,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           },
                           itemLabelBuilder: (ent) =>
                               ent.almacen_Nombre ?? 'Sin nombre',
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        //Junta
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedJunta,
-                          labelText: 'Junta',
-                          items: _juntas,
-                          onChanged: (junt) {
-                            setState(() {
-                              _selectedJunta = junt;
-                            });
-                          },
-                          validator: (jun) {
-                            if (jun == null) {
-                              return 'Debe seleccionar una junta.';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (jun) =>
-                              jun.junta_Name ?? 'Sin nombre',
                         ),
                       ),
                       const SizedBox(width: 30),
@@ -578,7 +562,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             referenciaController: _referenciaController,
                             padron: _idPadronController,
                             selectedAlmacen: _selectedAlmacen,
-                            selectedJunta: _selectedJunta,
                             selectedUser: _selectedUser,
                             selectedTrabajo: _selectedTipoTrabajo,
                           );
@@ -594,7 +577,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             referencia: _referenciaController.text,
                             almacen: _selectedAlmacen?.almacen_Nombre ??
                                 'Sin Almacen',
-                            junta: _selectedJunta?.junta_Name ?? 'Sin Junta',
                             usuario: widget.userName!,
                             productos: _productosAgregados,
                             userAsignado: _selectedUser!.user_Name!,

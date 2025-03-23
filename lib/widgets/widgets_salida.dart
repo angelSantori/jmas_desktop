@@ -546,7 +546,6 @@ Future<void> generateAndPrintPdfSalida({
   required String salidaCodFolio,
   required String referencia,
   required String almacen,
-  required String junta,
   required String usuario,
   required String userAsignado,
   required String tipoTabajo,
@@ -585,7 +584,6 @@ Future<void> generateAndPrintPdfSalida({
                 pw.Text('Realizado por: $usuario'),
                 pw.Text('Referencia: $referencia'),
                 pw.Text('Almacen: $almacen'),
-                pw.Text('Junta: $junta'),
                 pw.Text('Asignado a: $userAsignado'),
                 pw.Text('ID padron: $padron'),
                 pw.Text('Tipo de trabajo: $tipoTabajo'),
@@ -624,13 +622,36 @@ Future<void> generateAndPrintPdfSalida({
             ),
             //QR
             pw.Positioned(
-                top: 0,
-                right: 0,
-                child: pw.Container(
-                  width: 100,
-                  height: 100,
-                  child: pw.Image(qrImage),
-                ))
+              top: 0,
+              right: 0,
+              child: pw.Container(
+                width: 100,
+                height: 100,
+                child: pw.Image(qrImage),
+              ),
+            ),
+            //Sección firma
+            pw.Positioned(
+              bottom: 50, // Ajusta la posición vertical de la firma
+              left: 0,
+              right: 0,
+              child: pw.Center(
+                child: pw.Column(
+                  children: [
+                    pw.Container(
+                      width: 200,
+                      height: 1,
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColor(0, 0, 0),
+                      ),
+                    ),
+                    pw.SizedBox(height: 8),
+                    pw.Text('Autorizó',
+                        style: const pw.TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+            ),
           ],
         );
       },
