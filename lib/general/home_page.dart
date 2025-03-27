@@ -17,6 +17,7 @@ import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
 import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
 import 'package:jmas_desktop/salidas/add_salida_page.dart';
+import 'package:jmas_desktop/salidas/list_cancelacioens_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/universal/consulta_universal_page.dart';
@@ -92,7 +93,7 @@ class _HomePageState extends State<HomePage>
       'home': () => const Center(child: Text('Welcome to home Page!')),
       'addEntrada': () => AddEntradaPage(userName: userName),
       'addSalida': () => AddSalidaPage(userName: userName),
-      'listSalidas': () => const ListSalidaPage(),
+      'listSalidas': () => ListSalidaPage(userRole: userRole),
       'addAjusteMas': () => const AddAjusteMasPage(),
       'addAjusteMenos': () => const AddAjusteMenosPage(),
       'listAlmacenes': () => ListAlmacenesPage(userRole: userRole),
@@ -100,6 +101,7 @@ class _HomePageState extends State<HomePage>
       'listJuntas': () => ListJuntasPage(userRole: userRole),
       'addJunta': () => const AddJuntaPage(),
       'listCancelados': () => const ListCanceladosPage(),
+      'listCanceladosSalida': () => const ListCancelacioensSalidaPage(),
       'listPadron': () => ListPadronPage(userRole: userRole),
       'listCC': () => const ListCcontablesPage(),
 
@@ -478,6 +480,15 @@ class _HomePageState extends State<HomePage>
                                       color: Colors.white,
                                     ),
                                     onTap: () => _navigateTo('listSalidas'),
+                                  ),
+                                  CustomListTile(
+                                    title: 'Cancelados',
+                                    icon: const Icon(
+                                      Icons.cancel_outlined,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () =>
+                                        _navigateTo('listCanceladosSalida'),
                                   ),
                                 ],
                               ),
