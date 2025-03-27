@@ -12,6 +12,7 @@ void showProductDetailsDialog(
   List<Capturainvini> capturaList,
 ) {
   //Buscar el invIniconteo del producto
+  // ignore: unused_local_variable
   double? esInvIniConteo = capturaList
       .firstWhere(
         (captura) => captura.id_Producto == producto.id_Producto,
@@ -39,8 +40,9 @@ void showProductDetailsDialog(
             mainAxisSize: MainAxisSize.min,
             children: [
               buildInfoItem('Clave', producto.id_Producto.toString()),
+              //buildInfoItem('Existencias', esInvIniConteo?.toString() ?? 'No disponible'),
               buildInfoItem(
-                  'Existencias', esInvIniConteo?.toString() ?? 'No disponible'),
+                  'Existencias actuales:', producto.prodExistencia.toString()),
               buildInfoItem('Existencias máximas', producto.prodMax.toString()),
               buildInfoItem('Existencias mínimas', producto.prodMin.toString()),
               buildInfoItem('Costo', '\$${producto.prodCosto}'),
