@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/cancelado_salida_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/salidas/details_salida_page.dart';
+import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListSalidaPage extends StatefulWidget {
-  const ListSalidaPage({super.key});
+  final String? userRole;
+  const ListSalidaPage({super.key, this.userRole});
 
   @override
   State<ListSalidaPage> createState() => _ListSalidaPageState();
 }
 
 class _ListSalidaPageState extends State<ListSalidaPage> {
+  final AuthService _authService = AuthService();
   final SalidasController _salidasController = SalidasController();
   final ProductosController _productosController = ProductosController();
   final JuntasController _juntasController = JuntasController();
@@ -278,7 +283,12 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                   ),
                 ),
                 Expanded(
-                  child: _buildListView(),
+                  child: _isLoadingCancel
+                      ? Center(
+                          child: CircularProgressIndicator(
+                              color: Colors.blue.shade900),
+                        )
+                      : _buildListView(),
                 ),
                 const SizedBox(height: 30),
               ],
@@ -333,6 +343,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final salidaPrincipal = salidas.first;
         final salida = salidaPrincipal;
 
+        // ignore: unused_local_variable
         final producto = _productosCache[salida.idProducto];
         final user = _usersCache[salida.id_User];
 
@@ -360,14 +371,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 orElse: () => Padron(idPadron: 0, padronNombre: 'Desconocido'),
               );
 
-              print('Padron: $padron');
-
               final userAsig = _userAsignado.firstWhere(
                 (uas) => uas.id_User == salida.id_User_Asignado,
                 orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
               );
-
-              print('Usseer asignado: $userAsig');
 
               Navigator.push(
                 context,
@@ -383,58 +390,81 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 ),
               );
             },
-            child: ListTile(
-              title: producto != null
-                  ? Text(
-                      'Folio $codFolio',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    )
-                  : const Text('Producto no encontrado'),
-              subtitle: Column(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 10),
-                  user != null
-                      ? Text('Realizado por: ${user.user_Name}',
-                          style: const TextStyle(fontSize: 15))
-                      : const Text('Usuario no encontrado'),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Total unidades: $totalUnidades',
-                    style: const TextStyle(
-                      fontSize: 15,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Folio $codFolio',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        user != null
+                            ? Text('Realizado por: ${user.user_Name}',
+                                style: const TextStyle(fontSize: 15))
+                            : const Text('Usuario no encontrado'),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Total unidades: $totalUnidades',
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Costo: \$${totalCosto.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Costo: \$${totalCosto.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-              trailing: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    salida.salida_Fecha ?? 'Sin Fecha',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        salida.salida_Fecha ?? 'Sin Fecha',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (widget.userRole == "Admin" &&
+                          salida.salida_Estado == true)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 30),
+                            IconButton(
+                              icon: Icon(
+                                size: 40,
+                                Icons.delete_forever,
+                                color: Colors.red.shade900,
+                              ),
+                              onPressed: () => _confirmarCancelacion(salida),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
                 ],
               ),
@@ -443,5 +473,174 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         );
       },
     );
+  }
+
+  String? idUserDelete;
+
+  Future<void> _getUserId() async {
+    final decodeToken = await _authService.decodeToken();
+    idUserDelete = decodeToken?['Id_User'] ?? '0';
+  }
+
+  void _confirmarCancelacion(Salidas salida) {
+    // Verificar primero si el ID es válido
+    if (salida.id_Salida == null || salida.id_Salida == 0) {
+      showError(
+          context, 'No se puede cancelar: La salida no tiene un ID válido');
+      return;
+    }
+
+    // Luego obtener el ID del usuario
+    _getUserId().then((_) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Cancelación'),
+          content: Text(
+              '¿Estás seguro de que deseas cancelar esta salida? \nFolio salida: ${salida.salida_CodFolio} \nIdSalida: ${salida.id_Salida}'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'No',
+                style: TextStyle(color: Colors.blue.shade900),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _mostrarMotivoDialog(salida);
+              },
+              child: Text(
+                'Sí, cancelar',
+                style: TextStyle(color: Colors.red.shade900),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  final TextEditingController _motivoController = TextEditingController();
+  void _mostrarMotivoDialog(Salidas salida) {
+    _motivoController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Motivo de Cancelación', textAlign: TextAlign.center),
+        content: CustomTextFielTexto(
+          labelText: 'Motivo',
+          controller: _motivoController,
+          validator: (motivo) {
+            if (motivo == null || motivo.isEmpty) {
+              return 'Motivo obligatorio.';
+            }
+            return null;
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.blue.shade900),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _cancelarSalida(salida);
+            },
+            child: Text(
+              'Registrar Cancelación',
+              style: TextStyle(color: Colors.red.shade900),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  bool _isLoadingCancel = false;
+  final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
+  Future<void> _cancelarSalida(Salidas salida) async {
+    // Verificación adicional
+    if (salida.id_Salida == null || salida.id_Salida == 0) {
+      showError(context, 'Error: La salida no tiene un ID válido');
+      return;
+    }
+
+    if (idUserDelete == null) {
+      await _getUserId();
+    }
+
+    final CanceladoSalidaController canceladoSalidaController =
+        CanceladoSalidaController();
+
+    if (_motivoController.text.isEmpty) {
+      showAdvertence(context, 'Motivo obligatorio');
+      return;
+    }
+
+    setState(() => _isLoadingCancel = true);
+
+    try {
+      // Buscar salidas válidas (con ID != 0)
+      final List<Salidas> salidasACancelar = _allSalidas
+          .where((element) =>
+              element.salida_CodFolio == salida.salida_CodFolio &&
+              (element.id_Salida ?? 0) != 0)
+          .toList();
+
+      if (salidasACancelar.isEmpty) {
+        throw Exception('No se encontraron salidas válidas para cancelar');
+      }
+
+      final Map<int, double> productosASumar = {};
+
+      for (var salidaItem in salidasACancelar) {
+        final CanceladoSalidas cancelacionSalida = CanceladoSalidas(
+          idCanceladoSalida: 0,
+          cancelSalidaMotivo: _motivoController.text,
+          cancelSalidaFecha: _fecha,
+          id_Salida: salidaItem.id_Salida!,
+          id_User: int.tryParse(idUserDelete ?? '0'),
+        );
+
+        final bool success =
+            await canceladoSalidaController.addCancelSalida(cancelacionSalida);
+        if (!success) throw Exception('Error al registrar cancelación');
+
+        final Salidas salidaEdit = salidaItem.copyWith(salida_Estado: false);
+        final bool salidaUpdated =
+            await _salidasController.editSalida(salidaEdit);
+        if (!salidaUpdated) throw Exception('Error al actualizar salida');
+
+        if (salidaItem.idProducto != null) {
+          productosASumar.update(salidaItem.idProducto!,
+              (value) => value + (salidaItem.salida_Unidades ?? 0),
+              ifAbsent: () => salidaItem.salida_Unidades ?? 0);
+        }
+      }
+
+      // Actualizar productos
+      for (var entry in productosASumar.entries) {
+        final producto = _productosCache[entry.key];
+        if (producto != null) {
+          final nuevaExistencia = (producto.prodExistencia ?? 0) + entry.value;
+          await _productosController
+              .editProducto(producto.copyWith(prodExistencia: nuevaExistencia));
+        }
+      }
+
+      showOk(context, 'Salidas canceladas correctamente');
+      await _loadData();
+    } catch (e) {
+      showError(context, 'Error durante la cancelación: ${e.toString()}');
+    } finally {
+      setState(() => _isLoadingCancel = false);
+    }
   }
 }
