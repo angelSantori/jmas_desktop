@@ -472,7 +472,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (widget.userRole == "OTRO" &&
+                      if (widget.userRole == "Admin" &&
                           entrada.entrada_Estado == true)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -596,50 +596,67 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
       _isLoadingCancel = true;
     });
 
-    //Add registro a cancelado
-    final Cancelados cancelacion = Cancelados(
-      idCancelacion: 0,
-      cancelMotivo: _motivoController.text,
-      cancelFecha: _fecha,
-      id_Entrada: entrada.id_Entradas,
-      id_User: int.tryParse(idUserDelete!),
-    );
+    try {
+      // Obtener todas las entradas con el mismo CodFolio
+      final List<Entradas> entradasACancelar = _allEntradas
+          .where((e) => e.entrada_CodFolio == entrada.entrada_CodFolio)
+          .toList();
 
-    final bool success = await canceladoController.addCancelacion(cancelacion);
+      // Mapa para agrupar productos y sus cantidades a restar
+      final Map<int, double> productosARestar = {};
 
-    if (success) {
-      //Estado entrada
-      final Entradas entradaEdit = entrada.copyWith(
-        entrada_Estado: false,
-      );
-
-      //Retar unidades
-      final Productos? producto = _productosCache[entrada.idProducto];
-      if (producto != null) {
-        final double nuevaExistencia =
-            (producto.prodExistencia ?? 0) - (entrada.entrada_Unidades ?? 0);
-        final Productos productoEdit = producto.copyWith(
-          prodExistencia: nuevaExistencia,
+      // Primero registrar todas las cancelaciones y preparar productos
+      for (var entradaItem in entradasACancelar) {
+        // Registrar cancelación
+        final Cancelados cancelacion = Cancelados(
+          idCancelacion: 0,
+          cancelMotivo: _motivoController.text,
+          cancelFecha: _fecha,
+          id_Entrada: entradaItem.id_Entradas,
+          id_User: int.tryParse(idUserDelete!),
         );
 
-        //Actualizar entrada y producto
+        final bool success =
+            await canceladoController.addCancelacion(cancelacion);
+        if (!success) throw Exception('Error al registrar cancelación');
+
+        // Actualizar estado de la entrada
+        final Entradas entradaEdit =
+            entradaItem.copyWith(entrada_Estado: false);
         final bool entradaUpdated =
             await _entradasController.editEntrada(entradaEdit);
-        final bool productoUpdated =
-            await _productosController.editProducto(productoEdit);
+        if (!entradaUpdated) throw Exception('Error al actualizar entrada');
 
-        if (entradaUpdated && productoUpdated) {
-          showOk(context, 'Entrada cancelada y existencia actualizada.');
-          await _loadData();
-        } else {
-          showError(context, 'Error al cancelar entrada o actualizar produco.');
+        // Acumular cantidades a restar por producto
+        final int? productoId = entradaItem.idProducto;
+        if (productoId != null) {
+          productosARestar.update(productoId,
+              (value) => value + (entradaItem.entrada_Unidades ?? 0),
+              ifAbsent: () => entradaItem.entrada_Unidades ?? 0);
         }
-      } else {
-        showError(context, 'Error al registrar la cancelación.');
       }
+
+      // Actualizar productos
+      for (var entry in productosARestar.entries) {
+        final Productos? producto = _productosCache[entry.key];
+        if (producto != null) {
+          final double nuevaExistencia =
+              (producto.prodExistencia ?? 0) - entry.value;
+          final Productos productoEdit =
+              producto.copyWith(prodExistencia: nuevaExistencia);
+          await _productosController.editProducto(productoEdit);
+        }
+      }
+
+      showOk(context,
+          'Todas las entradas del folio ${entrada.entrada_CodFolio} han sido canceladas.');
+      await _loadData();
+    } catch (e) {
+      showError(context, 'Error durante el proceso de cancelación: $e');
+    } finally {
+      setState(() {
+        _isLoadingCancel = false;
+      });
     }
-    setState(() {
-      _isLoadingCancel = false;
-    });
   }
 }
