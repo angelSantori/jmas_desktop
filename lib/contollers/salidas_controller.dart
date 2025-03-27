@@ -98,6 +98,29 @@ class SalidasController {
       );
     }
   }
+
+  Future<bool> editSalida(Salidas salida) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${_authService.apiURL}/Salidas/${salida.id_Salida}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: salida.toJson(),
+      );
+      if (response.statusCode == 204) {
+        cacheSalidas = null;
+        return true;
+      } else {
+        print(
+            'Error al editar salida | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al editar salida | TryCatch | Controller: $e');
+      return false;
+    }
+  }
 }
 
 class Salidas {
