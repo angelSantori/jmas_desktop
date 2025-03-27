@@ -584,7 +584,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             productos: _productosAgregados,
                             proveedor: _selectedProveedor!.proveedor_Name!,
                             junta: _selectedJunta!.junta_Name!,
-                            factura: _imagenFactura!,
+                            //factura: _imagenFactura!,
                           );
                         },
                         style: ElevatedButton.styleFrom(
