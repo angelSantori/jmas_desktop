@@ -376,7 +376,6 @@ Future<Uint8List> generateQrCode(String data) async {
   return byteData!.buffer.asUint8List();
 }
 
-// Función para generar el archivo PDF
 Future<void> generateAndPrintPdfEntrada({
   required String movimiento,
   required String fecha,
@@ -386,14 +385,20 @@ Future<void> generateAndPrintPdfEntrada({
   required String almacen,
   required String proveedor,
   required String junta,
-  required Uint8List factura,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
 
-  //Generar código QR
+  // Generar código QR
   final qrBytes = await generateQrCode(folio);
   final qrImage = pw.MemoryImage(qrBytes);
+
+  // Cargar imagen del logo desde assets
+  final logoImage = pw.MemoryImage(
+    (await rootBundle.load('assets/images/logo_jmas_sf.png'))
+        .buffer
+        .asUint8List(),
+  );
 
   // Cálculo del total
   final total = productos.fold<double>(
@@ -401,86 +406,322 @@ Future<void> generateAndPrintPdfEntrada({
     (sum, producto) => sum + (producto['precio'] ?? 0.0),
   );
 
+  // Convertir total a letra con centavos
+  final partes = total.toStringAsFixed(2).split('.');
+  final entero = int.parse(partes[0]);
+  final centavos = partes[1];
+  final totalEnLetras =
+      '${_convertirNumeroALetras(entero)} PESOS $centavos/100 M.N.';
+
   // Generar contenido del PDF
   pdf.addPage(
     pw.Page(
-      pageFormat: PdfPageFormat.a4,
+      // Márgenes estrechos (1.27 cm = 36 puntos)
+      pageFormat: PdfPageFormat.a4.copyWith(
+        marginLeft: 36,
+        marginRight: 36,
+        marginTop: 36,
+        marginBottom: 36,
+      ),
       build: (pw.Context context) {
         return pw.Stack(
           children: [
-            //Contenido principal
+            // Contenido principal
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('Reporte de $movimiento',
-                    style: const pw.TextStyle(fontSize: 24)),
-                pw.SizedBox(height: 16),
-                pw.Text('Fecha: $fecha'),
-                pw.Text('Folio: $folio'),
-                pw.Text('Referencia: $referencia'),
-                pw.Text('Almacen: $almacen'),
-                pw.Text('Proveedor: $proveedor'),
-                pw.Text('Junta: $junta'),
-                pw.Text('Realizado por: $userName'),
-                pw.SizedBox(height: 30),
-                pw.Table.fromTextArray(
-                  headers: [
-                    'Clave',
-                    'Descripción',
-                    'Costo',
-                    'Cantidad',
-                    'Total'
-                  ],
-                  data: [
-                    ...productos.map((producto) {
-                      return [
-                        producto['id'].toString(),
-                        producto['descripcion'] ?? '',
-                        '\$${producto['costo'].toString()}',
-                        producto['cantidad'].toString(),
-                        '\$${producto['precio'].toStringAsFixed(2)}',
-                      ];
-                    }).toList(),
-                    [
-                      '',
-                      '',
-                      '',
-                      'Total',
-                      '\$${total.toStringAsFixed(2)}',
-                    ]
+                // Encabezado con logo y datos de la organización
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Logo a la izquierda
+                    pw.Container(
+                      width: 80,
+                      height: 80,
+                      child: pw.Image(logoImage),
+                      margin: pw.EdgeInsets.only(right: 15),
+                    ),
+                    // Información de la organización centrada
+                    pw.Expanded(
+                      child: pw.Column(
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        children: [
+                          pw.Text(
+                            'JUNTA MUNICIPAL DE AGUA Y SANEAMIENTO DE MEOQUI',
+                            style: pw.TextStyle(
+                              fontSize: 14,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            'CALLE ZARAGOZA No. 117, Colonia. CENTRO',
+                            style: const pw.TextStyle(fontSize: 10),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            'MEOQUI, CHIHUAHUA, MEXICO.',
+                            style: const pw.TextStyle(fontSize: 10),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Espacio para el QR
+                    pw.SizedBox(width: 70),
                   ],
                 ),
+
+                // Título del movimiento
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.only(top: 15, bottom: 15),
+                  child: pw.Text(
+                    'MOVIMIENTO DE INVENTARIOS: $movimiento',
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                    textAlign: pw.TextAlign.center,
+                  ),
+                ),
+
+                // Información de variables en 3 columnas
+                pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 15),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Columna izquierda
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Mov: $folio',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('Ref: $referencia',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('Prov: $proveedor',
+                              style: const pw.TextStyle(fontSize: 9)),
+                        ],
+                      ),
+
+                      // Columna central
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        children: [
+                          pw.Text('Fec: $fecha',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('Capturó: $userName',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('Junta: $junta',
+                              style: const pw.TextStyle(fontSize: 9)),
+                        ],
+                      ),
+
+                      // Columna derecha
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Almacen: $almacen',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('Estatus: ACUM',
+                              style: const pw.TextStyle(fontSize: 9)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Tabla de productos con solución alternativa para celdas fusionadas
+                pw.Table(
+                  columnWidths: {
+                    0: pw.FixedColumnWidth(50), // Clave
+                    1: pw.FixedColumnWidth(50), // Cantidad
+                    2: pw.FlexColumnWidth(3), // Descripción
+                    3: pw.FixedColumnWidth(50), // Costo
+                    4: pw.FixedColumnWidth(60), // Total
+                  },
+                  border: pw.TableBorder.all(width: 0.5),
+                  children: [
+                    // Encabezados de tabla
+                    pw.TableRow(
+                      children: [
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Clave',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Cantidad',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Descripción',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Costo/Uni',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                            decoration:
+                                const pw.BoxDecoration(color: PdfColors.black),
+                            padding: const pw.EdgeInsets.all(3),
+                            child: pw.Text('Total',
+                                textAlign: pw.TextAlign.center,
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 9,
+                                    color: PdfColors.white))),
+                      ],
+                    ),
+                    // Filas de productos
+                    ...productos
+                        .map((producto) => pw.TableRow(
+                              children: [
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(producto['id'].toString(),
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(
+                                      producto['cantidad'].toString(),
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(producto['descripcion'] ?? '',
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(
+                                      '\$${(producto['costo'] ?? 0.0).toStringAsFixed(2)}',
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(
+                                      '\$${(producto['precio'] ?? 0.0).toStringAsFixed(2)}',
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                              ],
+                            ))
+                        .toList(),
+                    // Fila de total con solución alternativa para celdas fusionadas
+                    pw.TableRow(
+                      children: [
+                        // Celda de clave vacía
+                        pw.Container(),
+                        // Celda de cantidad vacía
+                        pw.Container(),
+                        // Celda de descripción expandida (simula fusión)
+                        pw.Expanded(
+                          flex: 3, // Ocupa el espacio de 3 columnas
+                          child: pw.Container(
+                            padding: const pw.EdgeInsets.all(3),
+                            child: pw.Text('SON: $totalEnLetras',
+                                style: const pw.TextStyle(fontSize: 8)),
+                          ),
+                        ),
+                        // Celda de "Total"
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Total',
+                              textAlign: pw.TextAlign.end,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 8,
+                                  color: PdfColors.white)),
+                        ),
+                        // Celda con valor total
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('\$${total.toStringAsFixed(2)}',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
                 pw.SizedBox(height: 30),
               ],
             ),
-            //QR
+
+            // QR en la esquina superior derecha
             pw.Positioned(
               top: 0,
               right: 0,
               child: pw.Container(
-                width: 100,
-                height: 100,
+                width: 70,
+                height: 70,
                 child: pw.Image(qrImage),
               ),
             ),
+
             // Sección de firma al pie de página
             pw.Positioned(
-              bottom: 50, // Ajusta la posición vertical de la firma
+              bottom: 30,
               left: 0,
               right: 0,
               child: pw.Center(
                 child: pw.Column(
                   children: [
                     pw.Container(
-                      width: 200,
+                      width: 180,
                       height: 1,
                       decoration: const pw.BoxDecoration(
-                        color: PdfColor(0, 0, 0),
+                        color: PdfColors.black,
                       ),
                     ),
-                    pw.SizedBox(height: 8),
+                    pw.SizedBox(height: 6),
                     pw.Text('Autorizó',
-                        style: const pw.TextStyle(fontSize: 12)),
+                        style: const pw.TextStyle(fontSize: 10)),
                   ],
                 ),
               ),
@@ -508,14 +749,107 @@ Future<void> generateAndPrintPdfEntrada({
       ..download = fileName
       ..click();
 
-    // Liberar el objeto URL después de descargar
     html.Url.revokeObjectUrl(url);
 
     print('PDF Reporte entrada descargado exitosamente.');
   } catch (e) {
-    // ignore: avoid_print
     print('Error al guardar el PDF: $e');
   }
+}
+
+// Función para convertir números a letras
+String _convertirNumeroALetras(int numero) {
+  if (numero == 0) return 'CERO';
+  if (numero == 1) return 'UN';
+
+  final unidades = [
+    '',
+    'UN',
+    'DOS',
+    'TRES',
+    'CUATRO',
+    'CINCO',
+    'SEIS',
+    'SIETE',
+    'OCHO',
+    'NUEVE'
+  ];
+  final decenas = [
+    '',
+    'DIEZ',
+    'VEINTE',
+    'TREINTA',
+    'CUARENTA',
+    'CINCUENTA',
+    'SESENTA',
+    'SETENTA',
+    'OCHENTA',
+    'NOVENTA'
+  ];
+  final especiales = [
+    'DIEZ',
+    'ONCE',
+    'DOCE',
+    'TRECE',
+    'CATORCE',
+    'QUINCE',
+    'DIECISEIS',
+    'DIECISIETE',
+    'DIECIOCHO',
+    'DIECINUEVE'
+  ];
+  final centenas = [
+    '',
+    'CIENTO',
+    'DOSCIENTOS',
+    'TRESCIENTOS',
+    'CUATROCIENTOS',
+    'QUINIENTOS',
+    'SEISCIENTOS',
+    'SETECIENTOS',
+    'OCHOCIENTOS',
+    'NOVECIENTOS'
+  ];
+
+  String resultado = '';
+  int resto = numero;
+
+  // Miles
+  if (resto >= 1000) {
+    final miles = resto ~/ 1000;
+    if (miles == 1) {
+      resultado += 'MIL ';
+    } else {
+      resultado += '${_convertirNumeroALetras(miles)} MIL ';
+    }
+    resto %= 1000;
+  }
+
+  // Centenas
+  if (resto >= 100) {
+    final centena = resto ~/ 100;
+    resultado += '${centenas[centena]} ';
+    resto %= 100;
+    if (resto == 0 && centena == 1) {
+      resultado = resultado.replaceAll('CIENTO', 'CIEN');
+    }
+  }
+
+  // Decenas y unidades
+  if (resto >= 10 && resto <= 19) {
+    resultado += especiales[resto - 10];
+  } else if (resto >= 20) {
+    final decena = resto ~/ 10;
+    resultado += decenas[decena];
+    final unidad = resto % 10;
+    if (unidad != 0) {
+      resultado += ' Y ${unidades[unidad]}';
+    }
+  } else if (resto > 0) {
+    resultado += unidades[resto];
+  }
+
+  return resultado.trim();
 }
 
 //Tabla de productos
@@ -887,7 +1221,7 @@ Future<bool> validarCamposAntesDeImprimir(
     {required BuildContext context,
     required List productosAgregados,
     required TextEditingController referenciaController,
-    required var selectedAlmacen,    
+    required var selectedAlmacen,
     required var padron,
     required var selectedTrabajo,
     required var selectedUser}) async {
@@ -904,7 +1238,7 @@ Future<bool> validarCamposAntesDeImprimir(
   if (selectedAlmacen == null) {
     showAdvertence(context, 'Debe seleccionar un almacen.');
     return false;
-  }  
+  }
 
   if (selectedUser == null) {
     showAdvertence(context, 'Debe asignar un empleado.');
