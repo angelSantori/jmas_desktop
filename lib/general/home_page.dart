@@ -37,6 +37,7 @@ class _HomePageState extends State<HomePage>
   final AuthService _authService = AuthService();
   String? userName;
   String? userRole;
+  String? idUser;
 
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -73,6 +74,7 @@ class _HomePageState extends State<HomePage>
       userName = decodeToken?['User_Name'];
       userRole = decodeToken?[
           'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+      idUser = decodeToken?['Id_User'];
     });
   }
 
@@ -83,30 +85,45 @@ class _HomePageState extends State<HomePage>
   // Método para obtener el Map de rutas
   Map<String, Widget Function()> _getRoutes() {
     return {
+      //Productos
       'addProducto': () => const AddProductoPage(),
-      'addUser': () => const AddUserPage(),
       'listProducto': () => ListProductoPage(userRole: userRole),
+
+      //Users
+      'addUser': () => const AddUserPage(),
       'listUser': () => const ListUserPage(),
+
+      //Entradas
+      'addEntrada': () => AddEntradaPage(userName: userName, idUser: idUser),
       'listEntradas': () => ListEntradaPage(userRole: userRole),
+      'listCancelados': () => const ListCanceladosPage(),
+
+      //Proveedores
       'listProveedores': () => ListProveedorPage(userRole: userRole),
       'addProveedores': () => const AddProveedorPage(),
-      'home': () => const Center(child: Text('Welcome to home Page!')),
-      'addEntrada': () => AddEntradaPage(userName: userName),
-      'addSalida': () => AddSalidaPage(userName: userName),
+
+      //Salidas
+      'addSalida': () => AddSalidaPage(userName: userName, idUser: idUser),
       'listSalidas': () => ListSalidaPage(userRole: userRole),
-      'addAjusteMas': () => const AddAjusteMasPage(),
-      'addAjusteMenos': () => const AddAjusteMenosPage(),
+      'listCanceladosSalida': () => const ListCancelacioensSalidaPage(),
+
+      //Alamcen
       'listAlmacenes': () => ListAlmacenesPage(userRole: userRole),
       'addAlmacenes': () => const AddAlmacenPage(),
+
+      //Juntas
       'listJuntas': () => ListJuntasPage(userRole: userRole),
       'addJunta': () => const AddJuntaPage(),
-      'listCancelados': () => const ListCanceladosPage(),
-      'listCanceladosSalida': () => const ListCancelacioensSalidaPage(),
-      'listPadron': () => ListPadronPage(userRole: userRole),
-      'listCC': () => const ListCcontablesPage(),
 
       //Consulta universal
       'ConsultaU': () => const ConsultaUniversalPage(),
+
+      //X
+      'home': () => const Center(child: Text('Welcome to home Page!')),
+      'addAjusteMas': () => const AddAjusteMasPage(),
+      'addAjusteMenos': () => const AddAjusteMenosPage(),
+      'listPadron': () => ListPadronPage(userRole: userRole),
+      'listCC': () => const ListCcontablesPage(),
     };
   }
 
