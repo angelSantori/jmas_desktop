@@ -16,7 +16,8 @@ import 'package:jmas_desktop/widgets/widgets_salida.dart';
 
 class AddSalidaPage extends StatefulWidget {
   final String? userName;
-  const AddSalidaPage({super.key, this.userName});
+  final String? idUser;
+  const AddSalidaPage({super.key, this.userName, this.idUser});
 
   @override
   State<AddSalidaPage> createState() => _AddSalidaPageState();
@@ -62,6 +63,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Padron? _selectedPadron;
 
   bool _isLoading = false;
+  bool _isGeneratingPDF = false;
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
@@ -351,300 +353,348 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: buildCabeceraItem(
-                            'Movimiento', codFolio ?? 'Cargando...'),
-                      ),
-                      Expanded(
-                        child: buildCabeceraItem('Captura', widget.userName!),
-                      ),
-                      Expanded(
-                        child: buildCabeceraItem('Junta', 'Meoqui'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextFielTexto(
-                          controller: _referenciaController,
-                          labelText: 'Referencia',
-                          validator: (p0) {
-                            if (p0 == null || p0.isEmpty) {
-                              return 'Referencia obligatoria.';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: CustomTextFielFecha(
-                          controller: _fechaController,
-                          labelText: 'Fecha',
-                          onTap: () => _seleccionarFecha(context),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Debe seleccionar una fecha';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedTipoTrabajo,
-                          labelText: 'Tipo de trabajo',
-                          items: _tipoTrabajos,
-                          onChanged: (trabajo) {
-                            setState(() {
-                              _selectedTipoTrabajo = trabajo;
-                            });
-                          },
-                          validator: (trabajo) {
-                            if (trabajo == null || trabajo.isEmpty) {
-                              return 'Seleccione un tipo de trabajo.';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedAlmacen,
-                          labelText: 'Almacen',
-                          items: _almacenes,
-                          onChanged: (ent) {
-                            setState(() {
-                              _selectedAlmacen = ent;
-                            });
-                          },
-                          validator: (ent) {
-                            if (ent == null) {
-                              return 'Debe seleccionar una almacen.';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (ent) =>
-                              ent.almacen_Nombre ?? 'Sin nombre',
-                        ),
-                      ),
-                      const SizedBox(width: 30),
-                      Expanded(
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedUser,
-                          labelText: 'Asignar empleado',
-                          items: _users,
-                          onChanged: (user) {
-                            setState(() {
-                              _selectedUser = user;
-                            });
-                          },
-                          validator: (user) {
-                            if (user == null) {
-                              return 'Debe asignar un empleado.';
-                            }
-                            return null;
-                          },
-                          itemLabelBuilder: (user) =>
-                              user.user_Name ?? 'Sin nombre',
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-                  const DividerWithText(text: 'Selección de Padrón'),
-                  const SizedBox(height: 30),
-
-                  BuscarPadronWidgetSalida(
-                    idPadronController: _idPadronController,
-                    padronController: _padronController,
-                    selectedPadron: _selectedPadron,
-                    onPadronSeleccionado: (padron) {
-                      setState(() {
-                        _selectedPadron = padron;
-                      });
-                    },
-                    onAdvertencia: (p0) {
-                      showAdvertence(context, p0);
-                    },
-                  ),
-
-                  const SizedBox(height: 30),
-                  const DividerWithText(text: 'Selección de Producto'),
-                  const SizedBox(height: 30),
-
-                  BuscarProductoWidgetSalida(
-                    idProductoController: _idProductoController,
-                    cantidadController: _cantidadController,
-                    productosController: _productosController,
-                    capturainviniController: _capturainviniController,
-                    selectedProducto: _selectedProducto,
-                    onProductoSeleccionado: (p0) {
-                      setState(() {
-                        _selectedProducto = p0;
-                      });
-                    },
-                    onAdvertencia: (p0) {
-                      showAdvertence(context, p0);
-                    },
-                    selectedIncremento: _selectedIncremento,
-                  ),
-                  const SizedBox(height: 10),
-
-                  //Botón para agregar producto a la tabla
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _agregarProducto,
-                        icon: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Agregar',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade900,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  //Tabla productos agregados
-                  buildProductosAgregadosSalida(
-                    _productosAgregados,
-                    eliminarProductoSalida,
-                    actualizarCostoSalida,
-                  ),
-                  const SizedBox(height: 30),
-
-                  //Botónes
-                  Row(
+      body: Stack(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25),
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      //Pdf e imprimir
-                      ElevatedButton(
-                        onPressed: () async {
-                          bool datosCompletos =
-                              await validarCamposAntesDeImprimir(
-                            context: context,
-                            productosAgregados: _productosAgregados,
-                            referenciaController: _referenciaController,
-                            padron: _idPadronController,
-                            selectedAlmacen: _selectedAlmacen,
-                            selectedUser: _selectedUser,
-                            selectedTrabajo: _selectedTipoTrabajo,
-                          );
-
-                          if (!datosCompletos) {
-                            return;
-                          }
-
-                          await generateAndPrintPdfSalida(
-                            movimiento: 'Salida',
-                            fecha: _fechaController.text,
-                            salidaCodFolio: codFolio!,
-                            referencia: _referenciaController.text,
-                            almacen: _selectedAlmacen?.almacen_Nombre ??
-                                'Sin Almacen',
-                            usuario: widget.userName!,
-                            productos: _productosAgregados,
-                            userAsignado: _selectedUser!.user_Name!,
-                            padron: _selectedPadron!.idPadron!,
-                            tipoTabajo: _selectedTipoTrabajo!,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade900,
-                          elevation: 8,
-                          shadowColor: Colors.blue.shade900,
-                        ),
-                        child: const Text(
-                          'PDF',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: buildCabeceraItem(
+                                'Movimiento', codFolio ?? 'Cargando...'),
                           ),
-                        ),
+                          Expanded(
+                            child:
+                                buildCabeceraItem('Captura', widget.userName!),
+                          ),
+                          Expanded(
+                            child: buildCabeceraItem('Junta', 'Meoqui'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 60),
+                      const SizedBox(height: 30),
 
-                      //Guardar
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _guardarSalida,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade900,
-                          elevation: 8,
-                          shadowColor: Colors.blue.shade900,
-                        ),
-                        child: _isLoading
-                            ? const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Guardando...',
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomTextFielTexto(
+                              controller: _referenciaController,
+                              labelText: 'Referencia',
+                              validator: (p0) {
+                                if (p0 == null || p0.isEmpty) {
+                                  return 'Referencia obligatoria.';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 30),
+                          Expanded(
+                            child: CustomTextFielFecha(
+                              controller: _fechaController,
+                              labelText: 'Fecha',
+                              onTap: () => _seleccionarFecha(context),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Debe seleccionar una fecha';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 30),
+                          Expanded(
+                            child: CustomListaDesplegable(
+                              value: _selectedTipoTrabajo,
+                              labelText: 'Tipo de trabajo',
+                              items: _tipoTrabajos,
+                              onChanged: (trabajo) {
+                                setState(() {
+                                  _selectedTipoTrabajo = trabajo;
+                                });
+                              },
+                              validator: (trabajo) {
+                                if (trabajo == null || trabajo.isEmpty) {
+                                  return 'Seleccione un tipo de trabajo.';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomListaDesplegableTipo(
+                              value: _selectedAlmacen,
+                              labelText: 'Almacen',
+                              items: _almacenes,
+                              onChanged: (ent) {
+                                setState(() {
+                                  _selectedAlmacen = ent;
+                                });
+                              },
+                              validator: (ent) {
+                                if (ent == null) {
+                                  return 'Debe seleccionar una almacen.';
+                                }
+                                return null;
+                              },
+                              itemLabelBuilder: (ent) =>
+                                  ent.almacen_Nombre ?? 'Sin nombre',
+                            ),
+                          ),
+                          const SizedBox(width: 30),
+                          Expanded(
+                            child: CustomListaDesplegableTipo(
+                              value: _selectedUser,
+                              labelText: 'Asignar empleado',
+                              items: _users,
+                              onChanged: (user) {
+                                setState(() {
+                                  _selectedUser = user;
+                                });
+                              },
+                              validator: (user) {
+                                if (user == null) {
+                                  return 'Debe asignar un empleado.';
+                                }
+                                return null;
+                              },
+                              itemLabelBuilder: (user) =>
+                                  user.user_Name ?? 'Sin nombre',
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 30),
+                      const DividerWithText(text: 'Selección de Padrón'),
+                      const SizedBox(height: 30),
+
+                      BuscarPadronWidgetSalida(
+                        idPadronController: _idPadronController,
+                        padronController: _padronController,
+                        selectedPadron: _selectedPadron,
+                        onPadronSeleccionado: (padron) {
+                          setState(() {
+                            _selectedPadron = padron;
+                          });
+                        },
+                        onAdvertencia: (p0) {
+                          showAdvertence(context, p0);
+                        },
+                      ),
+
+                      const SizedBox(height: 30),
+                      const DividerWithText(text: 'Selección de Producto'),
+                      const SizedBox(height: 30),
+
+                      BuscarProductoWidgetSalida(
+                        idProductoController: _idProductoController,
+                        cantidadController: _cantidadController,
+                        productosController: _productosController,
+                        capturainviniController: _capturainviniController,
+                        selectedProducto: _selectedProducto,
+                        onProductoSeleccionado: (p0) {
+                          setState(() {
+                            _selectedProducto = p0;
+                          });
+                        },
+                        onAdvertencia: (p0) {
+                          showAdvertence(context, p0);
+                        },
+                        selectedIncremento: _selectedIncremento,
+                      ),
+                      const SizedBox(height: 10),
+
+                      //Botón para agregar producto a la tabla
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _agregarProducto,
+                            icon: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'Agregar',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      //Tabla productos agregados
+                      buildProductosAgregadosSalida(
+                        _productosAgregados,
+                        eliminarProductoSalida,
+                        actualizarCostoSalida,
+                      ),
+                      const SizedBox(height: 30),
+
+                      //Botónes
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          //Pdf e imprimir
+                          ElevatedButton(
+                            onPressed: _isGeneratingPDF
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      _isGeneratingPDF = true;
+                                    });
+                                    try {
+                                      bool datosCompletos =
+                                          await validarCamposAntesDeImprimir(
+                                        context: context,
+                                        productosAgregados: _productosAgregados,
+                                        referenciaController:
+                                            _referenciaController,
+                                        padron: _idPadronController,
+                                        selectedAlmacen: _selectedAlmacen,
+                                        selectedUser: _selectedUser,
+                                        selectedTrabajo: _selectedTipoTrabajo,
+                                      );
+
+                                      if (!datosCompletos) {
+                                        return;
+                                      }
+
+                                      await generateAndPrintPdfSalida(
+                                        movimiento: 'Salida',
+                                        fecha: _fechaController.text,
+                                        salidaCodFolio: codFolio!,
+                                        idUser: widget.idUser!,
+                                        referencia: _referenciaController.text,
+                                        almacenA: _selectedAlmacen!,
+                                        usuario: widget.userName!,
+                                        productos: _productosAgregados,
+                                        userAsignado: _selectedUser!,
+                                        padron: _selectedPadron!,
+                                        tipoTabajo: _selectedTipoTrabajo!,
+                                      );
+                                    } finally {
+                                      setState(() {
+                                        _isGeneratingPDF = false;
+                                      });
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade900,
+                              elevation: 8,
+                              shadowColor: Colors.blue.shade900,
+                            ),
+                            child: _isGeneratingPDF
+                                ? const CircularProgressIndicator(
+                                    color: Colors.grey)
+                                : const Text(
+                                    'PDF',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ],
-                              )
-                            : const Text(
-                                'Guardar Salida',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                          ),
+                          const SizedBox(width: 60),
+
+                          //Guardar
+                          ElevatedButton(
+                            onPressed: _isLoading ? null : _guardarSalida,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade900,
+                              elevation: 8,
+                              shadowColor: Colors.blue.shade900,
+                            ),
+                            child: _isLoading
+                                ? const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        'Guardando...',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Text(
+                                    'Guardar Salida',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 30),
                     ],
                   ),
-                  const SizedBox(height: 30),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          if (_isGeneratingPDF)
+            ModalBarrier(
+              dismissible: false,
+              color: Colors.black.withOpacity(0.5),
+            ),
+          // Indicador de carga centrado
+          if (_isGeneratingPDF)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Colors.blue.shade900),
+                    strokeWidth: 5,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Generando PDF...',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
