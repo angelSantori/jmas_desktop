@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:pdf/pdf.dart';
@@ -545,18 +548,26 @@ Future<void> generateAndPrintPdfSalida({
   required String fecha,
   required String salidaCodFolio,
   required String referencia,
-  required String almacen,
   required String usuario,
-  required String userAsignado,
+  required String idUser,
+  required Almacenes almacenA,
+  required Users userAsignado,
   required String tipoTabajo,
-  required int padron,
+  required Padron padron,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
 
-  //QR
+  // Generar código QR
   final qrBytes = await generateQrCode(salidaCodFolio);
   final qrImage = pw.MemoryImage(qrBytes);
+
+  // Cargar imagen del logo desde assets
+  final logoImage = pw.MemoryImage(
+    (await rootBundle.load('assets/images/logo_jmas_sf.png'))
+        .buffer
+        .asUint8List(),
+  );
 
   // Cálculo del total
   final total = productos.fold<double>(
@@ -565,89 +576,269 @@ Future<void> generateAndPrintPdfSalida({
         sum + ((producto['precioIncrementado'] * producto['cantidad']) ?? 0.0),
   );
 
+  // Convertir total a letra con centavos
+  final partes = total.toStringAsFixed(2).split('.');
+  final entero = int.parse(partes[0]);
+  final centavos = partes[1];
+  final totalEnLetras =
+      '${_convertirNumeroALetras(entero)} PESOS $centavos/100 M.N.';
+
   // Generar contenido del PDF
   pdf.addPage(
     pw.Page(
-      pageFormat: PdfPageFormat.a4,
+      // Márgenes estrechos (1.27 cm = 36 puntos)
+      pageFormat: PdfPageFormat.a4.copyWith(
+        marginLeft: 36,
+        marginRight: 36,
+        marginTop: 36,
+        marginBottom: 36,
+      ),
       build: (pw.Context context) {
         return pw.Stack(
-          //Contenido principal
           children: [
+            // Contenido principal
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('Reporte de $movimiento',
-                    style: const pw.TextStyle(fontSize: 24)),
-                pw.SizedBox(height: 16),
-                pw.Text('Fecha: $fecha'),
-                pw.Text('Folio: $salidaCodFolio'),
-                pw.Text('Realizado por: $usuario'),
-                pw.Text('Referencia: $referencia'),
-                pw.Text('Almacen: $almacen'),
-                pw.Text('Asignado a: $userAsignado'),
-                pw.Text('ID padron: $padron'),
-                pw.Text('Tipo de trabajo: $tipoTabajo'),
+                // Encabezado con logo y datos de la organización
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    // Logo a la izquierda
+                    pw.Container(
+                      width: 70,
+                      height: 70,
+                      child: pw.Image(logoImage),
+                      margin: pw.EdgeInsets.only(right: 15),
+                    ),
+                    // Información de la organización centrada
+                    pw.Expanded(
+                      child: pw.Column(
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        children: [
+                          pw.Text(
+                            'JUNTA MUNICIPAL DE AGUA Y SANEAMIENTO DE MEOQUI',
+                            style: pw.TextStyle(
+                              fontSize: 14,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            'CALLE ZARAGOZA No. 117, Colonia. CENTRO',
+                            style: const pw.TextStyle(fontSize: 10),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            'MEOQUI, CHIHUAHUA, MEXICO.',
+                            style: const pw.TextStyle(fontSize: 10),
+                            textAlign: pw.TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Espacio para el QR
+                    pw.SizedBox(width: 70),
+                  ],
+                ),
+
+                // Título del movimiento
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.only(top: 15, bottom: 15),
+                  child: pw.Text(
+                    'MOVIMIENTO DE INVENTARIOS: $movimiento',
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                    textAlign: pw.TextAlign.center,
+                  ),
+                ),
+
+                // Información de variables en 3 columnas
+                pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 15),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Columna izquierda
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Mov: $salidaCodFolio',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('Ref: $referencia',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('TT: $tipoTabajo',
+                              style: const pw.TextStyle(fontSize: 9)),
+                        ],
+                      ),
+
+                      // Columna central
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        children: [
+                          pw.Text('Fec: $fecha',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('Capturó: $idUser - $usuario',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                              'Padron: ${padron.idPadron} - ${padron.padronNombre}',
+                              style: const pw.TextStyle(fontSize: 9)),
+                        ],
+                      ),
+
+                      // Columna derecha
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                        children: [
+                          pw.Text('Junta: Meoqui',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                              'Almacen: ${almacenA.id_Almacen} - ${almacenA.almacen_Nombre}',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                              'UserAsignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
+                              style: const pw.TextStyle(fontSize: 9)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Tabla de productos con estructura similar a entradas
+                pw.Table(
+                  columnWidths: {
+                    0: const pw.FixedColumnWidth(50), // Clave
+                    1: const pw.FixedColumnWidth(50), // Cantidad
+                    2: const pw.FlexColumnWidth(3), // Descripción
+                    3: const pw.FixedColumnWidth(50), // Costo/Uni
+                    4: const pw.FixedColumnWidth(50), // % Incrementado
+                    5: const pw.FixedColumnWidth(50), // \$ Incrementado
+                    6: const pw.FixedColumnWidth(60), // Total
+                  },
+                  border: pw.TableBorder.all(width: 0.5),
+                  children: [
+                    // Encabezados de tabla con fondo negro y texto blanco
+                    pw.TableRow(
+                      children: [
+                        _buildHeaderCell('Clave'),
+                        _buildHeaderCell('Cantidad'),
+                        _buildHeaderCell('Descripción'),
+                        _buildHeaderCell('Costo/Uni'),
+                        _buildHeaderCell('% Incr'),
+                        _buildHeaderCell('\$ Incr'),
+                        _buildHeaderCell('Total'),
+                      ],
+                    ),
+                    // Filas de productos
+                    ...productos
+                        .map((producto) => pw.TableRow(
+                              children: [
+                                _buildDataCell(producto['id'].toString()),
+                                _buildDataCell(producto['cantidad'].toString()),
+                                _buildDataCell(
+                                    producto['descripcion'].toString()),
+                                _buildDataCell(
+                                    '\$${producto['costo'].toString()}'),
+                                _buildDataCell(
+                                    '${producto['porcentaje'].toString()}%'),
+                                _buildDataCell(
+                                    '\$${producto['precioIncrementado'].toString()}'),
+                                _buildDataCell(
+                                    '\$${(producto['precioIncrementado'] * producto['cantidad'])}'
+                                        .toString()),
+                              ],
+                            ))
+                        // ignore: unnecessary_to_list_in_spreads
+                        .toList(),
+                    // Fila de total con celdas fusionadas
+                    pw.TableRow(
+                      children: [
+                        // Celda de clave vacía
+                        pw.Container(),
+                        // Celda de cantidad vacía
+                        pw.Container(),
+                        // Celda de descripción vacía
+                        pw.Expanded(
+                          flex: 5, // Ocupa el espacio de 5 columnas
+                          child: pw.Container(
+                            padding: const pw.EdgeInsets.all(3),
+                            child: pw.Text('SON: $totalEnLetras',
+                                style: const pw.TextStyle(fontSize: 8)),
+                          ),
+                        ),
+                        // Celda de costo vacía
+                        pw.Container(),
+                        // Celda de % incrementado vacía
+                        pw.Container(),
+                        // Celda expandida que simula la fusión
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Total',
+                              textAlign: pw.TextAlign.end,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 8,
+                                  color: PdfColors.white)),
+                        ),
+                        // Celda con valor total
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('\$${total.toStringAsFixed(2)}',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
                 pw.SizedBox(height: 30),
-                pw.Table.fromTextArray(headers: [
-                  'Clave',
-                  'Descripción',
-                  'Costo',
-                  'Cantidad',
-                  '% Incremento',
-                  'Precio Incrementado',
-                  'Precio Total'
-                ], data: [
-                  ...productos.map((producto) {
-                    return [
-                      producto['id'].toString(),
-                      producto['descripcion'] ?? '',
-                      '\$${producto['costo'].toString()}',
-                      producto['cantidad'].toString(),
-                      '${producto['porcentaje'].toString()}%',
-                      '\$${producto['precioIncrementado'].toString()}',
-                      '\$${(producto['precioIncrementado'] * producto['cantidad']).toStringAsFixed(2)}',
-                    ];
-                  }).toList(),
-                  [
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    'Total',
-                    '\$${total.toStringAsFixed(2)}',
-                  ]
-                ]),
               ],
             ),
-            //QR
+
+            // QR en la esquina superior derecha
             pw.Positioned(
               top: 0,
               right: 0,
               child: pw.Container(
-                width: 100,
-                height: 100,
+                width: 70,
+                height: 70,
                 child: pw.Image(qrImage),
               ),
             ),
-            //Sección firma
+
+            // Sección de firma al pie de página
             pw.Positioned(
-              bottom: 50, // Ajusta la posición vertical de la firma
+              bottom: 30,
               left: 0,
               right: 0,
               child: pw.Center(
                 child: pw.Column(
                   children: [
                     pw.Container(
-                      width: 200,
+                      width: 180,
                       height: 1,
                       decoration: const pw.BoxDecoration(
-                        color: PdfColor(0, 0, 0),
+                        color: PdfColors.black,
                       ),
                     ),
-                    pw.SizedBox(height: 8),
+                    pw.SizedBox(height: 6),
                     pw.Text('Autorizó',
-                        style: const pw.TextStyle(fontSize: 12)),
+                        style: const pw.TextStyle(fontSize: 10)),
                   ],
                 ),
               ),
@@ -664,26 +855,144 @@ Future<void> generateAndPrintPdfSalida({
     final String currentTime = DateFormat('HHmmss').format(DateTime.now());
     final String fileName = 'Salida_Reporte_${currentDate}_$currentTime.pdf';
 
-    // Convertir el PDF en bytes
     final bytes = await pdf.save();
 
-    // Crear un Blob para descargarlo en el navegador
     final blob = html.Blob([bytes], 'application/pdf');
     final url = html.Url.createObjectUrlFromBlob(blob);
 
-    // Crear un link para descargar el archivo
     // ignore: unused_local_variable
     final anchor = html.AnchorElement(href: url)
       ..target = '_blank'
       ..download = fileName
       ..click();
 
-    // Liberar el objeto URL después de descargar
     html.Url.revokeObjectUrl(url);
 
     print('PDF Reporte salida descargado exitosamente.');
   } catch (e) {
-    // ignore: avoid_print
     print('Error al guardar el PDF: $e');
   }
+}
+
+// Función auxiliar para construir celdas de encabezado
+pw.Widget _buildHeaderCell(String text, {double fontSize = 9}) {
+  return pw.Container(
+    decoration: const pw.BoxDecoration(color: PdfColors.black),
+    padding: const pw.EdgeInsets.all(3),
+    child: pw.Text(
+      text,
+      textAlign: pw.TextAlign.center,
+      style: pw.TextStyle(
+        fontWeight: pw.FontWeight.bold,
+        fontSize: fontSize,
+        color: PdfColors.white,
+      ),
+    ),
+  );
+}
+
+// Función auxiliar para construir celdas de datos
+pw.Widget _buildDataCell(String text) {
+  return pw.Padding(
+    padding: const pw.EdgeInsets.all(3),
+    child: pw.Text(
+      text,
+      textAlign: pw.TextAlign.center,
+      style: const pw.TextStyle(fontSize: 8),
+    ),
+  );
+}
+
+String _convertirNumeroALetras(int numero) {
+  if (numero == 0) return 'CERO';
+  if (numero == 1) return 'UN';
+
+  final unidades = [
+    '',
+    'UN',
+    'DOS',
+    'TRES',
+    'CUATRO',
+    'CINCO',
+    'SEIS',
+    'SIETE',
+    'OCHO',
+    'NUEVE'
+  ];
+  final decenas = [
+    '',
+    'DIEZ',
+    'VEINTE',
+    'TREINTA',
+    'CUARENTA',
+    'CINCUENTA',
+    'SESENTA',
+    'SETENTA',
+    'OCHENTA',
+    'NOVENTA'
+  ];
+  final especiales = [
+    'DIEZ',
+    'ONCE',
+    'DOCE',
+    'TRECE',
+    'CATORCE',
+    'QUINCE',
+    'DIECISEIS',
+    'DIECISIETE',
+    'DIECIOCHO',
+    'DIECINUEVE'
+  ];
+  final centenas = [
+    '',
+    'CIENTO',
+    'DOSCIENTOS',
+    'TRESCIENTOS',
+    'CUATROCIENTOS',
+    'QUINIENTOS',
+    'SEISCIENTOS',
+    'SETECIENTOS',
+    'OCHOCIENTOS',
+    'NOVECIENTOS'
+  ];
+
+  String resultado = '';
+  int resto = numero;
+
+  // Miles
+  if (resto >= 1000) {
+    final miles = resto ~/ 1000;
+    if (miles == 1) {
+      resultado += 'MIL ';
+    } else {
+      resultado += '${_convertirNumeroALetras(miles)} MIL ';
+    }
+    resto %= 1000;
+  }
+
+  // Centenas
+  if (resto >= 100) {
+    final centena = resto ~/ 100;
+    resultado += '${centenas[centena]} ';
+    resto %= 100;
+    if (resto == 0 && centena == 1) {
+      resultado = resultado.replaceAll('CIENTO', 'CIEN');
+    }
+  }
+
+  // Decenas y unidades
+  if (resto >= 10 && resto <= 19) {
+    resultado += especiales[resto - 10];
+  } else if (resto >= 20) {
+    final decena = resto ~/ 10;
+    resultado += decenas[decena];
+    final unidad = resto % 10;
+    if (unidad != 0) {
+      resultado += ' Y ${unidades[unidad]}';
+    }
+  } else if (resto > 0) {
+    resultado += unidades[resto];
+  }
+
+  return resultado.trim();
 }

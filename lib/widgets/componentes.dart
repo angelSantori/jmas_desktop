@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
+import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -381,10 +384,11 @@ Future<void> generateAndPrintPdfEntrada({
   required String fecha,
   required String folio,
   required String userName,
+  required String idUser,
   required String referencia,
-  required String almacen,
-  required String proveedor,
-  required String junta,
+  required Almacenes alamcenA,
+  required Proveedores proveedorP,
+  required Juntas juntaJ,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -466,6 +470,12 @@ Future<void> generateAndPrintPdfEntrada({
                             style: const pw.TextStyle(fontSize: 10),
                             textAlign: pw.TextAlign.center,
                           ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            'www.jmasmeoqui.gob.mx',
+                            style: const pw.TextStyle(fontSize: 10),
+                            textAlign: pw.TextAlign.center,
+                          )
                         ],
                       ),
                     ),
@@ -504,22 +514,24 @@ Future<void> generateAndPrintPdfEntrada({
                           pw.Text('Ref: $referencia',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('Prov: $proveedor',
+                          pw.Text(
+                              'Prov: ${proveedorP.id_Proveedor} - ${proveedorP.proveedor_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
 
                       // Columna central
                       pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('Fec: $fecha',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('Capturó: $userName',
+                          pw.Text('Capturó: $idUser - $userName',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('Junta: $junta',
+                          pw.Text(
+                              'Junta: ${juntaJ.id_Junta} - ${juntaJ.junta_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
@@ -528,7 +540,8 @@ Future<void> generateAndPrintPdfEntrada({
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('Almacen: $almacen',
+                          pw.Text(
+                              'Almacen: ${alamcenA.id_Almacen} - ${alamcenA.almacen_Nombre}',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text('Estatus: ACUM',
