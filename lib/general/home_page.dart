@@ -11,6 +11,7 @@ import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
 import 'package:jmas_desktop/juntas/list_juntas_page.dart';
+//import 'package:jmas_desktop/lecturas/mapa_lecturas_page.dart';
 import 'package:jmas_desktop/padron/list_padron_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
@@ -120,6 +121,7 @@ class _HomePageState extends State<HomePage>
 
       //X
       'home': () => const Center(child: Text('Welcome to home Page!')),
+      //'mapa': () => const MapaLecturasPage(),
       'addAjusteMas': () => const AddAjusteMasPage(),
       'addAjusteMenos': () => const AddAjusteMenosPage(),
       'listPadron': () => ListPadronPage(userRole: userRole),
@@ -481,22 +483,22 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
-                              SubCustomExpansionTile(
-                                title: 'Ajustes',
-                                icon: Icon(Icons.abc_outlined),
-                                children: [
-                                  CustomListTile(
-                                    title: 'Ajuste +',
-                                    icon: Icon(Icons.list_alt_rounded),
-                                    onTap: () {},
-                                  ),
-                                  CustomListTile(
-                                    title: 'Ajuste -',
-                                    icon: Icon(Icons.list_alt_rounded),
-                                    onTap: () {},
-                                  ),
-                                ],
-                              ),
+                              // SubCustomExpansionTile(
+                              //   title: 'Ajustes',
+                              //   icon: Icon(Icons.abc_outlined),
+                              //   children: [
+                              //     CustomListTile(
+                              //       title: 'Ajuste +',
+                              //       icon: Icon(Icons.list_alt_rounded),
+                              //       onTap: () {},
+                              //     ),
+                              //     CustomListTile(
+                              //       title: 'Ajuste -',
+                              //       icon: Icon(Icons.list_alt_rounded),
+                              //       onTap: () {},
+                              //     ),
+                              //   ],
+                              // ),
                               CustomListTile(
                                 title: 'Consulta Universal',
                                 icon: const Icon(
