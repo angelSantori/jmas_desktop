@@ -99,6 +99,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     }
   }
 
+  //TODO: Filtros no funcionan
   void _filterSalidas() {
     final query = _searchController.text.trim().toLowerCase();
     setState(() {
@@ -108,6 +109,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
             (salida.salida_Referencia ?? '').toString().toLowerCase();
         final fechaString = salida.salida_Fecha;
         final fecha = fechaString != null ? parseDate(fechaString) : null;
+
+        if (fecha == null && (_startDate != null || _endDate != null)) {
+          return false;
+        }
 
         final matchesFolio = folio.contains(query);
 
@@ -409,8 +414,11 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         ),
                         const SizedBox(height: 10),
                         user != null
-                            ? Text('Realizado por: ${user.user_Name}',
-                                style: const TextStyle(fontSize: 15))
+                            ? Text(
+                                'Realizado por: ${user.user_Name}',
+                                style: const TextStyle(fontSize: 15),
+                                overflow: TextOverflow.ellipsis,
+                              )
                             : const Text('Usuario no encontrado'),
                         const SizedBox(height: 10),
                         Text(
