@@ -1486,15 +1486,27 @@ Widget buildReferenciaBuscadaSalida(List<Salidas> salidas) {
 //Parse data
 DateTime? parseDate(String dateString) {
   try {
-    final parts = dateString.split('/');
-    if (parts.length == 3) {
-      final day = int.parse(parts[0]);
-      final month = int.parse(parts[1]);
-      final year = int.parse(parts[2]);
-      return DateTime(year, month, day);
+    // Primero intenta con el formato que incluye mes/día/año hora:minuto:segundo
+    final formats = [
+      'M/d/yyyy H:mm:ss', // Para formatos como 3/7/2025 11:31:11
+      'MM/dd/yyyy H:mm:ss', // Para formatos como 03/07/2025 11:31:11
+      'yyyy H:mm:ss', // Para formatos como 2025 10:43:41 (asumiendo que es hoy)
+      'M/d/yyyy', // Solo fecha
+      'MM/dd/yyyy', // Solo fecha con ceros
+    ];
+
+    for (var format in formats) {
+      try {
+        return DateFormat(format).parse(dateString);
+      } catch (e) {
+        continue;
+      }
     }
+
+    // Si ninguno de los formatos anteriores funciona, intenta parsear como DateTime directamente
+    return DateTime.tryParse(dateString);
   } catch (e) {
-    print('Error al parsear fecha: $e');
+    print('Error al parsear fecha: $dateString');
+    return null;
   }
-  return null;
 }
