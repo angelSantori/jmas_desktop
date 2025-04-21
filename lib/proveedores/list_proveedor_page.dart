@@ -59,7 +59,6 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = widget.userRole == "Admin";
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: AppBar(
@@ -77,7 +76,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                 prefixIcon: Icons.search,
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
             Expanded(
               child: _isLoading
                   ? Center(
@@ -89,91 +88,143 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                           child: Text(
                               'No hay proveedores que coincidan con la búsqueda'),
                         )
-                      : GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: screenWidth > 800
-                                ? 4
-                                : screenWidth > 600
-                                    ? 3
-                                    : 2,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 30,
-                            childAspectRatio: screenWidth > 800
-                                ? 1
-                                : screenWidth > 600
-                                    ? 2.5
-                                    : 2,
-                          ),
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(8),
                           itemCount: _filteredProveedores.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final proveedor = _filteredProveedores[index];
 
-                            return Card(
-                              color: const Color.fromARGB(255, 201, 230, 242),
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.shade50,
+                                    Colors.white,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      '${proveedor.proveedor_Name}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
+                                    // Icono de proveedor
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade100,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.business,
+                                        color: Colors.blue,
                                       ),
                                     ),
-                                    const SizedBox(height: 10),
-
-                                    //Phone proveedor
-                                    Text(
-                                      'Contacto: ${proveedor.proveedor_Phone}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 15,
+                                    const SizedBox(width: 16),
+                                    // Información del proveedor
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Nombre
+                                          Text(
+                                            proveedor.proveedor_Name ?? '',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue.shade900,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Contacto
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.phone,
+                                                size: 16,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                proveedor.proveedor_Phone ?? '',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          // Dirección
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Icon(
+                                                Icons.location_on,
+                                                size: 16,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  proveedor.proveedor_Address ??
+                                                      '',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 10),
-
-                                    //Address proveedor
-                                    Text(
-                                      'Dirección: ${proveedor.proveedor_Address}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    const Spacer(),
-
-                                    //Editar
+                                    // Botón de editar (solo para admin)
                                     if (isAdmin)
-                                      Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: IconButton(
-                                          icon: const Icon(
+                                      IconButton(
+                                        icon: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.shade100,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
                                             Icons.edit,
-                                            color: Colors.black,
+                                            color: Colors.blue,
                                             size: 20,
                                           ),
-                                          onPressed: () async {
-                                            final result = await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditProveedorPage(
-                                                        proveedor: proveedor),
-                                              ),
-                                            );
-                                            if (result == true) {
-                                              _loadProveedores();
-                                            }
-                                          },
                                         ),
-                                      )
+                                        onPressed: () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditProveedorPage(
+                                                      proveedor: proveedor),
+                                            ),
+                                          );
+                                          if (result == true) {
+                                            _loadProveedores();
+                                          }
+                                        },
+                                      ),
                                   ],
                                 ),
                               ),
@@ -181,7 +232,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                           },
                         ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
           ],
         ),
       ),
