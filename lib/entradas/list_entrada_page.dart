@@ -96,6 +96,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     }
   }
 
+  //TODO: Filtros no funcionan
   void _filterEntradas() {
     final query = _searchController.text.trim().toLowerCase();
 
@@ -108,6 +109,10 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
         //Parsear la fecha del string
         final fecha = fechaString != null ? parseDate(fechaString) : null;
+
+        if (fecha == null && (_startDate != null || _endDate != null)) {
+          return false;
+        }
 
         //Validar folio
         final matchesFolio = folio.contains(query);
@@ -431,10 +436,13 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                         ),
                         const SizedBox(height: 10),
                         user != null
-                            ? Text('Realizado por: ${user.user_Name}',
+                            ? Text(
+                                'Realizado por: ${user.user_Name}',
                                 style: const TextStyle(
                                   fontSize: 15,
-                                ))
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              )
                             : const Text(
                                 'Realizado por: Usuario no encontrado'),
                         const SizedBox(height: 10),
