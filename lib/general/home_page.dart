@@ -390,7 +390,7 @@ class _HomePageState extends State<HomePage>
 
                               //Padrones
                               SubCustomExpansionTile(
-                                title: 'Padrones',
+                                title: 'Padron',
                                 icon: SvgPicture.asset(
                                   'assets/icons/social.svg',
                                   color: Colors.white,
@@ -399,7 +399,7 @@ class _HomePageState extends State<HomePage>
                                 ),
                                 children: [
                                   CustomListTile(
-                                    title: 'Lista Padrones',
+                                    title: 'Lista Padron',
                                     icon: SvgPicture.asset(
                                       'assets/icons/padronlist.svg',
                                       color: Colors.white,
@@ -410,34 +410,6 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
-
-                              //Usuarios
-                              if (isAdmin)
-                                SubCustomExpansionTile(
-                                  title: 'Usuarios',
-                                  icon: const Icon(
-                                    Icons.person_pin,
-                                    color: Colors.white,
-                                  ),
-                                  children: [
-                                    CustomListTile(
-                                      title: 'Lista Usuarios',
-                                      icon: const Icon(
-                                        Icons.format_list_numbered_outlined,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('listUser'),
-                                    ),
-                                    CustomListTile(
-                                      title: 'Agregar Usuario',
-                                      icon: const Icon(
-                                        Icons.add_reaction_outlined,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('addUser'),
-                                    ),
-                                  ],
-                                ),
                             ],
                           ),
 
@@ -553,6 +525,40 @@ class _HomePageState extends State<HomePage>
                               ),
                             ],
                           ),
+
+                          if (isAdmin)
+                            CustomExpansionTile(
+                              title: 'Configuración',
+                              icon: const Icon(Icons.settings),
+                              children: [
+                                //Usuarios
+                                SubCustomExpansionTile(
+                                  title: 'Usuarios',
+                                  icon: const Icon(
+                                    Icons.person_pin,
+                                    color: Colors.white,
+                                  ),
+                                  children: [
+                                    CustomListTile(
+                                      title: 'Lista Usuarios',
+                                      icon: const Icon(
+                                        Icons.format_list_numbered_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('listUser'),
+                                    ),
+                                    CustomListTile(
+                                      title: 'Agregar Usuario',
+                                      icon: const Icon(
+                                        Icons.add_reaction_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('addUser'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
