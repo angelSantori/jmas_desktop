@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 
 void main() {
-  runApp(const MyApp());
   doWhenWindowReady(
     () {
       const initialSize = Size(1300, 800);
@@ -14,6 +13,7 @@ void main() {
       appWindow.show();
     },
   );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
