@@ -77,7 +77,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: CustomTextFielTexto(
                 controller: _searchController,
-                labelText: 'Buscar por Nombre, Contacto o Dirección',
+                labelText: 'Buscar Proveedor por Nombre, Contacto o Dirección',
                 prefixIcon: Icons.search,
               ),
             ),
@@ -237,7 +237,6 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                           },
                         ),
             ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
