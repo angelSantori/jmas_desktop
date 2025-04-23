@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
-import 'package:jmas_desktop/users/detiails_user_page.dart';
 import 'package:jmas_desktop/users/edit_user_page.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 
 class ListUserPage extends StatefulWidget {
   const ListUserPage({super.key});
@@ -11,160 +11,217 @@ class ListUserPage extends StatefulWidget {
 }
 
 class _ListUserPageState extends State<ListUserPage> {
+  final TextEditingController _searchController = TextEditingController();
+
   final UsersController _usersController = UsersController();
-  late Future<List<Users>> _futureUsers;
+
+  List<Users> _allUsers = [];
+  List<Users> _filteredUsers = [];
+
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadUsers();
+    _searchController.addListener(_filterUsers);
   }
 
-  void _loadUsers() {
+  Future<void> _loadUsers() async {
+    setState(() => _isLoading = true);
+    try {
+      final users = await _usersController.listUsers();
+      setState(() {
+        _allUsers = users;
+        _filteredUsers = users;
+      });
+    } catch (e) {
+      print('Error LISTUSERS: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _filterUsers() {
+    final query = _searchController.text.toLowerCase();
     setState(() {
-      _futureUsers = _usersController.listUsers();
+      _filteredUsers = _allUsers.where((user) {
+        final name = user.user_Name?.toLowerCase() ?? '';
+        final contacto = user.user_Contacto?.toLowerCase() ?? '';
+
+        return name.contains(query) || contacto.contains(query);
+      }).toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final _screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de usuarios'),
+        centerTitle: true,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: FutureBuilder<List<Users>>(
-            future: _futureUsers,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Text('Error: ${snapshot.error}'),
-                );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(
-                  child: Text('No hay usuarios registrados'),
-                );
-              }
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 5),
+              child: CustomTextFielTexto(
+                controller: _searchController,
+                labelText: 'Buscar Usuario por Nombre o Contacto',
+                prefixIcon: Icons.search,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                          color: Colors.blue.shade900),
+                    )
+                  : _filteredUsers.isEmpty
+                      ? const Center(
+                          child: Text(
+                              'No hay usuarios que coincidan con la búsqueda'),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(8),
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemCount: _filteredUsers.length,
+                          itemBuilder: (context, index) {
+                            final user = _filteredUsers[index];
 
-              final users = snapshot.data!;
-
-              return Column(
-                children: [
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 50),
-                      child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: _screenWidth > 1200
-                              ? 4
-                              : _screenWidth > 800
-                                  ? 3
-                                  : _screenWidth > 600
-                                      ? 2
-                                      : 2, //Mostrar de 2 en 2
-                          crossAxisSpacing: 20, //Espacio horizontal
-                          mainAxisSpacing: 30, //Espacio vertical
-                          childAspectRatio: _screenWidth > 1200
-                              ? 1.8
-                              : _screenWidth > 800
-                                  ? 1
-                                  : _screenWidth > 600
-                                      ? 1
-                                      : 1.5, //Ancho y alto de las tarjetas
-                        ),
-                        itemCount: users.length,
-                        itemBuilder: (context, index) {
-                          final user = users[index];
-                          return Card(
-                            color: const Color.fromARGB(255, 201, 230, 242),
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            child: InkWell(
-                              onTap: () {
-                                showDetailsUserDialog(
-                                  context,
-                                  user,
-                                );
-                              },
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.shade50,
+                                    Colors.white,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      '${user.user_Name}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                                    //Icono
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade100,
+                                        shape: BoxShape.circle,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 5),
-
-                                    //Contacto
-                                    Text(
-                                      '${user.user_Contacto}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 18,
+                                      child: const Icon(
+                                        Icons.contact_mail_outlined,
+                                        color: Colors.blue,
                                       ),
                                     ),
-                                    const SizedBox(height: 5),
-
-                                    //Nombre
-                                    Text(
-                                      'Palabra de acceso: ${user.user_Access}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 15,
+                                    const SizedBox(width: 16),
+                                    //Info de Usuario
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          //Nombre
+                                          Text(
+                                            user.user_Name ?? '',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue.shade900,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          //Contacto
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.phone,
+                                                size: 16,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                user.user_Contacto ?? '',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          //User acceso
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.lock_open_outlined,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Acceso: ${user.user_Access}',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              )
+                                            ],
+                                          )
+                                        ],
                                       ),
                                     ),
-
-                                    const Spacer(),
-
-                                    Align(
-                                      alignment: Alignment.bottomRight,
-                                      child: IconButton(
-                                        icon: const Icon(
+                                    //Editar
+                                    IconButton(
+                                      icon: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.shade100,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
                                           Icons.edit,
-                                          color: Colors.black,
+                                          color: Colors.blue,
                                           size: 20,
                                         ),
-                                        onPressed: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditUserPage(user: user),
-                                            ),
-                                          );
-                                          if (result == true) {
-                                            _loadUsers();
-                                          }
-                                        },
                                       ),
+                                      onPressed: () async {
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                EditUserPage(user: user),
+                                          ),
+                                        );
+                                        if (result == true) {
+                                          _loadUsers();
+                                        }
+                                      },
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
+                            );
+                          },
+                        ),
+            ),
+          ],
         ),
       ),
     );
