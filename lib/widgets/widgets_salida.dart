@@ -823,26 +823,52 @@ Future<void> generateAndPrintPdfSalida({
 
             // Sección de firma al pie de página
             pw.Positioned(
-              bottom: 30,
-              left: 0,
-              right: 0,
-              child: pw.Center(
-                child: pw.Column(
-                  children: [
-                    pw.Container(
-                      width: 180,
-                      height: 1,
-                      decoration: const pw.BoxDecoration(
-                        color: PdfColors.black,
-                      ),
-                    ),
-                    pw.SizedBox(height: 6),
-                    pw.Text('Autorizó',
-                        style: const pw.TextStyle(fontSize: 10)),
-                  ],
-                ),
-              ),
-            ),
+                bottom: 30,
+                left: 0,
+                right: 0,
+                child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+                    children: [
+                      //Fimra de Entrga
+                      pw.Column(children: [
+                        pw.Container(
+                          width: 120,
+                          height: 1,
+                          decoration: const pw.BoxDecoration(
+                            color: PdfColors.black,
+                          ),
+                        ),
+                        pw.SizedBox(height: 6),
+                        pw.Text('Entrega',
+                            style: const pw.TextStyle(fontSize: 10)),
+                      ]),
+                      //Fimra de Autoriza
+                      pw.Column(children: [
+                        pw.Container(
+                          width: 120,
+                          height: 1,
+                          decoration: const pw.BoxDecoration(
+                            color: PdfColors.black,
+                          ),
+                        ),
+                        pw.SizedBox(height: 6),
+                        pw.Text('Autoriza',
+                            style: const pw.TextStyle(fontSize: 10)),
+                      ]),
+                      //Fimra de Recibe
+                      pw.Column(children: [
+                        pw.Container(
+                          width: 120,
+                          height: 1,
+                          decoration: const pw.BoxDecoration(
+                            color: PdfColors.black,
+                          ),
+                        ),
+                        pw.SizedBox(height: 6),
+                        pw.Text('Recibe',
+                            style: const pw.TextStyle(fontSize: 10)),
+                      ]),
+                    ])),
           ],
         );
       },
