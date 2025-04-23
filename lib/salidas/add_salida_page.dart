@@ -67,10 +67,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
-    'General',
-    'Precaución',
     'Mantenimiento',
-    'Otro',
+    'Preventivo',
+    'Emergencia',
   ];
 
   @override
