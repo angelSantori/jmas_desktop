@@ -67,9 +67,11 @@ class _ListPadronPageState extends State<ListPadronPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lista de Padron'),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Column(
@@ -78,11 +80,11 @@ class _ListPadronPageState extends State<ListPadronPage> {
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: CustomTextFielTexto(
                 controller: _searchController,
-                labelText: 'Buscar padron',
+                labelText: 'Busqueda por Nombre, Dirección o ID',
                 prefixIcon: Icons.search,
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
             Expanded(
               child: _isLoading
                   ? Center(
@@ -95,65 +97,105 @@ class _ListPadronPageState extends State<ListPadronPage> {
                           child: Text(
                               'No hay algún padron que conicida con la búsqueda.'),
                         )
-                      : GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: screenWidth > 1200
-                                ? 4
-                                : screenWidth > 800
-                                    ? 3
-                                    : screenWidth > 600
-                                        ? 2
-                                        : 2,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 30,
-                            childAspectRatio: screenWidth > 1200
-                                ? 1.8
-                                : screenWidth > 800
-                                    ? 1
-                                    : screenWidth > 600
-                                        ? 1
-                                        : 1.5,
-                          ),
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(8),
                           itemCount: _filteredPadron.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final padron = _filteredPadron[index];
 
-                            return Card(
-                              color: const Color.fromARGB(255, 201, 230, 242),
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ],
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.shade50,
+                                    Colors.white,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      '${padron.padronNombre}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        overflow: TextOverflow.ellipsis,
+                                    //Icon
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade100,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.person_pin_sharp,
+                                        color: Colors.blue,
                                       ),
                                     ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Id: ${padron.idPadron}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Dirección: ${padron.padronDireccion}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          //Nombre
+                                          Text(
+                                            padron.padronNombre ?? '',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue.shade900,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.fmd_good_sharp,
+                                                size: 16,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                padron.padronDireccion ?? '',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          //ID
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.numbers,
+                                                size: 16,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'ID ${padron.idPadron ?? ''}',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.grey,
+                                                ),
+                                              )
+                                            ],
+                                          )
+                                        ],
                                       ),
                                     ),
                                   ],

@@ -96,7 +96,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     }
   }
 
-  //TODO: Filtros no funcionan
   void _filterEntradas() {
     final query = _searchController.text.trim().toLowerCase();
 
@@ -191,7 +190,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                       Expanded(
                         child: CustomTextFielTexto(
                           controller: _searchController,
-                          labelText: 'Buscar por folio o referencia',
+                          labelText: 'Buscar por Folio o Referencia',
                           prefixIcon: Icons.search,
                         ),
                       ),

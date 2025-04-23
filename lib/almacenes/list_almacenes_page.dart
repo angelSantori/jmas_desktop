@@ -59,22 +59,25 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = widget.userRole == "Admin";
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lista de Almacenes'),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: CustomTextFielTexto(
                 controller: _searchController,
-                labelText: 'Buscar almacen',
+                labelText: 'Buscar Almacén',
                 prefixIcon: Icons.search,
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
             Expanded(
               child: _isLoading
                   ? Center(
@@ -86,74 +89,99 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                           child: Text(
                               'No hay almacenes que coincidan con la búsqueda'),
                         )
-                      : GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: screenWidth > 1200
-                                ? 4
-                                : screenWidth > 800
-                                    ? 3
-                                    : screenWidth > 600
-                                        ? 2
-                                        : 2,
-                            crossAxisSpacing: 20,
-                            mainAxisSpacing: 30,
-                            childAspectRatio: screenWidth > 1200
-                                ? 1.8
-                                : screenWidth > 800
-                                    ? 1
-                                    : screenWidth > 600
-                                        ? 1
-                                        : 1.5,
-                          ),
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(8),
                           itemCount: _filteredAlmacenes.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final almacen = _filteredAlmacenes[index];
 
-                            return Card(
-                              color: const Color.fromARGB(255, 201, 230, 242),
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ],
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.shade50,
+                                    Colors.white,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
                               child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      '${almacen.almacen_Nombre}',
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
+                                    //Icono de almacen
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade100,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.store_mall_directory,
+                                        color: Colors.blue,
                                       ),
                                     ),
-                                    const Spacer(),
+                                    const SizedBox(width: 16),
+                                    //Información
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            almacen.almacen_Nombre ?? '',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue.shade900,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     //Espacio para editar
                                     if (isAdmin)
-                                      Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: IconButton(
-                                          icon: const Icon(
+                                      IconButton(
+                                        icon: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.shade100,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
                                             Icons.edit,
-                                            color: Colors.black,
+                                            color: Colors.blue,
                                             size: 20,
                                           ),
-                                          onPressed: () async {
-                                            final result = await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    EditAlmacenPage(
-                                                        almacen: almacen),
-                                              ),
-                                            );
-                                            if (result == true) {
-                                              _loadAlmacenes();
-                                            }
-                                          },
                                         ),
-                                      )
+                                        onPressed: () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  EditAlmacenPage(
+                                                      almacen: almacen),
+                                            ),
+                                          );
+                                          if (result == true) {
+                                            _loadAlmacenes();
+                                          }
+                                        },
+                                      ),
                                   ],
                                 ),
                               ),

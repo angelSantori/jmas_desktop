@@ -51,7 +51,11 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
       _filteredProveedores = _allProveedores.where((proveedor) {
         final name = proveedor.proveedor_Name?.toLowerCase() ?? '';
         final contact = proveedor.proveedor_Phone?.toLowerCase() ?? '';
-        return name.contains(query) || contact.contains(query);
+        final direccion = proveedor.proveedor_Address?.toLowerCase() ?? '';
+
+        return name.contains(query) ||
+            contact.contains(query) ||
+            direccion.contains(query);
       }).toList();
     });
   }
@@ -63,6 +67,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Proveedores'),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -72,7 +77,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: CustomTextFielTexto(
                 controller: _searchController,
-                labelText: 'Buscar por nombre o contacto',
+                labelText: 'Buscar por Nombre, Contacto o Dirección',
                 prefixIcon: Icons.search,
               ),
             ),
