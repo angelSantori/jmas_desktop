@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/generales.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -245,126 +247,6 @@ class _SubCustomExpansionTileState extends State<SubCustomExpansionTile> {
         ),
       ),
     );
-  }
-}
-
-// Función para generar el archivo PDF
-Future<void> generateAndPrintPdf({
-  required String movimiento,
-  required String fecha,
-  required String salidaCodFolio,
-  required String referencia,
-  required String entidad,
-  required String junta,
-  required String usuario,
-  required List<Map<String, dynamic>> productos,
-}) async {
-  final pdf = pw.Document();
-
-  //QR
-  final qrBytes = await generateQrCode(salidaCodFolio);
-  final qrImage = pw.MemoryImage(qrBytes);
-
-  // Cálculo del total
-  final total = productos.fold<double>(
-    0.0,
-    (sum, producto) => sum + (producto['precio'] ?? 0.0),
-  );
-
-  // Generar contenido del PDF
-  pdf.addPage(
-    pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      build: (pw.Context context) {
-        return pw.Stack(
-          //Contenido principal
-          children: [
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('Reporte de $movimiento',
-                    style: const pw.TextStyle(fontSize: 24)),
-                pw.SizedBox(height: 16),
-                pw.Text('Fecha: $fecha'),
-                pw.Text('Folio: $salidaCodFolio'),
-                pw.Text('Referencia: $referencia'),
-                pw.Text('Entidad: $entidad'),
-                pw.Text('Junta: $junta'),
-                pw.Text('Realizado por: $usuario'),
-                pw.SizedBox(height: 30),
-                pw.Table.fromTextArray(
-                  headers: [
-                    'Clave',
-                    'Descripción',
-                    'Costo',
-                    'Cantidad',
-                    'Total'
-                  ],
-                  data: [
-                    ...productos.map((producto) {
-                      return [
-                        producto['id'].toString(),
-                        producto['descripcion'] ?? '',
-                        '\$${producto['costo'].toString()}',
-                        producto['cantidad'].toString(),
-                        '\$${producto['precio'].toStringAsFixed(2)}',
-                      ];
-                    }).toList(),
-                    [
-                      '',
-                      '',
-                      '',
-                      '',
-                      '',
-                      'Total',
-                      '\$${total.toStringAsFixed(2)}',
-                    ]
-                  ],
-                ),
-              ],
-            ),
-            //QR
-            pw.Positioned(
-                top: 0,
-                right: 0,
-                child: pw.Container(
-                  width: 100,
-                  height: 100,
-                  child: pw.Image(qrImage),
-                ))
-          ],
-        );
-      },
-    ),
-  );
-
-  try {
-    // Generar nombre del archivo con la fecha actual
-    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
-    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
-    final String fileName = 'Salida_Reporte_${currentDate}_$currentTime.pdf';
-
-    // Convertir el PDF en bytes
-    final bytes = await pdf.save();
-
-    // Crear un Blob para descargarlo en el navegador
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    // Crear un link para descargar el archivo
-    // ignore: unused_local_variable
-    final anchor = html.AnchorElement(href: url)
-      ..target = '_blank'
-      ..download = fileName
-      ..click();
-
-    // Liberar el objeto URL después de descargar
-    html.Url.revokeObjectUrl(url);
-
-    print('PDF Reporte salida descargado exitosamente.');
-  } catch (e) {
-    // ignore: avoid_print
-    print('Error al guardar el PDF: $e');
   }
 }
 
@@ -733,7 +615,7 @@ Future<void> generateAndPrintPdfEntrada({
                       ),
                     ),
                     pw.SizedBox(height: 6),
-                    pw.Text('Autorizó',
+                    pw.Text('Autoriza',
                         style: const pw.TextStyle(fontSize: 10)),
                   ],
                 ),
@@ -1041,6 +923,16 @@ class BuscarProductoWidget extends StatefulWidget {
 class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
   double? _invIniConteo;
+  final TextEditingController _nombreProducto = TextEditingController();
+  List<Productos> _productosSugeridos = [];
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _nombreProducto.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
 
   Uint8List? _decodeImage(String? base64Image) {
     if (base64Image == null || base64Image.isEmpty) {
@@ -1091,136 +983,250 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Future<void> _buscarProductoXNombre(String query) async {
+    if (query.isEmpty) {
+      setState(() => _productosSugeridos = []);
+      return;
+    }
+
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final productos =
+            await widget.productosController.getProductoByNombre(query);
+
+        if (mounted) {
+          setState(() => _productosSugeridos = productos);
+        }
+      } catch (e) {
+        widget.onAdvertencia('Error al buscar productos: $e');
+        setState(() => _productosSugeridos = []);
+      }
+    });
+  }
+
+  void _seleccionarProducto(Productos producto) {
+    widget.idProductoController.text = producto.id_Producto.toString();
+    widget.onProductoSeleccionado(producto);
+    setState(() {
+      _productosSugeridos = [];
+      _nombreProducto.clear();
+    });
+
+    _getInventarioInicial(producto);
+  }
+
+  Future<void> _getInventarioInicial(Productos producto) async {
+    try {
+      final captuaList = await widget.capturainviniController.listCapturaI();
+      final captura = captuaList.firstWhere(
+        (captura) => captura.id_Producto == producto.id_Producto,
+        orElse: () => Capturainvini(invIniConteo: null),
+      );
+      setState(() => _invIniConteo = captura.invIniConteo);
+    } catch (e) {
+      widget.onAdvertencia('Error al obtener inventario inicial: $e');
+    }
+  }
+
+  // Widget de búsqueda por nombre (modificado ligeramente)
+  Widget _buildBuscadorPorNombre() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Campo para ID del Producto
-        SizedBox(
-          width: 160,
-          child: CustomTextFielTexto(
-            controller: widget.idProductoController,
-            prefixIcon: Icons.search,
-            labelText: 'Id Producto',
-          ),
-        ),
-        const SizedBox(width: 15),
-
-        // Botón para buscar producto
-        ValueListenableBuilder<bool>(
-          valueListenable: _isLoading,
-          builder: (context, isLoading, child) {
-            return ElevatedButton(
-              onPressed: isLoading ? null : _buscarProducto,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isLoading ? Colors.grey : Colors.blue.shade900,
-              ),
-              child: isLoading
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Buscar producto',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomTextFielTexto(
+                      controller: _nombreProducto,
+                      labelText: 'Escribe el nombre del producto',
+                      prefixIcon: Icons.search,
+                      onChanged: _buscarProductoXNombre,
                     ),
-            );
-          },
-        ),
-        const SizedBox(width: 15),
-
-        // Información del Producto
-        if (widget.selectedProducto != null)
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Información del Producto:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        'Descripción: ${widget.selectedProducto!.prodDescripcion ?? 'No disponible'}',
-                        style: const TextStyle(fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'Precio: \$${widget.selectedProducto!.prodPrecio?.toStringAsFixed(2) ?? 'No disponible'}',
-                        style: const TextStyle(fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'Existencia: ${_invIniConteo ?? 'No disponible'}',
-                        style: const TextStyle(fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+              if (_productosSugeridos.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.only(top: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
+                  constraints: const BoxConstraints(maxHeight: 500),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _productosSugeridos.length,
+                    itemBuilder: (context, index) {
+                      final producto = _productosSugeridos[index];
+                      return ListTile(
+                        title: Text(producto.prodDescripcion ?? 'Sin nombre'),
+                        subtitle: Text(
+                          'ID: ${producto.id_Producto} - Precio: \$${producto.prodPrecio?.toStringAsFixed(2)}',
+                        ),
+                        onTap: () => _seleccionarProducto(producto),
+                      );
+                    },
+                  ),
                 ),
-                // Imagen del producto
-                Row(
-                  children: [
-                    Container(
-                      height: 100,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        color: Colors.grey.shade200,
-                      ),
-                      child: widget.selectedProducto!.prodImgB64 != null &&
-                              _decodeImage(
-                                      widget.selectedProducto!.prodImgB64) !=
-                                  null
-                          ? Image.memory(
-                              _decodeImage(
-                                  widget.selectedProducto!.prodImgB64)!,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.asset(
-                              'assets/images/sinFoto.jpg',
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          )
-        else
-          const Expanded(
-            flex: 2,
-            child: Text(
-              'No se ha buscado un producto.',
-              style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-            ),
+            ],
           ),
-        const SizedBox(width: 10),
+        ),
+      ],
+    );
+  }
 
-        // Campo para la cantidad
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        DividerWithText(text: 'Selección de Productos'),
+        const SizedBox(height: 20),
+        _buildBuscadorPorNombre(),
+        const SizedBox(height: 30),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Campo para ID del Producto
             SizedBox(
-              width: 140,
-              child: CustomTextFieldNumero(
-                controller: widget.cantidadController,
-                prefixIcon: Icons.numbers_outlined,
-                labelText: 'Cantidad',
+              width: 160,
+              child: CustomTextFielTexto(
+                controller: widget.idProductoController,
+                prefixIcon: Icons.search,
+                labelText: 'Id Producto',
               ),
+            ),
+            const SizedBox(width: 15),
+
+            // Botón para buscar producto
+            ValueListenableBuilder<bool>(
+              valueListenable: _isLoading,
+              builder: (context, isLoading, child) {
+                return ElevatedButton(
+                  onPressed: isLoading ? null : _buscarProducto,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isLoading ? Colors.grey : Colors.blue.shade900,
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Buscar producto',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                );
+              },
+            ),
+            const SizedBox(width: 15),
+
+            // Información del Producto
+            if (widget.selectedProducto != null)
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Información del Producto:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Descripción: ${widget.selectedProducto!.prodDescripcion ?? 'No disponible'}',
+                            style: const TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Precio: \$${widget.selectedProducto!.prodPrecio?.toStringAsFixed(2) ?? 'No disponible'}',
+                            style: const TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Existencia: ${_invIniConteo ?? 'No disponible'}',
+                            style: const TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Imagen del producto
+                    Row(
+                      children: [
+                        Container(
+                          height: 100,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            color: Colors.grey.shade200,
+                          ),
+                          child: widget.selectedProducto!.prodImgB64 != null &&
+                                  _decodeImage(widget
+                                          .selectedProducto!.prodImgB64) !=
+                                      null
+                              ? Image.memory(
+                                  _decodeImage(
+                                      widget.selectedProducto!.prodImgB64)!,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.asset(
+                                  'assets/images/sinFoto.jpg',
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              )
+            else
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'No se ha buscado un producto.',
+                  style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                ),
+              ),
+            const SizedBox(width: 10),
+
+            // Campo para la cantidad
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 140,
+                  child: CustomTextFieldNumero(
+                    controller: widget.cantidadController,
+                    prefixIcon: Icons.numbers_outlined,
+                    labelText: 'Cantidad',
+                  ),
+                ),
+              ],
             ),
           ],
         ),
