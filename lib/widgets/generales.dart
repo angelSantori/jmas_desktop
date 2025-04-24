@@ -63,7 +63,12 @@ class DividerWithText extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(text, style: TextStyle(color: Colors.grey.shade600)),
+          child: Text(text,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              )),
         ),
         const Expanded(
           child: Divider(),
