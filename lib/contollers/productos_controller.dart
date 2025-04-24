@@ -62,6 +62,30 @@ class ProductosController {
     }
   }
 
+  Future<List<Productos>> getProductoByNombre(String query) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Productos/BuscarPorNombre?nombre=$query'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => Productos.fromMap(item)).toList();
+      } else {
+        print(
+            'Error al obtener producto Ife | Lista x Nombre | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al obtener producto Try | Lista x Nombre | Controller: $e');
+      return [];
+    }
+  }
+
   //Lista Productos
   Future<List<Productos>> listProductos() async {
     if (cacheProductos != null) {
@@ -126,6 +150,7 @@ class Productos {
   double? prodPrecio;
   String? prodImgB64;
   int? idProveedor;
+  int? id_Almacen;
   Productos({
     this.id_Producto,
     this.prodDescripcion,
@@ -139,6 +164,7 @@ class Productos {
     this.prodPrecio,
     this.prodImgB64,
     this.idProveedor,
+    this.id_Almacen,
   });
 
   Productos copyWith({
@@ -154,6 +180,7 @@ class Productos {
     double? prodPrecio,
     String? prodImgB64,
     int? idProveedor,
+    int? id_Almacen,
   }) {
     return Productos(
       id_Producto: id_Producto ?? this.id_Producto,
@@ -168,6 +195,7 @@ class Productos {
       prodPrecio: prodPrecio ?? this.prodPrecio,
       prodImgB64: prodImgB64 ?? this.prodImgB64,
       idProveedor: idProveedor ?? this.idProveedor,
+      id_Almacen: id_Almacen ?? this.id_Almacen,
     );
   }
 
@@ -185,6 +213,7 @@ class Productos {
       'prodPrecio': prodPrecio,
       'prodImgB64': prodImgB64,
       'idProveedor': idProveedor,
+      'id_Almacen': id_Almacen,
     };
   }
 
@@ -232,6 +261,7 @@ class Productos {
           map['prodImgB64'] != null ? map['prodImgB64'] as String : null,
       idProveedor:
           map['idProveedor'] != null ? map['idProveedor'] as int : null,
+      id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
     );
   }
 
@@ -242,7 +272,7 @@ class Productos {
 
   @override
   String toString() {
-    return 'Productos(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUbFisica: $prodUbFisica, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodImgB64: $prodImgB64, idProveedor: $idProveedor)';
+    return 'Productos(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUbFisica: $prodUbFisica, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodImgB64: $prodImgB64, idProveedor: $idProveedor, id_Almacen: $id_Almacen)';
   }
 
   @override
@@ -260,7 +290,8 @@ class Productos {
         other.prodUMedEntrada == prodUMedEntrada &&
         other.prodPrecio == prodPrecio &&
         other.prodImgB64 == prodImgB64 &&
-        other.idProveedor == idProveedor;
+        other.idProveedor == idProveedor &&
+        other.id_Almacen == id_Almacen;
   }
 
   @override
@@ -276,6 +307,7 @@ class Productos {
         prodUMedEntrada.hashCode ^
         prodPrecio.hashCode ^
         prodImgB64.hashCode ^
-        idProveedor.hashCode;
+        idProveedor.hashCode ^
+        id_Almacen.hashCode;
   }
 }
