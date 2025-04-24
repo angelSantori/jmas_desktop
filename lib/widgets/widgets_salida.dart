@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -415,8 +416,18 @@ class BuscarPadronWidgetSalida extends StatefulWidget {
 
 class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
+  final TextEditingController _busquedaController = TextEditingController();
+  List<Padron> _resultadosBusqueda = [];
+  Timer? _debounce;
 
-  Future<void> _buscarPadron() async {
+  @override
+  void dispose() {
+    _busquedaController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _buscarPadronXId() async {
     final id = widget.idPadronController.text;
     if (id.isNotEmpty) {
       widget.onPadronSeleccionado(null); // Limpiar el padrón antes de buscar
@@ -425,9 +436,9 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
       try {
         final padronList = await widget.padronController.listPadron();
         final foundPadron = padronList.firstWhere(
-            (p) => p.idPadron.toString() == id,
-            orElse: () =>
-                Padron()); // Devuelve un Padron vacío si no se encuentra
+          (p) => p.idPadron.toString() == id,
+          orElse: () => Padron(),
+        );
         if (foundPadron.idPadron != null) {
           widget.onPadronSeleccionado(foundPadron);
         } else {
@@ -444,88 +455,168 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
     }
   }
 
+  Future<void> _buscarPadron(String query) async {
+    try {
+      final resultados = await widget.padronController.getBuscar(query);
+      setState(() => _resultadosBusqueda = resultados);
+    } catch (e) {
+      widget.onAdvertencia('Error al buscar padron: $e');
+      setState(() => _resultadosBusqueda = []);
+    }
+  }
+
+  void _onBusquedaChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+    _debounce = Timer(
+      const Duration(milliseconds: 500),
+      () {
+        if (query.length >= 3) {
+          _buscarPadron(query);
+        } else {
+          setState(() => _resultadosBusqueda = []);
+        }
+      },
+    );
+  }
+
+  void _seleccionarPadron(Padron padron) {
+    widget.idPadronController.text = padron.idPadron.toString();
+    widget.onPadronSeleccionado(padron);
+    setState(() {
+      _resultadosBusqueda = [];
+      _busquedaController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
       children: [
-        // Campo para ID del Padrón
-        SizedBox(
-          width: 160,
-          child: CustomTextFieldNumero(
-            controller: widget.idPadronController,
-            prefixIcon: Icons.search,
-            labelText: 'Id Padrón',
-          ),
-        ),
-        const SizedBox(width: 15),
-
-        // Botón para buscar padrón
-        ValueListenableBuilder<bool>(
-          valueListenable: _isLoading,
-          builder: (context, isLoading, child) {
-            return ElevatedButton(
-              onPressed: isLoading ? null : _buscarPadron,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isLoading
-                    ? Colors.grey
-                    : Colors.blue.shade900, // Cambiar color si está cargando
+        Row(
+          children: [
+            Expanded(
+              child: CustomTextFielTexto(
+                controller: _busquedaController,
+                labelText: 'Buscar padron por nombre o dirección',
+                onChanged: _onBusquedaChanged,
               ),
-              child: isLoading
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text(
-                      'Buscar padrón',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            );
-          },
+            ),
+          ],
         ),
-        const SizedBox(width: 15),
-
-        // Información del Padrón
-        if (widget.selectedPadron != null &&
-            widget.selectedPadron!.idPadron != null)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Información del Padrón:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Nombre: ${widget.selectedPadron!.padronNombre ?? 'No disponible'}',
-                  style: const TextStyle(fontSize: 14),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  'Dirección: ${widget.selectedPadron!.padronDireccion ?? 'No disponible'}',
-                  style: const TextStyle(fontSize: 14),
-                  overflow: TextOverflow.ellipsis,
+        // Resultados de búsqueda
+        if (_resultadosBusqueda.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-          )
-        else
-          const Expanded(
-            flex: 2,
-            child: Text(
-              'No se ha buscado un padrón.',
-              style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+            constraints: const BoxConstraints(maxHeight: 500),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _resultadosBusqueda.length,
+              itemBuilder: (context, index) {
+                final padron = _resultadosBusqueda[index];
+                return ListTile(
+                  title: Text(padron.padronNombre ?? 'Sin nombre'),
+                  subtitle: Text(padron.padronDireccion ?? 'Sin dirección'),
+                  onTap: () => _seleccionarPadron(padron),
+                );
+              },
             ),
           ),
+        const SizedBox(height: 30),
+        // Campo para ID del Padrón
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 160,
+              child: CustomTextFieldNumero(
+                controller: widget.idPadronController,
+                prefixIcon: Icons.search,
+                labelText: 'Id Padrón',
+              ),
+            ),
+            const SizedBox(width: 15),
+
+            // Botón para buscar padrón
+            ValueListenableBuilder<bool>(
+              valueListenable: _isLoading,
+              builder: (context, isLoading, child) {
+                return ElevatedButton(
+                  onPressed: isLoading ? null : _buscarPadronXId,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isLoading
+                        ? Colors.grey
+                        : Colors
+                            .blue.shade900, // Cambiar color si está cargando
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Buscar padrón',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                );
+              },
+            ),
+            const SizedBox(width: 15),
+            // Información del Padrón
+            if (widget.selectedPadron != null &&
+                widget.selectedPadron!.idPadron != null)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Información del Padrón:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Nombre: ${widget.selectedPadron!.padronNombre ?? 'No disponible'}',
+                      style: const TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Dirección: ${widget.selectedPadron!.padronDireccion ?? 'No disponible'}',
+                      style: const TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              )
+            else
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'No se ha buscado un padrón.',
+                  style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -546,20 +637,20 @@ Future<Uint8List> generateQrCode(String data) async {
 Future<void> generateAndPrintPdfSalida({
   required String movimiento,
   required String fecha,
-  required String salidaCodFolio,
+  required String folio,
   required String referencia,
-  required String usuario,
+  required String userName,
   required String idUser,
-  required Almacenes almacenA,
+  required Almacenes alamcenA,
   required Users userAsignado,
-  required String tipoTabajo,
+  required String tipoTrabajo,
   required Padron padron,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
 
   // Generar código QR
-  final qrBytes = await generateQrCode(salidaCodFolio);
+  final qrBytes = await generateQrCode(folio);
   final qrImage = pw.MemoryImage(qrBytes);
 
   // Cargar imagen del logo desde assets
@@ -572,8 +663,7 @@ Future<void> generateAndPrintPdfSalida({
   // Cálculo del total
   final total = productos.fold<double>(
     0.0,
-    (sum, producto) =>
-        sum + ((producto['precioIncrementado'] * producto['cantidad']) ?? 0.0),
+    (sum, producto) => sum + (producto['precio'] ?? 0.0),
   );
 
   // Convertir total a letra con centavos
@@ -606,10 +696,10 @@ Future<void> generateAndPrintPdfSalida({
                   children: [
                     // Logo a la izquierda
                     pw.Container(
-                      width: 70,
-                      height: 70,
+                      width: 80,
+                      height: 80,
                       child: pw.Image(logoImage),
-                      margin: pw.EdgeInsets.only(right: 15),
+                      margin: const pw.EdgeInsets.only(right: 15),
                     ),
                     // Información de la organización centrada
                     pw.Expanded(
@@ -636,6 +726,12 @@ Future<void> generateAndPrintPdfSalida({
                             style: const pw.TextStyle(fontSize: 10),
                             textAlign: pw.TextAlign.center,
                           ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            'www.jmasmeoqui.gob.mx',
+                            style: const pw.TextStyle(fontSize: 10),
+                            textAlign: pw.TextAlign.center,
+                          )
                         ],
                       ),
                     ),
@@ -668,25 +764,25 @@ Future<void> generateAndPrintPdfSalida({
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('Mov: $salidaCodFolio',
+                          pw.Text('Mov: $folio',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text('Ref: $referencia',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('TT: $tipoTabajo',
+                          pw.Text('TT: $tipoTrabajo',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
 
                       // Columna central
                       pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text('Fec: $fecha',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('Capturó: $idUser - $usuario',
+                          pw.Text('Capturó: $idUser - $userName',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text(
@@ -697,17 +793,14 @@ Future<void> generateAndPrintPdfSalida({
 
                       // Columna derecha
                       pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('Junta: Meoqui',
+                          pw.Text(
+                              'Almacen: ${alamcenA.id_Almacen} - ${alamcenA.almacen_Nombre}',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text(
-                              'Almacen: ${almacenA.id_Almacen} - ${almacenA.almacen_Nombre}',
-                              style: const pw.TextStyle(fontSize: 9)),
-                          pw.SizedBox(height: 3),
-                          pw.Text(
-                              'UserAsignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
+                              'UserASignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
@@ -715,73 +808,132 @@ Future<void> generateAndPrintPdfSalida({
                   ),
                 ),
 
-                // Tabla de productos con estructura similar a entradas
+                // Tabla de productos con solución alternativa para celdas fusionadas
                 pw.Table(
                   columnWidths: {
-                    0: const pw.FixedColumnWidth(50), // Clave
-                    1: const pw.FixedColumnWidth(50), // Cantidad
-                    2: const pw.FlexColumnWidth(3), // Descripción
-                    3: const pw.FixedColumnWidth(50), // Costo/Uni
-                    4: const pw.FixedColumnWidth(50), // % Incrementado
-                    5: const pw.FixedColumnWidth(50), // \$ Incrementado
-                    6: const pw.FixedColumnWidth(60), // Total
+                    0: pw.FixedColumnWidth(50), // Clave
+                    1: pw.FixedColumnWidth(50), // Cantidad
+                    2: pw.FlexColumnWidth(3), // Descripción
+                    3: pw.FixedColumnWidth(50), // Costo
+                    4: pw.FixedColumnWidth(60), // Total
                   },
                   border: pw.TableBorder.all(width: 0.5),
                   children: [
-                    // Encabezados de tabla con fondo negro y texto blanco
+                    // Encabezados de tabla
                     pw.TableRow(
                       children: [
-                        _buildHeaderCell('Clave'),
-                        _buildHeaderCell('Cantidad'),
-                        _buildHeaderCell('Descripción'),
-                        _buildHeaderCell('Costo/Uni'),
-                        _buildHeaderCell('% Incr'),
-                        _buildHeaderCell('\$ Incr'),
-                        _buildHeaderCell('Total'),
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Clave',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Cantidad',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Descripción',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.black),
+                          padding: const pw.EdgeInsets.all(3),
+                          child: pw.Text('Costo/Uni',
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 9,
+                                  color: PdfColors.white)),
+                        ),
+                        pw.Container(
+                            decoration:
+                                const pw.BoxDecoration(color: PdfColors.black),
+                            padding: const pw.EdgeInsets.all(3),
+                            child: pw.Text('Total',
+                                textAlign: pw.TextAlign.center,
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 9,
+                                    color: PdfColors.white))),
                       ],
                     ),
                     // Filas de productos
                     ...productos
                         .map((producto) => pw.TableRow(
                               children: [
-                                _buildDataCell(producto['id'].toString()),
-                                _buildDataCell(producto['cantidad'].toString()),
-                                _buildDataCell(
-                                    producto['descripcion'].toString()),
-                                _buildDataCell(
-                                    '\$${producto['costo'].toString()}'),
-                                _buildDataCell(
-                                    '${producto['porcentaje'].toString()}%'),
-                                _buildDataCell(
-                                    '\$${producto['precioIncrementado'].toString()}'),
-                                _buildDataCell(
-                                    '\$${(producto['precioIncrementado'] * producto['cantidad'])}'
-                                        .toString()),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(producto['id'].toString(),
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(
+                                      producto['cantidad'].toString(),
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(producto['descripcion'] ?? '',
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(
+                                      '\$${(producto['costo'] ?? 0.0).toStringAsFixed(2)}',
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
+                                pw.Padding(
+                                  padding: const pw.EdgeInsets.all(3),
+                                  child: pw.Text(
+                                      '\$${(producto['precio'] ?? 0.0).toStringAsFixed(2)}',
+                                      textAlign: pw.TextAlign.center,
+                                      style: const pw.TextStyle(fontSize: 8)),
+                                ),
                               ],
                             ))
-                        // ignore: unnecessary_to_list_in_spreads
                         .toList(),
-                    // Fila de total con celdas fusionadas
+                    // Fila de total con solución alternativa para celdas fusionadas
                     pw.TableRow(
                       children: [
                         // Celda de clave vacía
                         pw.Container(),
                         // Celda de cantidad vacía
                         pw.Container(),
-                        // Celda de descripción vacía
+                        // Celda de descripción expandida (simula fusión)
                         pw.Expanded(
-                          flex: 5, // Ocupa el espacio de 5 columnas
+                          flex: 3, // Ocupa el espacio de 3 columnas
                           child: pw.Container(
                             padding: const pw.EdgeInsets.all(3),
                             child: pw.Text('SON: $totalEnLetras',
                                 style: const pw.TextStyle(fontSize: 8)),
                           ),
                         ),
-                        // Celda de costo vacía
-                        pw.Container(),
-                        // Celda de % incrementado vacía
-                        pw.Container(),
-                        // Celda expandida que simula la fusión
+                        // Celda de "Total"
                         pw.Container(
                           decoration:
                               const pw.BoxDecoration(color: PdfColors.black),
@@ -894,39 +1046,10 @@ Future<void> generateAndPrintPdfSalida({
 
     html.Url.revokeObjectUrl(url);
 
-    print('PDF Reporte salida descargado exitosamente.');
+    print('PDF Reporte entrada descargado exitosamente.');
   } catch (e) {
     print('Error al guardar el PDF: $e');
   }
-}
-
-// Función auxiliar para construir celdas de encabezado
-pw.Widget _buildHeaderCell(String text, {double fontSize = 9}) {
-  return pw.Container(
-    decoration: const pw.BoxDecoration(color: PdfColors.black),
-    padding: const pw.EdgeInsets.all(3),
-    child: pw.Text(
-      text,
-      textAlign: pw.TextAlign.center,
-      style: pw.TextStyle(
-        fontWeight: pw.FontWeight.bold,
-        fontSize: fontSize,
-        color: PdfColors.white,
-      ),
-    ),
-  );
-}
-
-// Función auxiliar para construir celdas de datos
-pw.Widget _buildDataCell(String text) {
-  return pw.Padding(
-    padding: const pw.EdgeInsets.all(3),
-    child: pw.Text(
-      text,
-      textAlign: pw.TextAlign.center,
-      style: const pw.TextStyle(fontSize: 8),
-    ),
-  );
 }
 
 String _convertirNumeroALetras(int numero) {
