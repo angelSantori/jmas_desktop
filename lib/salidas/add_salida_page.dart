@@ -47,8 +47,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   String? codFolio;
 
-  final ValueNotifier<double> _selectedIncremento = ValueNotifier(10.0);
-
   List<Almacenes> _almacenes = [];
   // ignore: unused_field
   List<Juntas> _juntas = [];
@@ -151,17 +149,13 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
       setState(() {
         final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
-        final double? porcentaje = _selectedIncremento.value;
-        final double precioAjustado =
-            precioUnitario + (precioUnitario * (porcentaje! / 100));
+
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
           'id': _selectedProducto!.id_Producto,
           'descripcion': _selectedProducto!.prodDescripcion,
           'costo': precioUnitario,
-          'porcentaje': porcentaje,
-          'precioIncrementado': precioAjustado,
           'cantidad': cantidad,
           'precio': precioTotal
         });
@@ -356,7 +350,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         children: [
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
@@ -498,25 +492,21 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       ),
 
                       const SizedBox(height: 30),
-                      const DividerWithText(text: 'Selección de Producto'),
-                      const SizedBox(height: 30),
 
-                      BuscarProductoWidgetSalida(
+                      BuscarProductoWidget(
                         idProductoController: _idProductoController,
                         cantidadController: _cantidadController,
                         productosController: _productosController,
                         capturainviniController: _capturainviniController,
                         selectedProducto: _selectedProducto,
-                        onProductoSeleccionado: (p0) {
-                          setState(() {
-                            _selectedProducto = p0;
-                          });
+                        onProductoSeleccionado: (producto) {
+                          setState(() => _selectedProducto = producto);
                         },
-                        onAdvertencia: (p0) {
-                          showAdvertence(context, p0);
+                        onAdvertencia: (message) {
+                          showAdvertence(context, message);
                         },
-                        selectedIncremento: _selectedIncremento,
                       ),
+
                       const SizedBox(height: 10),
 
                       //Botón para agregar producto a la tabla
@@ -545,7 +535,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       const SizedBox(height: 20),
 
                       //Tabla productos agregados
-                      buildProductosAgregadosSalida(
+                      buildProductosAgregados(
                         _productosAgregados,
                         eliminarProductoSalida,
                         actualizarCostoSalida,
@@ -584,15 +574,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                       await generateAndPrintPdfSalida(
                                         movimiento: 'Salida',
                                         fecha: _fechaController.text,
-                                        salidaCodFolio: codFolio!,
-                                        idUser: widget.idUser!,
+                                        folio: codFolio!,
                                         referencia: _referenciaController.text,
-                                        almacenA: _selectedAlmacen!,
-                                        usuario: widget.userName!,
-                                        productos: _productosAgregados,
+                                        userName: widget.userName!,
+                                        idUser: widget.idUser!,
+                                        alamcenA: _selectedAlmacen!,
                                         userAsignado: _selectedUser!,
+                                        tipoTrabajo: _selectedTipoTrabajo!,
                                         padron: _selectedPadron!,
-                                        tipoTabajo: _selectedTipoTrabajo!,
+                                        productos: _productosAgregados,
                                       );
                                     } finally {
                                       setState(() {
