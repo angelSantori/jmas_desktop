@@ -57,6 +57,79 @@ class PadronController {
       return false;
     }
   }
+
+  //GetByName
+  Future<List<Padron>> getByNombre(String nombre) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Padrons/BuscarPorNombre?nombre=$nombre'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Padron.fromMap(json)).toList();
+      } else {
+        print(
+            'Error al buscar nombre Ife | GetByName | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al buscar nombre Try | GetByName | Controller: $e');
+      return [];
+    }
+  }
+
+  //GetByDireccion
+  Future<List<Padron>> getByDireccion(String direccion) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Padrons/BuscarPorDireccion?direccion=$direccion'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Padron.fromMap(json)).toList();
+      } else {
+        print(
+            'Error al buscar dirección Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al buscar dirección Try | Controller: $e');
+      return [];
+    }
+  }
+
+  //GetBuscar
+  Future<List<Padron>> getBuscar(String termino) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Padrons/Buscar?termino=$termino'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Padron.fromMap(json)).toList();
+      } else {
+        print(
+            'Error al buscar Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al buscar Try | Controller: $e');
+      return [];
+    }
+  }
 }
 
 class Padron {
