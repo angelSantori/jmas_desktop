@@ -6,7 +6,9 @@ import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/productos/details_producto_page.dart';
 //import 'package:jmas_desktop/productos/details_producto_page.dart';
 import 'package:jmas_desktop/productos/edit_producto_page.dart';
+import 'package:jmas_desktop/widgets/excel_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListProductoPage extends StatefulWidget {
   final String? userRole;
@@ -112,6 +114,116 @@ class _ListProductoPageState extends State<ListProductoPage> {
     });
   }
 
+  Future<void> _exportarProductosConDeficit() async {
+    try {
+      final productos = await _productosController.getProductosConDeficit();
+      if (productos.isEmpty) {
+        showOk(context, 'No hay productos con deficit');
+        return;
+      }
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Exportar productos con déficit'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [Text('¿Estás seguro de exportar los datos?')],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await ExcelService.exportProductosToExcel(
+                  productos: productos,
+                  fileName: 'Productos_Deficit',
+                );
+
+                Navigator.pop(context);
+
+                showOk(context,
+                    'Reporte de productos con deficit generado correctamente');
+              },
+              child: const Text('Exportar'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      showError(context, 'Error al generar reporte');
+      print('Error al generar reporete: $e');
+    }
+  }
+
+  Future<void> _exportarPorRango() async {
+    final idInicialController = TextEditingController();
+    final idFinalController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exportar por rango de IDs'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: idInicialController,
+              decoration: const InputDecoration(labelText: 'Id Inicial'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: idFinalController,
+              decoration: const InputDecoration(labelText: 'Id Final'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final idInicial = int.tryParse(idInicialController.text);
+              final idFinal = int.tryParse(idFinalController.text);
+
+              if (idInicial == null || idFinal == null) {
+                showAdvertence(context, 'Por favor ingrese IDs válidos');
+                return;
+              }
+              Navigator.pop(context);
+
+              try {
+                final productos = await _productosController
+                    .getProductosPorRango(idInicial, idFinal);
+
+                if (productos.isEmpty) {
+                  showAdvertence(
+                      context, 'No se encontraron productos en ese rango');
+                  return;
+                }
+
+                await ExcelService.exportProductosToExcel(
+                  productos: productos,
+                  fileName: 'Productos_Rango',
+                );
+
+                showOk(context, 'Reporte generado exitosamente');
+              } catch (e) {
+                showError(context, 'Error al generar reporte');
+                print('Error al generar reporete: $e');
+              }
+            },
+            child: const Text('Exportar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isAdmin = widget.userRole == "Admin";
@@ -119,6 +231,21 @@ class _ListProductoPageState extends State<ListProductoPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de productos'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.warning_rounded,
+              color: Colors.green.shade800,
+            ),
+            tooltip: 'Exportar productos con déficit',
+            onPressed: _exportarProductosConDeficit,
+          ),
+          IconButton(
+            icon: Icon(Icons.filter_alt, color: Colors.green.shade800),
+            tooltip: 'Exportar por rango de IDs',
+            onPressed: _exportarPorRango,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25),
