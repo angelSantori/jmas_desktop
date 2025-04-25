@@ -113,6 +113,56 @@ class ProductosController {
     }
   }
 
+  //Deficit
+  Future<List<Productos>> getProductosConDeficit() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Productos/ConDeficit'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((deficit) => Productos.fromMap(deficit)).toList();
+      } else {
+        print(
+            'Error lista deficit | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error lista deficit | Try | Controller: $e');
+      return [];
+    }
+  }
+
+  //Rango de ID
+  Future<List<Productos>> getProductosPorRango(
+      int idInicial, int idFinal) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Productos/PorRango?idInicial=$idInicial&idFinal=$idFinal'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((rango) => Productos.fromMap(rango)).toList();
+      } else {
+        print(
+            'Error rango id | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error rango id | Try | Controller: $e');
+      return [];
+    }
+  }
+
   Future<bool> editProducto(Productos producto) async {
     try {
       final response = await http.put(
