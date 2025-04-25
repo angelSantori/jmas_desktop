@@ -557,110 +557,104 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
                       const SizedBox(height: 30),
 
-                      //Botones
+                      //Botón
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          //PDF e imprimir
                           ElevatedButton(
-                            onPressed: _isGeneratingPDF
-                                ? CircularProgressIndicator.adaptive
-                                : () async {
-                                    setState(() {
-                                      _isGeneratingPDF = true;
-                                    });
-                                    try {
-                                      bool datosCompletos =
-                                          await validarCamposAntesDeImprimirEntrada(
-                                        context: context,
-                                        referencia: _referenciaController.text,
-                                        productosAgregados: _productosAgregados,
-                                        selectedAlmacen: _selectedAlmacen,
-                                        proveedor: _selectedProveedor,
-                                        junta: _selectedJunta,
-                                        factura: _imagenFactura,
-                                      );
-
-                                      if (!datosCompletos) {
-                                        return;
-                                      }
-
-                                      await generateAndPrintPdfEntrada(
-                                        movimiento: 'Entrada',
-                                        fecha: _fechaController.text,
-                                        folio: codFolio!,
-                                        idUser: widget.idUser!,
-                                        alamcenA: _selectedAlmacen!,
-                                        userName: widget.userName!,
-                                        referencia: _referenciaController.text,
-                                        productos: _productosAgregados,
-                                        proveedorP: _selectedProveedor!,
-                                        juntaJ: _selectedJunta!,
-                                        //factura: _imagenFactura!,
-                                      );
-                                    } finally {
+                              onPressed: (_isGeneratingPDF || _isLoading)
+                                  ? null
+                                  : () async {
                                       setState(() {
-                                        _isGeneratingPDF = false;
+                                        _isGeneratingPDF = true;
+                                        _isLoading = true;
                                       });
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade900,
-                              elevation: 8,
-                              shadowColor: Colors.blue.shade900,
-                            ),
-                            child: _isGeneratingPDF
-                                ? const CircularProgressIndicator(
-                                    color: Colors.grey)
-                                : const Text(
-                                    'PDF',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
 
-                          const SizedBox(width: 60),
+                                      try {
+                                        //1. Validar campos
+                                        bool datosCompletos =
+                                            await validarCamposAntesDeImprimirEntrada(
+                                          context: context,
+                                          referencia:
+                                              _referenciaController.text,
+                                          productosAgregados:
+                                              _productosAgregados,
+                                          selectedAlmacen: _selectedAlmacen,
+                                          proveedor: _selectedProveedor,
+                                          junta: _selectedJunta,
+                                          factura: _imagenFactura,
+                                        );
 
-                          //Guardar entrada
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _guardarEntrada,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade900,
-                              elevation: 8,
-                              shadowColor: Colors.blue.shade900,
-                            ),
-                            child: _isLoading
-                                ? const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
+                                        if (!datosCompletos) {
+                                          return;
+                                        }
+
+                                        //2. Generar PDF
+                                        await generateAndPrintPdfEntrada(
+                                          movimiento: 'Entrada',
+                                          fecha: _fechaController.text,
+                                          folio: codFolio!,
+                                          idUser: widget.idUser!,
+                                          alamcenA: _selectedAlmacen!,
+                                          userName: widget.userName!,
+                                          referencia:
+                                              _referenciaController.text,
+                                          productos: _productosAgregados,
+                                          proveedorP: _selectedProveedor!,
+                                          juntaJ: _selectedJunta!,
+                                          //factura: _imagenFactura!,
+                                        );
+
+                                        //3. Guardar registro
+                                        await _guardarEntrada();
+                                      } catch (e) {
+                                        showError(
+                                            context, 'Error al guardar datos');
+                                        print('Error al guardar datos: $e');
+                                      } finally {
+                                        setState(() {
+                                          _isGeneratingPDF = false;
+                                          _isLoading = false;
+                                        });
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue.shade900,
+                                elevation: 8,
+                                shadowColor: Colors.blue.shade900,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 15),
+                              ),
+                              child: (_isGeneratingPDF || _isLoading)
+                                  ? const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        'Guardando...',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Procesando...',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
+                                      ],
+                                    )
+                                  : const Text(
+                                      'Guardar y Generar PDF',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
-                                    ],
-                                  )
-                                : const Text(
-                                    'Guardar Entrada',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
+                                    )),
                         ],
                       ),
                       const SizedBox(height: 30),
