@@ -114,6 +114,14 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     });
   }
 
+  void actualizarCostoSalida(int index, double nuevoCosto) {
+    setState(() {
+      _productosAgregados[index]['costo'] = nuevoCosto;
+      _productosAgregados[index]['precio'] =
+          nuevoCosto * (_productosAgregados[index]['cantidad'] ?? 1);
+    });
+  }
+
   void _agregarProducto() async {
     if (_selectedProducto != null && _cantidadController.text.isNotEmpty) {
       final int cantidad = int.tryParse(_cantidadController.text) ?? 0;
@@ -281,25 +289,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     });
   }
 
-  void actualizarCostoSalida(int index, double nuevoCosto) {
-    setState(() {
-      //Actualizar costo
-      _productosAgregados[index]['costo'] = nuevoCosto;
-
-      //Calcular nuevo precio incrementado
-      double porcentaje = _productosAgregados[index]['porcentaje'];
-      double precioIncrementado =
-          nuevoCosto + (nuevoCosto * (porcentaje / 100));
-
-      //Actualiza precio incrementado
-      _productosAgregados[index]['precioIncrementado'] = precioIncrementado;
-
-      //Calculo de precio total
-      double cantidad = _productosAgregados[index]['cantidad'];
-      _productosAgregados[index]['total'] = precioIncrementado * cantidad;
-    });
-  }
-
   Future<void> _getUserId() async {
     final decodeToken = await _authService.decodeToken();
     idUserReporte = decodeToken?['Id_User'] ?? '0';
@@ -313,7 +302,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Estado: true,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
       salida_Costo: double.tryParse(
-          (producto['precioIncrementado'] * producto['cantidad']).toString()),
+          (producto['precio'] * producto['cantidad']).toString()),
       salida_Fecha: _fechaController.text,
       salida_TipoTrabajo: _selectedTipoTrabajo,
       idProducto: producto['id'] ?? 0,
@@ -542,110 +531,104 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       ),
                       const SizedBox(height: 30),
 
-                      //Botónes
+                      //Botón
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          //Pdf e imprimir
                           ElevatedButton(
-                            onPressed: _isGeneratingPDF
-                                ? null
-                                : () async {
-                                    setState(() {
-                                      _isGeneratingPDF = true;
-                                    });
-                                    try {
-                                      bool datosCompletos =
-                                          await validarCamposAntesDeImprimir(
-                                        context: context,
-                                        productosAgregados: _productosAgregados,
-                                        referenciaController:
-                                            _referenciaController,
-                                        padron: _idPadronController,
-                                        selectedAlmacen: _selectedAlmacen,
-                                        selectedUser: _selectedUser,
-                                        selectedTrabajo: _selectedTipoTrabajo,
-                                      );
-
-                                      if (!datosCompletos) {
-                                        return;
-                                      }
-
-                                      await generateAndPrintPdfSalida(
-                                        movimiento: 'Salida',
-                                        fecha: _fechaController.text,
-                                        folio: codFolio!,
-                                        referencia: _referenciaController.text,
-                                        userName: widget.userName!,
-                                        idUser: widget.idUser!,
-                                        alamcenA: _selectedAlmacen!,
-                                        userAsignado: _selectedUser!,
-                                        tipoTrabajo: _selectedTipoTrabajo!,
-                                        padron: _selectedPadron!,
-                                        productos: _productosAgregados,
-                                      );
-                                    } finally {
+                              onPressed: (_isGeneratingPDF || _isLoading)
+                                  ? null
+                                  : () async {
                                       setState(() {
-                                        _isGeneratingPDF = false;
+                                        _isGeneratingPDF = true;
+                                        _isLoading = true;
                                       });
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade900,
-                              elevation: 8,
-                              shadowColor: Colors.blue.shade900,
-                            ),
-                            child: _isGeneratingPDF
-                                ? const CircularProgressIndicator(
-                                    color: Colors.grey)
-                                : const Text(
-                                    'PDF',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(width: 60),
 
-                          //Guardar
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _guardarSalida,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade900,
-                              elevation: 8,
-                              shadowColor: Colors.blue.shade900,
-                            ),
-                            child: _isLoading
-                                ? const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
+                                      try {
+                                        //1. Validar campos
+                                        bool datosCompletos =
+                                            await validarCamposAntesDeImprimir(
+                                          context: context,
+                                          productosAgregados:
+                                              _productosAgregados,
+                                          referenciaController:
+                                              _referenciaController,
+                                          padron: _idPadronController,
+                                          selectedAlmacen: _selectedAlmacen,
+                                          selectedUser: _selectedUser,
+                                          selectedTrabajo: _selectedTipoTrabajo,
+                                        );
+
+                                        if (!datosCompletos) {
+                                          return;
+                                        }
+
+                                        //2. Generar PDF
+                                        await generateAndPrintPdfSalida(
+                                          movimiento: 'Salida',
+                                          fecha: _fechaController.text,
+                                          folio: codFolio!,
+                                          referencia:
+                                              _referenciaController.text,
+                                          userName: widget.userName!,
+                                          idUser: widget.idUser!,
+                                          alamcenA: _selectedAlmacen!,
+                                          userAsignado: _selectedUser!,
+                                          tipoTrabajo: _selectedTipoTrabajo!,
+                                          padron: _selectedPadron!,
+                                          productos: _productosAgregados,
+                                        );
+
+                                        //3. Guardar registro
+                                        await _guardarSalida();
+                                      } catch (e) {
+                                        showError(
+                                            context, 'Error al guardar datos');
+                                        print('Error al guardar datos: $e');
+                                      } finally {
+                                        setState(() {
+                                          _isGeneratingPDF = false;
+                                          _isLoading = false;
+                                        });
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue.shade900,
+                                elevation: 8,
+                                shadowColor: Colors.blue.shade900,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 15),
+                              ),
+                              child: (_isGeneratingPDF || _isLoading)
+                                  ? const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        'Guardando...',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Procesando...',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
+                                      ],
+                                    )
+                                  : const Text(
+                                      'Guardar y Generar PDF',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
-                                    ],
-                                  )
-                                : const Text(
-                                    'Guardar Salida',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
+                                    )),
                         ],
                       ),
                       const SizedBox(height: 30),
