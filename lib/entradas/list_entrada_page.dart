@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
-import 'package:jmas_desktop/contollers/cancelado_controller.dart';
+//import 'package:jmas_desktop/contollers/cancelado_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/productos_controller.dart';
+//import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/entradas/details_entrada_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
-import 'package:jmas_desktop/widgets/mensajes.dart';
+//import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListEntradaPage extends StatefulWidget {
   final String? userRole;
@@ -24,15 +24,15 @@ class ListEntradaPage extends StatefulWidget {
 class _ListEntradaPageState extends State<ListEntradaPage> {
   final AuthService _authService = AuthService();
   final EntradasController _entradasController = EntradasController();
-  final ProductosController _productosController = ProductosController();
+  //final ProductosController _productosController = ProductosController();
   final UsersController _usersController = UsersController();
   final AlmacenesController _almacenesController = AlmacenesController();
   final ProveedoresController _proveedoresController = ProveedoresController();
   final JuntasController _juntasController = JuntasController();
 
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _motivoController = TextEditingController();
-  final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
+  //final TextEditingController _motivoController = TextEditingController();
+  //final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
   List<Entradas> _allEntradas = [];
   List<Entradas> _filteredEntradas = [];
@@ -40,7 +40,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  Map<int, Productos> _productosCache = {};
+  //Map<int, Productos> _productosCache = {};
   Map<int, Users> _usersCache = {};
   // ignore: unused_field
   Map<int, Almacenes> _almacenCache = {};
@@ -68,7 +68,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   Future<void> _loadData() async {
     try {
       final entradas = await _entradasController.listEntradas();
-      final productos = await _productosController.listProductos();
+      //final productos = await _productosController.listProductos();
       final almacenes = await _almacenesController.listAlmacenes();
       final proveedores = await _proveedoresController.listProveedores();
       final juntas = await _juntasController.listJuntas();
@@ -78,7 +78,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         _allEntradas = entradas;
         _filteredEntradas = entradas;
 
-        _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
+        //_productosCache = {for (var prod in productos) prod.id_Producto!: prod};
         _usersCache = {for (var us in users) us.id_User!: us};
         _almacenCache = {for (var alm in almacenes) alm.id_Almacen!: alm};
 
@@ -379,7 +379,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           color: entradaPrincipal.entrada_Estado == false
-              ? Colors.red.shade300
+              ? const Color.fromARGB(255, 201, 230, 242)
               : const Color.fromARGB(255, 201, 230, 242),
           elevation: 4,
           shape:
@@ -412,6 +412,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                     almacen: almacen,
                     junta: junta,
                     user: user!.user_Name!,
+                    userRole: widget.userRole!,
                   ),
                 ),
               );
@@ -479,23 +480,23 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (widget.userRole == "Admin" &&
-                          entrada.entrada_Estado == true)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 30),
-                            IconButton(
-                              icon: Icon(
-                                size: 40,
-                                Icons.delete_forever,
-                                color: Colors.red.shade900,
-                              ),
-                              onPressed: () => _confirmarCancelacion(entrada),
-                            ),
-                          ],
-                        ),
+                      // if (widget.userRole == "Admin" &&
+                      //     entrada.entrada_Estado == true)
+                      //   Column(
+                      //     crossAxisAlignment: CrossAxisAlignment.center,
+                      //     mainAxisSize: MainAxisSize.min,
+                      //     children: [
+                      //       const SizedBox(height: 30),
+                      //       IconButton(
+                      //         icon: Icon(
+                      //           size: 40,
+                      //           Icons.delete_forever,
+                      //           color: Colors.red.shade900,
+                      //         ),
+                      //         onPressed: () => _confirmarCancelacion(entrada),
+                      //       ),
+                      //     ],
+                      //   ),
                     ],
                   ),
                 ],
@@ -512,158 +513,158 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     idUserDelete = decodeToken?['Id_User'] ?? '0';
   }
 
-  void _confirmarCancelacion(Entradas entrada) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Cancelación'),
-        content: Text(
-            '¿Estás seguro de que deseas cancelar esta entrada? \nFolio entrada: ${entrada.entrada_CodFolio} \nIdEntrada: ${entrada.id_Entradas}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'No',
-              style: TextStyle(
-                color: Colors.blue.shade900,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _mostrarMotivoDialog(entrada);
-            },
-            child: Text(
-              'Sí, cancelar',
-              style: TextStyle(
-                color: Colors.red.shade900,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _confirmarCancelacion(Entradas entrada) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Confirmar Cancelación'),
+  //       content: Text(
+  //           '¿Estás seguro de que deseas cancelar esta entrada? \nFolio entrada: ${entrada.entrada_CodFolio} \nIdEntrada: ${entrada.id_Entradas}'),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text(
+  //             'No',
+  //             style: TextStyle(
+  //               color: Colors.blue.shade900,
+  //             ),
+  //           ),
+  //         ),
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.pop(context);
+  //             _mostrarMotivoDialog(entrada);
+  //           },
+  //           child: Text(
+  //             'Sí, cancelar',
+  //             style: TextStyle(
+  //               color: Colors.red.shade900,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  void _mostrarMotivoDialog(Entradas entrada) {
-    // Limpiar el controlador de motivo
-    _motivoController.clear();
+  // void _mostrarMotivoDialog(Entradas entrada) {
+  //   // Limpiar el controlador de motivo
+  //   _motivoController.clear();
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Motivo de Cancelación', textAlign: TextAlign.center),
-        content: CustomTextFielTexto(
-          labelText: 'Motivo',
-          controller: _motivoController,
-          validator: (motivo) {
-            if (motivo == null || motivo.isEmpty) {
-              return 'Motivo obligaorio';
-            }
-            return null;
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancelar',
-              style: TextStyle(
-                color: Colors.blue.shade900,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _cancelarEntrada(entrada);
-            },
-            child: Text(
-              'Registrar Cancelación',
-              style: TextStyle(
-                color: Colors.red.shade900,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('Motivo de Cancelación', textAlign: TextAlign.center),
+  //       content: CustomTextFielTexto(
+  //         labelText: 'Motivo',
+  //         controller: _motivoController,
+  //         validator: (motivo) {
+  //           if (motivo == null || motivo.isEmpty) {
+  //             return 'Motivo obligaorio';
+  //           }
+  //           return null;
+  //         },
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text(
+  //             'Cancelar',
+  //             style: TextStyle(
+  //               color: Colors.blue.shade900,
+  //             ),
+  //           ),
+  //         ),
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.pop(context);
+  //             _cancelarEntrada(entrada);
+  //           },
+  //           child: Text(
+  //             'Registrar Cancelación',
+  //             style: TextStyle(
+  //               color: Colors.red.shade900,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Future<void> _cancelarEntrada(Entradas entrada) async {
-    final CanceladoController canceladoController = CanceladoController();
+  // Future<void> _cancelarEntrada(Entradas entrada) async {
+  //   final CanceladoController canceladoController = CanceladoController();
 
-    if (_motivoController.text.isEmpty) {
-      showAdvertence(context, 'Motivo obligatorio');
-      return;
-    }
+  //   if (_motivoController.text.isEmpty) {
+  //     showAdvertence(context, 'Motivo obligatorio');
+  //     return;
+  //   }
 
-    setState(() {
-      _isLoadingCancel = true;
-    });
+  //   setState(() {
+  //     _isLoadingCancel = true;
+  //   });
 
-    try {
-      // Obtener todas las entradas con el mismo CodFolio
-      final List<Entradas> entradasACancelar = _allEntradas
-          .where((e) => e.entrada_CodFolio == entrada.entrada_CodFolio)
-          .toList();
+  //   try {
+  //     // Obtener todas las entradas con el mismo CodFolio
+  //     final List<Entradas> entradasACancelar = _allEntradas
+  //         .where((e) => e.entrada_CodFolio == entrada.entrada_CodFolio)
+  //         .toList();
 
-      // Mapa para agrupar productos y sus cantidades a restar
-      final Map<int, double> productosARestar = {};
+  //     // Mapa para agrupar productos y sus cantidades a restar
+  //     final Map<int, double> productosARestar = {};
 
-      // Primero registrar todas las cancelaciones y preparar productos
-      for (var entradaItem in entradasACancelar) {
-        // Registrar cancelación
-        final Cancelados cancelacion = Cancelados(
-          idCancelacion: 0,
-          cancelMotivo: _motivoController.text,
-          cancelFecha: _fecha,
-          id_Entrada: entradaItem.id_Entradas,
-          id_User: int.tryParse(idUserDelete!),
-        );
+  //     // Primero registrar todas las cancelaciones y preparar productos
+  //     for (var entradaItem in entradasACancelar) {
+  //       // Registrar cancelación
+  //       final Cancelados cancelacion = Cancelados(
+  //         idCancelacion: 0,
+  //         cancelMotivo: _motivoController.text,
+  //         cancelFecha: _fecha,
+  //         id_Entrada: entradaItem.id_Entradas,
+  //         id_User: int.tryParse(idUserDelete!),
+  //       );
 
-        final bool success =
-            await canceladoController.addCancelacion(cancelacion);
-        if (!success) throw Exception('Error al registrar cancelación');
+  //       final bool success =
+  //           await canceladoController.addCancelacion(cancelacion);
+  //       if (!success) throw Exception('Error al registrar cancelación');
 
-        // Actualizar estado de la entrada
-        final Entradas entradaEdit =
-            entradaItem.copyWith(entrada_Estado: false);
-        final bool entradaUpdated =
-            await _entradasController.editEntrada(entradaEdit);
-        if (!entradaUpdated) throw Exception('Error al actualizar entrada');
+  //       // Actualizar estado de la entrada
+  //       final Entradas entradaEdit =
+  //           entradaItem.copyWith(entrada_Estado: false);
+  //       final bool entradaUpdated =
+  //           await _entradasController.editEntrada(entradaEdit);
+  //       if (!entradaUpdated) throw Exception('Error al actualizar entrada');
 
-        // Acumular cantidades a restar por producto
-        final int? productoId = entradaItem.idProducto;
-        if (productoId != null) {
-          productosARestar.update(productoId,
-              (value) => value + (entradaItem.entrada_Unidades ?? 0),
-              ifAbsent: () => entradaItem.entrada_Unidades ?? 0);
-        }
-      }
+  //       // Acumular cantidades a restar por producto
+  //       final int? productoId = entradaItem.idProducto;
+  //       if (productoId != null) {
+  //         productosARestar.update(productoId,
+  //             (value) => value + (entradaItem.entrada_Unidades ?? 0),
+  //             ifAbsent: () => entradaItem.entrada_Unidades ?? 0);
+  //       }
+  //     }
 
-      // Actualizar productos
-      for (var entry in productosARestar.entries) {
-        final Productos? producto = _productosCache[entry.key];
-        if (producto != null) {
-          final double nuevaExistencia =
-              (producto.prodExistencia ?? 0) - entry.value;
-          final Productos productoEdit =
-              producto.copyWith(prodExistencia: nuevaExistencia);
-          await _productosController.editProducto(productoEdit);
-        }
-      }
+  //     // Actualizar productos
+  //     for (var entry in productosARestar.entries) {
+  //       final Productos? producto = _productosCache[entry.key];
+  //       if (producto != null) {
+  //         final double nuevaExistencia =
+  //             (producto.prodExistencia ?? 0) - entry.value;
+  //         final Productos productoEdit =
+  //             producto.copyWith(prodExistencia: nuevaExistencia);
+  //         await _productosController.editProducto(productoEdit);
+  //       }
+  //     }
 
-      showOk(context,
-          'Todas las entradas del folio ${entrada.entrada_CodFolio} han sido canceladas.');
-      await _loadData();
-    } catch (e) {
-      showError(context, 'Error durante el proceso de cancelación: $e');
-    } finally {
-      setState(() {
-        _isLoadingCancel = false;
-      });
-    }
-  }
+  //     showOk(context,
+  //         'Todas las entradas del folio ${entrada.entrada_CodFolio} han sido canceladas.');
+  //     await _loadData();
+  //   } catch (e) {
+  //     showError(context, 'Error durante el proceso de cancelación: $e');
+  //   } finally {
+  //     setState(() {
+  //       _isLoadingCancel = false;
+  //     });
+  //   }
+  // }
 }
