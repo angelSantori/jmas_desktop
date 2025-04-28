@@ -76,6 +76,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = widget.userRole == "Admin";
+    final isGestion = widget.userRole == "Gestion";
 
     return Scaffold(
       appBar: AppBar(
@@ -213,7 +214,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                         ],
                                       ),
                                     ),
-                                    if (isAdmin)
+                                    if (isAdmin || isGestion)
                                       IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),

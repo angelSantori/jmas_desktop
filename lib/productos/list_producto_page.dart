@@ -227,6 +227,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = widget.userRole == "Admin";
+    final isGestion = widget.userRole == "Gestion";
 
     return Scaffold(
       appBar: AppBar(
@@ -426,7 +427,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                           ],
                                         ),
                                       ),
-                                      if (isAdmin)
+                                      if (isAdmin || isGestion)
                                         Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [

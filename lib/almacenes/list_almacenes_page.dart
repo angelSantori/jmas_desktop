@@ -59,6 +59,7 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = widget.userRole == "Admin";
+    final isGestion = widget.userRole == "Gestion";
 
     return Scaffold(
       appBar: AppBar(
@@ -154,7 +155,7 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                                       ),
                                     ),
                                     //Espacio para editar
-                                    if (isAdmin)
+                                    if (isAdmin || isGestion)
                                       IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),

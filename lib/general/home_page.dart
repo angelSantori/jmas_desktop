@@ -26,6 +26,7 @@ import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 
+//TODO:  Tablas Nuevas: Calles y Colonias
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -178,6 +179,7 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     final isAdmin = userRole == "Admin";
+    final isGestion = userRole == "Gestion";
 
     return Scaffold(
       body: Row(
@@ -288,7 +290,7 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listProducto'),
                                   ),
-                                  if (isAdmin)
+                                  if (isAdmin || isGestion)
                                     CustomListTile(
                                       title: 'Agregar Producto',
                                       icon: SvgPicture.asset(
@@ -317,7 +319,7 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listProveedores'),
                                   ),
-                                  if (isAdmin)
+                                  if (isAdmin || isGestion)
                                     CustomListTile(
                                       title: 'Agregar Proveedor',
                                       icon: const Icon(
@@ -348,7 +350,7 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listAlmacenes'),
                                   ),
-                                  if (isAdmin)
+                                  if (isAdmin || isGestion)
                                     CustomListTile(
                                       title: 'Agregar almacen',
                                       icon: const Icon(
@@ -378,7 +380,7 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listJuntas'),
                                   ),
-                                  if (isAdmin)
+                                  if (isAdmin || isGestion)
                                     CustomListTile(
                                       title: 'Agregar Junta',
                                       icon: const Icon(
@@ -511,22 +513,23 @@ class _HomePageState extends State<HomePage>
                           ),
 
                           //REportes
-                          CustomExpansionTile(
-                            title: 'Reportes',
-                            icon: const Icon(
-                              Icons.paste_rounded,
-                            ),
-                            children: [
-                              CustomListTile(
-                                title: 'CContable',
-                                icon: const Icon(
-                                  Icons.list,
-                                  color: Colors.white,
-                                ),
-                                onTap: () => _navigateTo('listCC'),
+                          if (isAdmin)
+                            CustomExpansionTile(
+                              title: 'Reportes',
+                              icon: const Icon(
+                                Icons.paste_rounded,
                               ),
-                            ],
-                          ),
+                              children: [
+                                CustomListTile(
+                                  title: 'CContable',
+                                  icon: const Icon(
+                                    Icons.list,
+                                    color: Colors.white,
+                                  ),
+                                  onTap: () => _navigateTo('listCC'),
+                                ),
+                              ],
+                            ),
 
                           if (isAdmin)
                             CustomExpansionTile(
