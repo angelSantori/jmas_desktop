@@ -4,14 +4,17 @@ import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
 import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
+import 'package:jmas_desktop/calles/add_calles_page.dart';
+import 'package:jmas_desktop/calles/list_calles_page.dart';
 import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
 import 'package:jmas_desktop/ccontables/list_ccontables_page.dart';
+import 'package:jmas_desktop/colonias/add_colonias_page.dart';
+import 'package:jmas_desktop/colonias/list_colonias_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
 import 'package:jmas_desktop/juntas/list_juntas_page.dart';
-//import 'package:jmas_desktop/lecturas/mapa_lecturas_page.dart';
 import 'package:jmas_desktop/padron/list_padron_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
@@ -116,6 +119,14 @@ class _HomePageState extends State<HomePage>
       //Juntas
       'listJuntas': () => ListJuntasPage(userRole: userRole),
       'addJunta': () => const AddJuntaPage(),
+
+      //Colonias
+      'listColonias': () => ListColoniasPage(userRole: userRole),
+      'addColonia': () => const AddColoniasPage(),
+
+      //Calles
+      'listCalles': () => ListCallesPage(userRole: userRole),
+      'addCalle': () => const AddCallesPage(),
 
       //Consulta universal
       'ConsultaU': () => const ConsultaUniversalPage(),
@@ -388,6 +399,62 @@ class _HomePageState extends State<HomePage>
                                         color: Colors.white,
                                       ),
                                       onTap: () => _navigateTo('addJunta'),
+                                    ),
+                                ],
+                              ),
+
+                              //Colonias
+                              SubCustomExpansionTile(
+                                title: 'Colonias',
+                                icon: const Icon(
+                                  Icons.map_rounded,
+                                  color: Colors.white,
+                                ),
+                                children: [
+                                  CustomListTile(
+                                    title: 'Lista Colonias',
+                                    icon: const Icon(
+                                      Icons.map_rounded,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () => _navigateTo('listColonias'),
+                                  ),
+                                  if (isAdmin || isGestion)
+                                    CustomListTile(
+                                      title: 'Agregar Colonia',
+                                      icon: const Icon(
+                                        Icons.public_rounded,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('addColonia'),
+                                    ),
+                                ],
+                              ),
+
+                              //Calles
+                              SubCustomExpansionTile(
+                                title: 'Calles',
+                                icon: const Icon(
+                                  Icons.stream,
+                                  color: Colors.white,
+                                ),
+                                children: [
+                                  CustomListTile(
+                                    title: 'Lista Calles',
+                                    icon: const Icon(
+                                      Icons.strikethrough_s_sharp,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () => _navigateTo('listCalles'),
+                                  ),
+                                  if (isAdmin || isGestion)
+                                    CustomListTile(
+                                      title: 'Agregar Calle',
+                                      icon: const Icon(
+                                        Icons.stacked_line_chart_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('addCalle'),
                                     ),
                                 ],
                               ),
