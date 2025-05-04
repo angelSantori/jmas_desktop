@@ -904,6 +904,7 @@ class BuscarProductoWidget extends StatefulWidget {
   final Function(Productos?) onProductoSeleccionado;
   final Function(String) onAdvertencia;
   final CapturainviniController capturainviniController;
+  final VoidCallback? onEnterPressed;
 
   const BuscarProductoWidget({
     Key? key,
@@ -914,6 +915,7 @@ class BuscarProductoWidget extends StatefulWidget {
     required this.onProductoSeleccionado,
     required this.onAdvertencia,
     required this.capturainviniController,
+    this.onEnterPressed,
   }) : super(key: key);
 
   @override
@@ -1103,44 +1105,49 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
             // Campo para ID del Producto
             SizedBox(
               width: 160,
-              child: CustomTextFielTexto(
+              child: CustomTextFieldNumero(
                 controller: widget.idProductoController,
                 prefixIcon: Icons.search,
                 labelText: 'Id Producto',
+                onFieldSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    _buscarProducto();
+                  }
+                },
               ),
             ),
             const SizedBox(width: 15),
 
             // Botón para buscar producto
-            ValueListenableBuilder<bool>(
-              valueListenable: _isLoading,
-              builder: (context, isLoading, child) {
-                return ElevatedButton(
-                  onPressed: isLoading ? null : _buscarProducto,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isLoading ? Colors.grey : Colors.blue.shade900,
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Buscar producto',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                );
-              },
-            ),
-            const SizedBox(width: 15),
+            // ValueListenableBuilder<bool>(
+            //   valueListenable: _isLoading,
+            //   builder: (context, isLoading, child) {
+            //     return ElevatedButton(
+            //       onPressed: isLoading ? null : _buscarProducto,
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor:
+            //             isLoading ? Colors.grey : Colors.blue.shade900,
+            //       ),
+            //       child: isLoading
+            //           ? const SizedBox(
+            //               height: 16,
+            //               width: 16,
+            //               child: CircularProgressIndicator(
+            //                 strokeWidth: 2,
+            //                 color: Colors.white,
+            //               ),
+            //             )
+            //           : const Text(
+            //               'Buscar producto',
+            //               style: TextStyle(
+            //                 color: Colors.white,
+            //                 fontWeight: FontWeight.bold,
+            //               ),
+            //             ),
+            //     );
+            //   },
+            // ),
+            // const SizedBox(width: 15),
 
             // Información del Producto
             if (widget.selectedProducto != null)
@@ -1224,6 +1231,11 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                     controller: widget.cantidadController,
                     prefixIcon: Icons.numbers_outlined,
                     labelText: 'Cantidad',
+                    onFieldSubmitted: (value) {
+                      if (widget.selectedProducto != null && value.isNotEmpty) {
+                        widget.onEnterPressed?.call();
+                      }
+                    },
                   ),
                 ),
               ],
