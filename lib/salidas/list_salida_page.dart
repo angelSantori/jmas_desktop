@@ -99,7 +99,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     }
   }
 
-  //TODO: Filtros no funcionan
+  //TODO: Filtros no funcionan fecha
   void _filterSalidas() {
     final query = _searchController.text.trim().toLowerCase();
     setState(() {
@@ -110,23 +110,46 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final fechaString = salida.salida_Fecha;
         final fecha = fechaString != null ? parseDate(fechaString) : null;
 
-        if (fecha == null && (_startDate != null || _endDate != null)) {
-          return false;
+        // Normalize dates by ignoring time components for comparison
+        DateTime? normalizedFecha;
+        if (fecha != null) {
+          normalizedFecha = DateTime(fecha.year, fecha.month, fecha.day);
+        }
+
+        DateTime? normalizedStartDate;
+        if (_startDate != null) {
+          normalizedStartDate =
+              DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
+        }
+
+        DateTime? normalizedEndDate;
+        if (_endDate != null) {
+          normalizedEndDate =
+              DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
         }
 
         final matchesFolio = folio.contains(query);
-
         final matchesReferencia = referencia.contains(query);
-
         final matchesText = query.isEmpty || matchesFolio || matchesReferencia;
 
-        final matchesDate = fecha != null &&
-            (_startDate == null || !fecha.isBefore(_startDate!)) &&
-            (_endDate == null || !fecha.isAfter(_endDate!));
+        bool matchesDate = true;
+        if (normalizedFecha != null) {
+          if (normalizedStartDate != null) {
+            matchesDate = matchesDate &&
+                normalizedFecha.isAfter(
+                    normalizedStartDate.subtract(const Duration(days: 1)));
+          }
+          if (normalizedEndDate != null) {
+            matchesDate = matchesDate &&
+                normalizedFecha
+                    .isBefore(normalizedEndDate.add(const Duration(days: 1)));
+          }
+        } else if (_startDate != null || _endDate != null) {
+          matchesDate = false;
+        }
 
         final matchesJunta = _selectedJunta == null ||
             salida.id_Junta.toString() == _selectedJunta;
-
         final matchesAlmacen = _selectedAlmacen == null ||
             salida.id_Almacen.toString() == _selectedAlmacen;
 
