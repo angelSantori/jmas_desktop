@@ -365,6 +365,7 @@ class CustomTextFieldNumero extends StatefulWidget {
   final String labelText;
   final String? Function(String?)? validator;
   final IconData prefixIcon;
+  final void Function(String)? onFieldSubmitted;
 
   const CustomTextFieldNumero({
     Key? key,
@@ -372,6 +373,7 @@ class CustomTextFieldNumero extends StatefulWidget {
     required this.labelText,
     required this.prefixIcon,
     this.validator,
+    this.onFieldSubmitted,
   }) : super(key: key);
 
   @override
@@ -465,6 +467,7 @@ class _CustomTextFieldNumeroState extends State<CustomTextFieldNumero>
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
             ],
+            onFieldSubmitted: widget.onFieldSubmitted,
           ),
         ),
       ),
