@@ -37,7 +37,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
   final TextEditingController _fechaController = TextEditingController(
-      text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
+      text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
   final TextEditingController _referenciaController = TextEditingController();
 
   String? idUserReporte;
