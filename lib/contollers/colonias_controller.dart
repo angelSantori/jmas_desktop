@@ -35,6 +35,31 @@ class ColoniasController {
     }
   }
 
+  //GetByName
+  Future<List<Colonias>> coloniaByNombre(String nombreColonia) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Colonias/BuscarPorNombre?nombreColonia=$nombreColonia'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((colonia) => Colonias.fromMap(colonia)).toList();
+      } else {
+        print(
+            'Error al buscar coloniaByNombre | ByNombre | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al buscar Try | GetByName | Controller: $e');
+      return [];
+    }
+  }
+
   //Add
   Future<bool> addColonia(Colonias colonia) async {
     try {
