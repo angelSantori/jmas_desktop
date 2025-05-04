@@ -1494,11 +1494,11 @@ DateTime? parseDate(String dateString) {
   try {
     // Primero intenta con el formato que incluye mes/día/año hora:minuto:segundo
     final formats = [
-      'M/d/yyyy H:mm:ss', // Para formatos como 3/7/2025 11:31:11
-      'MM/dd/yyyy H:mm:ss', // Para formatos como 03/07/2025 11:31:11
-      'yyyy H:mm:ss', // Para formatos como 2025 10:43:41 (asumiendo que es hoy)
-      'M/d/yyyy', // Solo fecha
-      'MM/dd/yyyy', // Solo fecha con ceros
+      'dd/MM/yyyy HH:mm:ss',
+      'MM/dd/yyyy HH:mm:ss',
+      'MM/dd/yyyy HH:mm',
+      'dd/MM/yyyy HH:mm',
+      'dd/MM/yyyy',
     ];
 
     for (var format in formats) {
