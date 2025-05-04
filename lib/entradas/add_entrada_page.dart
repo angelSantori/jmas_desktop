@@ -519,34 +519,35 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                         onAdvertencia: (message) {
                           showAdvertence(context, message);
                         },
+                        onEnterPressed: _agregarProducto,
                       ),
 
                       const SizedBox(height: 20),
 
                       //Botón para agregar producto a la tabla
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _agregarProducto,
-                            icon: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade900,
-                            ),
-                            label: const Text(
-                              'Agregar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.end,
+                      //   children: [
+                      //     ElevatedButton.icon(
+                      //       onPressed: _agregarProducto,
+                      //       icon: const Icon(
+                      //         Icons.add,
+                      //         color: Colors.white,
+                      //       ),
+                      //       style: ElevatedButton.styleFrom(
+                      //         backgroundColor: Colors.blue.shade900,
+                      //       ),
+                      //       label: const Text(
+                      //         'Agregar',
+                      //         style: TextStyle(
+                      //           color: Colors.white,
+                      //           fontWeight: FontWeight.bold,
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      // const SizedBox(height: 20),
 
                       //Tabla productos agregados
                       buildProductosAgregados(
