@@ -239,6 +239,11 @@ class _BuscarProductoWidgetSalidaState
             controller: widget.idProductoController,
             prefixIcon: Icons.search,
             labelText: 'Id Producto',
+            onFieldSubmitted: (value) {
+              if (value.isNotEmpty) {
+                _buscarProducto();
+              }
+            },
           ),
         ),
         const SizedBox(width: 15),
@@ -420,11 +425,28 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
   List<Padron> _resultadosBusqueda = [];
   Timer? _debounce;
 
+  final FocusNode _busquedaFocusNode = FocusNode();
+  bool _showReults = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _busquedaFocusNode.addListener(_onFocusChange);
+  }
+
   @override
   void dispose() {
     _busquedaController.dispose();
     _debounce?.cancel();
+    _busquedaFocusNode.removeListener(_onFocusChange);
+    _busquedaFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (!_busquedaFocusNode.hasFocus) {
+      setState(() => _showReults = false);
+    }
   }
 
   Future<void> _buscarPadronXId() async {
@@ -471,10 +493,14 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
     _debounce = Timer(
       const Duration(milliseconds: 500),
       () {
-        if (query.length >= 3) {
+        if (query.isNotEmpty) {
+          setState(() => _showReults = true);
           _buscarPadron(query);
         } else {
-          setState(() => _resultadosBusqueda = []);
+          setState(() {
+            _resultadosBusqueda = [];
+            _showReults = false;
+          });
         }
       },
     );
@@ -485,6 +511,7 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
     widget.onPadronSeleccionado(padron);
     setState(() {
       _resultadosBusqueda = [];
+      _showReults = false;
       _busquedaController.clear();
     });
   }
@@ -505,7 +532,7 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
           ],
         ),
         // Resultados de búsqueda
-        if (_resultadosBusqueda.isNotEmpty)
+        if (_showReults && _resultadosBusqueda.isNotEmpty)
           Container(
             margin: const EdgeInsets.only(top: 5),
             decoration: BoxDecoration(
@@ -546,41 +573,46 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
                 controller: widget.idPadronController,
                 prefixIcon: Icons.search,
                 labelText: 'Id Padrón',
+                onFieldSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    _buscarPadronXId();
+                  }
+                },
               ),
             ),
             const SizedBox(width: 15),
 
             // Botón para buscar padrón
-            ValueListenableBuilder<bool>(
-              valueListenable: _isLoading,
-              builder: (context, isLoading, child) {
-                return ElevatedButton(
-                  onPressed: isLoading ? null : _buscarPadronXId,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isLoading
-                        ? Colors.grey
-                        : Colors
-                            .blue.shade900, // Cambiar color si está cargando
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'Buscar padrón',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                );
-              },
-            ),
+            // ValueListenableBuilder<bool>(
+            //   valueListenable: _isLoading,
+            //   builder: (context, isLoading, child) {
+            //     return ElevatedButton(
+            //       onPressed: isLoading ? null : _buscarPadronXId,
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: isLoading
+            //             ? Colors.grey
+            //             : Colors
+            //                 .blue.shade900, // Cambiar color si está cargando
+            //       ),
+            //       child: isLoading
+            //           ? const SizedBox(
+            //               height: 16,
+            //               width: 16,
+            //               child: CircularProgressIndicator(
+            //                 strokeWidth: 2,
+            //                 color: Colors.white,
+            //               ),
+            //             )
+            //           : const Text(
+            //               'Buscar padrón',
+            //               style: TextStyle(
+            //                 color: Colors.white,
+            //                 fontWeight: FontWeight.bold,
+            //               ),
+            //             ),
+            //     );
+            //   },
+            // ),
             const SizedBox(width: 15),
             // Información del Padrón
             if (widget.selectedPadron != null &&
