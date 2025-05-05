@@ -13,6 +13,8 @@ import 'package:jmas_desktop/colonias/list_colonias_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
+import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
+import 'package:jmas_desktop/herramientas/lsit_herrameintas_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
 import 'package:jmas_desktop/juntas/list_juntas_page.dart';
 import 'package:jmas_desktop/padron/list_padron_page.dart';
@@ -127,6 +129,10 @@ class _HomePageState extends State<HomePage>
       //Calles
       'listCalles': () => ListCallesPage(userRole: userRole),
       'addCalle': () => const AddCallesPage(),
+
+      //Herramientas
+      'listHerramientas': () => LsitHerrameintasPage(userRole: userRole),
+      'addHerramienta': () => const AddHerramientaPage(),
 
       //Consulta universal
       'ConsultaU': () => const ConsultaUniversalPage(),
@@ -311,6 +317,34 @@ class _HomePageState extends State<HomePage>
                                         color: Colors.white,
                                       ),
                                       onTap: () => _navigateTo('addProducto'),
+                                    ),
+                                ],
+                              ),
+
+                              //Herramientas
+                              SubCustomExpansionTile(
+                                title: 'Herraminetas',
+                                icon: const Icon(
+                                    Icons.settings_applications_rounded),
+                                children: [
+                                  CustomListTile(
+                                    title: 'Lista Herramientas',
+                                    icon: const Icon(
+                                      Icons.toys_outlined,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () =>
+                                        _navigateTo('listHerramientas'),
+                                  ),
+                                  if (isAdmin || isGestion)
+                                    CustomListTile(
+                                      title: 'Agregar Herramienta',
+                                      icon: const Icon(
+                                        Icons.texture,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () =>
+                                          _navigateTo('addHerramienta'),
                                     ),
                                 ],
                               ),
