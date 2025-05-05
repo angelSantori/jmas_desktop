@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/cancelado_salida_controller.dart';
+import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -18,6 +20,8 @@ class DetailsSalidaPage extends StatefulWidget {
   final Almacenes almacen;
   final Juntas junta;
   final Padron padron;
+  final Colonias colonia;
+  final Calles calle;
   final Users userAsignado;
   final String user;
 
@@ -30,6 +34,8 @@ class DetailsSalidaPage extends StatefulWidget {
     required this.padron,
     required this.userAsignado,
     required this.userRole,
+    required this.colonia,
+    required this.calle,
   });
 
   @override
@@ -264,45 +270,85 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
       appBar: AppBar(
         title: Text(
           'Detalles de salida: ${widget.salidas.first.salida_CodFolio}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
         ),
         centerTitle: true,
+        elevation: 2,
+        backgroundColor: Colors.blue.shade900,
+        foregroundColor: Colors.white,
       ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(color: Colors.blue.shade900))
           : Center(
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(20),
                 child: Card(
                   elevation: 4,
-                  color: const Color.fromARGB(255, 201, 230, 242),
+                  color: const Color.fromARGB(255, 210, 220, 224),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
-                  margin: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.all(100),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           'Referencia: ${widget.salidas.first.salida_Referencia}',
                           style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 10),
-                        Text('Almacen: ${widget.almacen.almacen_Nombre}'),
-                        Text('Junta: ${widget.junta.junta_Name}'),
-                        Text('Padron: ${widget.padron.padronNombre}'),
-                        Text('Realizado por: ${widget.user}'),
-                        Text('Asignado a: ${widget.userAsignado.user_Name}'),
-                        Text(
-                            'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo}'),
-                        Text('Fecha: ${widget.salidas.first.salida_Fecha}'),
+                        const SizedBox(height: 15),
+                        //Columnas
+
+                        //Columna 1
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                      'Almacen: ${widget.almacen.almacen_Nombre}'),
+                                  Text('Junta: ${widget.junta.junta_Name}'),
+                                  Text(
+                                      'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
+                                ],
+                              ),
+                            ),
+
+                            //Columna 2
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                      'Colonia: ${widget.colonia.idColonia} - ${widget.colonia.nombreColonia}'),
+                                  Text(
+                                      'Calle: ${widget.calle.idCalle} - ${widget.calle.calleNombre}'),
+                                  Text('Realizado por: ${widget.user}'),
+                                ],
+                              ),
+                            ),
+
+                            //Columna 3
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                      'Asignado a: ${widget.userAsignado.user_Name}'),
+                                  Text(
+                                      'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo}'),
+                                  Text(
+                                      'Fecha: ${widget.salidas.first.salida_Fecha}'),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 20),
                         Expanded(
                           child: FutureBuilder<Map<int, Productos>>(
