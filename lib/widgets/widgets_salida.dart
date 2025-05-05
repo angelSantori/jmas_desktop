@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
+import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/generales.dart';
 import 'package:pdf/pdf.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -520,6 +523,8 @@ class _BuscarPadronWidgetSalidaState extends State<BuscarPadronWidgetSalida> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        const DividerWithText(text: 'Selección de Padrón'),
+        const SizedBox(height: 20),
         Row(
           children: [
             Expanded(
@@ -677,6 +682,8 @@ Future<void> generateAndPrintPdfSalida({
   required Users userAsignado,
   required String tipoTrabajo,
   required Padron padron,
+  required Colonias colonia,
+  required Calles calle,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -820,6 +827,10 @@ Future<void> generateAndPrintPdfSalida({
                           pw.Text(
                               'Padron: ${padron.idPadron} - ${padron.padronNombre}',
                               style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                              'UserASignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
+                              style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
 
@@ -832,7 +843,11 @@ Future<void> generateAndPrintPdfSalida({
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text(
-                              'UserASignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
+                              'Colonia: ${colonia.idColonia} - ${colonia.nombreColonia}',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                              'Calle: ${calle.idCalle} - ${calle.calleNombre}',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
