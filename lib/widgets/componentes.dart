@@ -1094,7 +1094,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        DividerWithText(text: 'Selección de Productos'),
+        const DividerWithText(text: 'Selección de Productos'),
         const SizedBox(height: 20),
         _buildBuscadorPorNombre(),
         const SizedBox(height: 30),
@@ -1216,7 +1216,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                 flex: 2,
                 child: Text(
                   'No se ha buscado un producto.',
-                  style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                  style: TextStyle(fontSize: 14),
                 ),
               ),
             const SizedBox(width: 10),
@@ -1254,6 +1254,8 @@ Future<bool> validarCamposAntesDeImprimir(
     required TextEditingController referenciaController,
     required var selectedAlmacen,
     required var padron,
+    required var calle,
+    required var colonia,
     required var selectedTrabajo,
     required var selectedUser}) async {
   if (referenciaController.text.isEmpty) {
@@ -1273,6 +1275,16 @@ Future<bool> validarCamposAntesDeImprimir(
 
   if (selectedUser == null) {
     showAdvertence(context, 'Debe asignar un empleado.');
+    return false;
+  }
+
+  if (colonia.text.isEmpty) {
+    showAdvertence(context, 'Colonia es obligatoria.');
+    return false;
+  }
+
+  if (calle.text.isEmpty) {
+    showAdvertence(context, 'Calle es obligatoria.');
     return false;
   }
 
