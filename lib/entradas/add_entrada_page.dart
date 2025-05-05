@@ -348,7 +348,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         children: [
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(

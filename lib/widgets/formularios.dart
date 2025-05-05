@@ -705,7 +705,7 @@ class CustomListaDesplegableTipo<T> extends StatefulWidget {
   final String Function(T) itemLabelBuilder;
 
   const CustomListaDesplegableTipo({
-    Key? key,
+    super.key,
     required this.value,
     required this.labelText,
     required this.items,
@@ -713,7 +713,7 @@ class CustomListaDesplegableTipo<T> extends StatefulWidget {
     this.validator,
     this.icon = Icons.arrow_drop_down,
     required this.itemLabelBuilder,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomListaDesplegableTipo<T>> createState() =>
