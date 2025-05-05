@@ -146,7 +146,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     setState(() => _isLoading = true);
 
     try {
-      //TODO: Agregar en el back la cantidad
       //1. Registrar cancelación
       final cancelacion = CanceladoSalidas(
         idCanceladoSalida: 0,

@@ -31,7 +31,6 @@ import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 
-//TODO:  Tablas Nuevas: Calles y Colonias
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
