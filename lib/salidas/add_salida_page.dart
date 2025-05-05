@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
+import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
+import 'package:jmas_desktop/widgets/buscar_calle_widget.dart';
+import 'package:jmas_desktop/widgets/buscar_colonia_widget.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/generales.dart';
@@ -29,8 +33,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final JuntasController _juntasController = JuntasController();
   final AlmacenesController _almacenesController = AlmacenesController();
   final ProductosController _productosController = ProductosController();
+  final ColoniasController _coloniasController = ColoniasController();
+  final CallesController _callesController = CallesController();
   final UsersController _usersController = UsersController();
   final PadronController _padronController = PadronController();
+
   final CapturainviniController _capturainviniController =
       CapturainviniController();
 
@@ -39,9 +46,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final TextEditingController _referenciaController = TextEditingController();
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _idPadronController = TextEditingController();
+  final TextEditingController _idColoniaController = TextEditingController();
+  final TextEditingController _idCalleController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
   final TextEditingController _fechaController = TextEditingController(
-      text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
+      text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
 
   String? idUserReporte;
 
@@ -57,6 +66,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   // ignore: unused_field
   Juntas? _selectedJunta;
   Productos? _selectedProducto;
+  Colonias? _selectedColonia;
+  Calles? _selectedCalle;
   Users? _selectedUser;
   Padron? _selectedPadron;
 
@@ -311,6 +322,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       id_Almacen: _selectedAlmacen?.id_Almacen ?? 0, // Almacen
       id_User_Asignado: _selectedUser?.id_User,
       idPadron: _selectedPadron?.idPadron,
+      idCalle: _selectedCalle?.idCalle,
+      idColonia: _selectedColonia?.idColonia,
     );
   }
 
@@ -321,11 +334,16 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedAlmacen = null;
       _selectedJunta = null;
       _selectedProducto = null;
+      _selectedColonia = null;
+      _selectedCalle = null;
       _selectedPadron = null;
+  
       _selectedUser = null;
       _selectedTipoTrabajo = null;
       _referenciaController.clear();
       _idProductoController.clear();
+      _idColoniaController.clear();
+      _idCalleController.clear();
       _idPadronController.clear();
       _idPadronController.clear();
       _cantidadController.clear();
@@ -339,13 +357,14 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         children: [
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      const SizedBox(height: 40),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -366,7 +385,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       const SizedBox(height: 30),
 
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
+                          const SizedBox(width: 10),
                           Expanded(
                             child: CustomTextFielTexto(
                               controller: _referenciaController,
@@ -412,12 +435,17 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               },
                             ),
                           ),
+                          const SizedBox(width: 10),
                         ],
                       ),
                       const SizedBox(height: 30),
 
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
+                          const SizedBox(width: 10),
                           Expanded(
                             child: CustomListaDesplegableTipo(
                               value: _selectedAlmacen,
@@ -459,69 +487,130 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                   user.user_Name ?? 'Sin nombre',
                             ),
                           ),
+                          const SizedBox(width: 10),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(width: 10),
+                          //Colonia
+                          Expanded(
+                            child: BuscarColoniaWidget(
+                              idColoniaController: _idColoniaController,
+                              coloniasController: _coloniasController,
+                              selectedColonia: _selectedColonia,
+                              onColoniaSeleccionada: (colonia) {
+                                setState(() => _selectedColonia = colonia);
+                              },
+                              onAdvertencia: (message) {
+                                showAdvertence(context, message);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+
+                          //Calle
+                          Expanded(
+                            child: BuscarCalleWidget(
+                              idCalleController: _idCalleController,
+                              callesController: _callesController,
+                              selectedCalle: _selectedCalle,
+                              onCalleSeleccionada: (calle) {
+                                setState(() => _selectedCalle = calle);
+                              },
+                              onAdvertencia: (message) {
+                                showAdvertence(context, message);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: BuscarPadronWidgetSalida(
+                              idPadronController: _idPadronController,
+                              padronController: _padronController,
+                              selectedPadron: _selectedPadron,
+                              onPadronSeleccionado: (padron) {
+                                setState(() {
+                                  _selectedPadron = padron;
+                                });
+                              },
+                              onAdvertencia: (p0) {
+                                showAdvertence(context, p0);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
                         ],
                       ),
 
                       const SizedBox(height: 30),
-                      const DividerWithText(text: 'Selección de Padrón'),
-                      const SizedBox(height: 30),
 
-                      BuscarPadronWidgetSalida(
-                        idPadronController: _idPadronController,
-                        padronController: _padronController,
-                        selectedPadron: _selectedPadron,
-                        onPadronSeleccionado: (padron) {
-                          setState(() {
-                            _selectedPadron = padron;
-                          });
-                        },
-                        onAdvertencia: (p0) {
-                          showAdvertence(context, p0);
-                        },
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      BuscarProductoWidget(
-                        idProductoController: _idProductoController,
-                        cantidadController: _cantidadController,
-                        productosController: _productosController,
-                        capturainviniController: _capturainviniController,
-                        selectedProducto: _selectedProducto,
-                        onProductoSeleccionado: (producto) {
-                          setState(() => _selectedProducto = producto);
-                        },
-                        onAdvertencia: (message) {
-                          showAdvertence(context, message);
-                        },
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: BuscarProductoWidget(
+                              idProductoController: _idProductoController,
+                              cantidadController: _cantidadController,
+                              productosController: _productosController,
+                              capturainviniController: _capturainviniController,
+                              selectedProducto: _selectedProducto,
+                              onProductoSeleccionado: (producto) {
+                                setState(() => _selectedProducto = producto);
+                              },
+                              onAdvertencia: (message) {
+                                showAdvertence(context, message);
+                              },
+                              onEnterPressed: _agregarProducto,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                        ],
                       ),
 
                       const SizedBox(height: 10),
 
                       //Botón para agregar producto a la tabla
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _agregarProducto,
-                            icon: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                            ),
-                            label: const Text(
-                              'Agregar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade900,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.end,
+                      //   children: [
+                      //     ElevatedButton.icon(
+                      //       onPressed: _agregarProducto,
+                      //       icon: const Icon(
+                      //         Icons.add,
+                      //         color: Colors.white,
+                      //       ),
+                      //       label: const Text(
+                      //         'Agregar',
+                      //         style: TextStyle(
+                      //           color: Colors.white,
+                      //           fontWeight: FontWeight.bold,
+                      //         ),
+                      //       ),
+                      //       style: ElevatedButton.styleFrom(
+                      //         backgroundColor: Colors.blue.shade900,
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      // const SizedBox(height: 20),
 
                       //Tabla productos agregados
                       buildProductosAgregados(
@@ -554,6 +643,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           referenciaController:
                                               _referenciaController,
                                           padron: _idPadronController,
+                                          colonia: _idColoniaController,
+                                          calle: _idCalleController,
                                           selectedAlmacen: _selectedAlmacen,
                                           selectedUser: _selectedUser,
                                           selectedTrabajo: _selectedTipoTrabajo,
@@ -576,6 +667,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           userAsignado: _selectedUser!,
                                           tipoTrabajo: _selectedTipoTrabajo!,
                                           padron: _selectedPadron!,
+                                          colonia: _selectedColonia!,
+                                          calle: _selectedCalle!,
                                           productos: _productosAgregados,
                                         );
 
