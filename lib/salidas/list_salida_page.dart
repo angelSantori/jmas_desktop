@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/calles_controller.dart';
+import 'package:jmas_desktop/contollers/colonias_controller.dart';
 //import 'package:jmas_desktop/contollers/cancelado_salida_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
@@ -29,6 +31,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   final AlmacenesController _almacenesController = AlmacenesController();
   final UsersController _usersController = UsersController();
   final PadronController _padronController = PadronController();
+  final ColoniasController _coloniasController = ColoniasController();
+  final CallesController _callesController = CallesController();
 
   final TextEditingController _searchController = TextEditingController();
   List<Salidas> _allSalidas = [];
@@ -49,9 +53,13 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   List<Juntas> _juntas = [];
   List<Almacenes> _almacenes = [];
   List<Padron> _padrones = [];
+  List<Colonias> _colonias = [];
+  List<Calles> _calles = [];
   List<Users> _userAsignado = [];
 
   String? _selectedJunta;
+  String? _selectedColonia;
+  String? _selectedCalle;
   String? _selectedAlmacen;
 
   bool _isLoading = true;
@@ -72,6 +80,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final juntas = await _juntasController.listJuntas();
       final almacen = await _almacenesController.listAlmacenes();
       final padrones = await _padronController.listPadron();
+      final colonias = await _coloniasController.listColonias();
+      final calles = await _callesController.listCalles();
       final userAsignado = await _usersController.listUsers();
 
       setState(() {
@@ -87,6 +97,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _juntas = juntas;
         _almacenes = almacen;
         _padrones = padrones;
+        _colonias = colonias;
+        _calles = calles;
         _userAsignado = userAsignado;
 
         _isLoading = false;
@@ -99,7 +111,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     }
   }
 
-  //TODO: Filtros no funcionan fecha
   void _filterSalidas() {
     final query = _searchController.text.trim().toLowerCase();
     setState(() {
@@ -147,13 +158,28 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         } else if (_startDate != null || _endDate != null) {
           matchesDate = false;
         }
-
+        //Match Junta
         final matchesJunta = _selectedJunta == null ||
             salida.id_Junta.toString() == _selectedJunta;
+
+        //Match Almacen
         final matchesAlmacen = _selectedAlmacen == null ||
             salida.id_Almacen.toString() == _selectedAlmacen;
 
-        return matchesText && matchesDate && matchesJunta && matchesAlmacen;
+        //Match Colonia
+        final matchesColonia = _selectedColonia == null ||
+            salida.idColonia.toString() == _selectedColonia;
+
+        //Match Calle
+        final matchesCalle = _selectedCalle == null ||
+            salida.idCalle.toString() == _selectedCalle;
+
+        return matchesText &&
+            matchesDate &&
+            matchesJunta &&
+            matchesAlmacen &&
+            matchesColonia &&
+            matchesCalle;
       }).toList();
     });
   }
@@ -183,6 +209,20 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     });
   }
 
+  void _clearColoniaFilter() {
+    setState(() {
+      _selectedColonia = null;
+      _filterSalidas();
+    });
+  }
+
+  void _clearCalleFilter() {
+    setState(() {
+      _selectedCalle = null;
+      _filterSalidas();
+    });
+  }
+
   void _clearAlmacenFilter() {
     setState(() {
       _selectedAlmacen = null;
@@ -193,6 +233,13 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Lista de Salidas',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
@@ -205,6 +252,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
+                      const SizedBox(height: 20),
                       //Folio
                       Expanded(
                         child: CustomTextFielTexto(
@@ -252,6 +300,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     ],
                   ),
                 ),
+                //Listas desplegables
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
@@ -279,7 +328,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                           icon: const Icon(Icons.clear, color: Colors.red),
                           onPressed: _clearJuntaFilter,
                         ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 20),
 
                       //Almacenes
                       Expanded(
@@ -306,6 +355,57 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         IconButton(
                           icon: const Icon(Icons.clear, color: Colors.red),
                           onPressed: _clearAlmacenFilter,
+                        ),
+                      const SizedBox(width: 20),
+
+                      //Colonias
+                      Expanded(
+                        child: CustomListaDesplegableTipo<Colonias>(
+                          value: _selectedColonia != null
+                              ? _colonias.firstWhere((colonia) =>
+                                  colonia.idColonia.toString() ==
+                                  _selectedColonia)
+                              : null,
+                          labelText: 'Seleccionar Colonia',
+                          items: _colonias,
+                          onChanged: (Colonias? newValue) {
+                            setState(() {
+                              _selectedColonia = newValue?.idColonia.toString();
+                            });
+                            _filterSalidas();
+                          },
+                          itemLabelBuilder: (colonia) =>
+                              colonia.nombreColonia ?? 'Desconocido',
+                        ),
+                      ),
+                      if (_selectedColonia != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: _clearColoniaFilter,
+                        ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: CustomListaDesplegableTipo<Calles>(
+                          value: _selectedCalle != null
+                              ? _calles.firstWhere((calle) =>
+                                  calle.idCalle.toString() == _selectedCalle)
+                              : null,
+                          labelText: 'Seleccionar Calle',
+                          items: _calles,
+                          onChanged: (Calles? newValue) {
+                            setState(() {
+                              _selectedCalle = newValue?.idCalle.toString();
+                            });
+                            _filterSalidas();
+                          },
+                          itemLabelBuilder: (calle) =>
+                              calle.calleNombre ?? 'Desconocido',
+                        ),
+                      ),
+                      if (_selectedCalle != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: _clearCalleFilter,
                         ),
                     ],
                   ),
@@ -399,6 +499,17 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 orElse: () => Padron(idPadron: 0, padronNombre: 'Desconocido'),
               );
 
+              final colonia = _colonias.firstWhere(
+                (colonia) => colonia.idColonia == salida.idColonia,
+                orElse: () =>
+                    Colonias(idColonia: 0, nombreColonia: 'Desconocido'),
+              );
+
+              final calle = _calles.firstWhere(
+                (calles) => calles.idCalle == salida.idCalle,
+                orElse: () => Calles(idCalle: 0, calleNombre: 'Desconocida'),
+              );
+
               final userAsig = _userAsignado.firstWhere(
                 (uas) => uas.id_User == salida.id_User_Asignado,
                 orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
@@ -412,6 +523,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     almacen: almacen,
                     junta: junta,
                     padron: padron,
+                    calle: calle,
+                    colonia: colonia,
                     user: user!.user_Name!,
                     userAsignado: userAsig,
                     userRole: widget.userRole!,
