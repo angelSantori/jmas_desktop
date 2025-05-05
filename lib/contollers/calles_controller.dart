@@ -33,6 +33,59 @@ class CallesController {
     }
   }
 
+  //GetXId
+  Future<Calles?> getCalleXId(int idCalle) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Calles/$idCalle'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            json.decode(response.body) as Map<String, dynamic>;
+        return Calles.fromMap(jsonData);
+      } else if (response.statusCode == 404) {
+        print('Calle no encontrada con ID: $idCalle | Ife | Controller');
+        return null;
+      } else {
+        print(
+            'Error getValleXID | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error getCalleXID | Try | Controller: $e');
+      return null;
+    }
+  }
+
+  //GetByName
+  Future<List<Calles>> calleXNombre(String nombreCalle) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Calles/BuscarPorNombre?nombreCalle=$nombreCalle'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((calle) => Calles.fromMap(calle)).toList();
+      } else {
+        print(
+            'Error calleXNombre | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error calleXNombre | Try | Controller: $e');
+      return [];
+    }
+  }
+
   //Add
   Future<bool> addCalles(Calles calle) async {
     try {
