@@ -35,6 +35,33 @@ class ColoniasController {
     }
   }
 
+  //GetXId
+  Future<Colonias?> getColoniaXId(int idColonia) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Colonias/$idColonia'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            json.decode(response.body) as Map<String, dynamic>;
+        return Colonias.fromMap(jsonData);
+      } else if (response.statusCode == 404) {
+        print('Colonia no encontrada con ID: $idColonia | Ife | Controller');
+        return null;
+      } else {
+        print(
+            'Error get colonia x id | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error get colonia x id | Try | Controller por ID: $e');
+      return null;
+    }
+  }
+
   //GetByName
   Future<List<Colonias>> coloniaByNombre(String nombreColonia) async {
     try {
