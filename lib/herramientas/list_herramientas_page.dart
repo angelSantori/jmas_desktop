@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/herramientas_controller.dart';
 import 'package:jmas_desktop/herramientas/edit_herramienta_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
-class LsitHerrameintasPage extends StatefulWidget {
-  final String? userRole;
-  const LsitHerrameintasPage({super.key, this.userRole});
+class ListHerramientasPage extends StatefulWidget {
+  const ListHerramientasPage({super.key});
 
   @override
-  State<LsitHerrameintasPage> createState() => _LsitHerrameintasPageState();
+  State<ListHerramientasPage> createState() => _ListHerramientasPageState();
 }
 
-class _LsitHerrameintasPageState extends State<LsitHerrameintasPage> {
+class _ListHerramientasPageState extends State<ListHerramientasPage> {
   final HerramientasController _herramientasController =
       HerramientasController();
   final TextEditingController _searchController = TextEditingController();
@@ -39,7 +39,7 @@ class _LsitHerrameintasPageState extends State<LsitHerrameintasPage> {
     setState(() => _isLoading = true);
 
     try {
-      final herramientas = await _herramientasController.lsitHtas();
+      final herramientas = await _herramientasController.listHtas();
 
       setState(() {
         _allHtas = herramientas;
@@ -90,9 +90,6 @@ class _LsitHerrameintasPageState extends State<LsitHerrameintasPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
-    final isGestion = widget.userRole == "Gestion";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Herramientas'),
@@ -243,8 +240,9 @@ class _LsitHerrameintasPageState extends State<LsitHerrameintasPage> {
                                         ],
                                       ),
                                     ),
-                                    if (isAdmin || isGestion)
-                                      IconButton(
+                                    PermissionWidget(
+                                      permission: 'edit',
+                                      child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
@@ -272,6 +270,7 @@ class _LsitHerrameintasPageState extends State<LsitHerrameintasPage> {
                                           }
                                         },
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),
