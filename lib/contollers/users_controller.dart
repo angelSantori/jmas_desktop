@@ -1,7 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:jmas_desktop/contollers/role_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -101,8 +104,10 @@ class UsersController {
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
         final token = data['token'] as String;
+        final userData = data['user'] as Map<String, dynamic>;
 
         await _authService.saveToken(token);
+        await _authService.saveUserData(Users.fromMap(userData));
 
         return true;
       } else if (response.statusCode == 401) {
@@ -155,6 +160,8 @@ class Users {
   String? user_Access;
   String? user_Password;
   String? user_Rol;
+  final int? idRole;
+  final Role? role;
   Users({
     this.id_User,
     this.user_Name,
@@ -162,6 +169,8 @@ class Users {
     this.user_Access,
     this.user_Password,
     this.user_Rol,
+    this.idRole,
+    this.role,
   });
 
   Users copyWith({
@@ -171,6 +180,8 @@ class Users {
     String? user_Access,
     String? user_Password,
     String? user_Rol,
+    int? idRole,
+    Role? role,
   }) {
     return Users(
       id_User: id_User ?? this.id_User,
@@ -179,6 +190,8 @@ class Users {
       user_Access: user_Access ?? this.user_Access,
       user_Password: user_Password ?? this.user_Password,
       user_Rol: user_Rol ?? this.user_Rol,
+      idRole: idRole ?? this.idRole,
+      role: role ?? this.role,
     );
   }
 
@@ -190,6 +203,8 @@ class Users {
       'user_Access': user_Access,
       'user_Password': user_Password,
       'user_Rol': user_Rol,
+      'idRole': idRole,
+      'role': role?.toMap(),
     };
   }
 
@@ -204,6 +219,10 @@ class Users {
       user_Password:
           map['user_Password'] != null ? map['user_Password'] as String : null,
       user_Rol: map['user_Rol'] != null ? map['user_Rol'] as String : null,
+      idRole: map['idRole'] != null ? map['idRole'] as int : null,
+      role: map['role'] != null
+          ? Role.fromMap(map['role'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -214,7 +233,7 @@ class Users {
 
   @override
   String toString() {
-    return 'Users(id_User: $id_User, user_Name: $user_Name, user_Contacto: $user_Contacto, user_Access: $user_Access, user_Password: $user_Password, user_Rol: $user_Rol)';
+    return 'Users(id_User: $id_User, user_Name: $user_Name, user_Contacto: $user_Contacto, user_Access: $user_Access, user_Password: $user_Password, user_Rol: $user_Rol, idRole: $idRole, role: $role)';
   }
 
   @override
@@ -226,7 +245,9 @@ class Users {
         other.user_Contacto == user_Contacto &&
         other.user_Access == user_Access &&
         other.user_Password == user_Password &&
-        other.user_Rol == user_Rol;
+        other.user_Rol == user_Rol &&
+        other.idRole == idRole &&
+        other.role == role;
   }
 
   @override
@@ -236,6 +257,8 @@ class Users {
         user_Contacto.hashCode ^
         user_Access.hashCode ^
         user_Password.hashCode ^
-        user_Rol.hashCode;
+        user_Rol.hashCode ^
+        idRole.hashCode ^
+        role.hashCode;
   }
 }

@@ -924,7 +924,8 @@ class BuscarProductoWidget extends StatefulWidget {
 
 class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
-  double? _invIniConteo;
+  //double? _invIniConteo;
+  double? _existencia;
   final TextEditingController _nombreProducto = TextEditingController();
   List<Productos> _productosSugeridos = [];
   Timer? _debounce;
@@ -960,15 +961,24 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
             await widget.productosController.getProductoById(int.parse(id));
         if (producto != null) {
           // Buscar el valor de invIniConteo para el producto
-          final capturaList =
-              await widget.capturainviniController.listCapturaI();
-          final captura = capturaList.firstWhere(
-            (captura) => captura.id_Producto == producto.id_Producto,
-            orElse: () => Capturainvini(invIniConteo: null),
+          //final capturaList = await widget.capturainviniController.listCapturaI();
+          final existenciaList =
+              await widget.productosController.listProductos();
+
+          // final captura = capturaList.firstWhere(
+          //   (captura) => captura.id_Producto == producto.id_Producto,
+          //   orElse: () => Capturainvini(invIniConteo: null),
+          // );
+          final existencia = existenciaList.firstWhere(
+            (element) => element.id_Producto == producto.id_Producto,
+            orElse: () => Productos(prodExistencia: null),
           );
 
+          // setState(() {
+          //   _invIniConteo = captura.invIniConteo; // Almacenar el valor
+          // });
           setState(() {
-            _invIniConteo = captura.invIniConteo; // Almacenar el valor
+            _existencia = existencia.prodExistencia;
           });
 
           widget.onProductoSeleccionado(producto);
@@ -1021,14 +1031,20 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
 
   Future<void> _getInventarioInicial(Productos producto) async {
     try {
-      final captuaList = await widget.capturainviniController.listCapturaI();
-      final captura = captuaList.firstWhere(
-        (captura) => captura.id_Producto == producto.id_Producto,
-        orElse: () => Capturainvini(invIniConteo: null),
+      //final captuaList = await widget.capturainviniController.listCapturaI();
+      final existenciaList = await widget.productosController.listProductos();
+      // final captura = captuaList.firstWhere(
+      //   (captura) => captura.id_Producto == producto.id_Producto,
+      //   orElse: () => Capturainvini(invIniConteo: null),
+      // );
+      final captura = existenciaList.firstWhere(
+        (element) => element.id_Producto == producto.id_Producto,
+        orElse: () => Productos(prodExistencia: null),
       );
-      setState(() => _invIniConteo = captura.invIniConteo);
+      //setState(() => _invIniConteo = captura.invIniConteo);
+      setState(() => _existencia = captura.prodExistencia);
     } catch (e) {
-      widget.onAdvertencia('Error al obtener inventario inicial: $e');
+      widget.onAdvertencia('Error al obtener existencia: $e');
     }
   }
 
@@ -1175,7 +1191,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            'Existencia: ${_invIniConteo ?? 'No disponible'}',
+                            'Existencia: ${_existencia ?? 'No disponible'}',
                             style: const TextStyle(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
