@@ -8,7 +8,7 @@ class HerramientasController {
   static List<Herramientas>? cacheHerramientas;
 
   //List
-  Future<List<Herramientas>> lsitHtas() async {
+  Future<List<Herramientas>> listHtas() async {
     if (cacheHerramientas != null) return cacheHerramientas!;
 
     try {

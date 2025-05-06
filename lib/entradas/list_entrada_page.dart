@@ -175,6 +175,9 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lista de Entradas'),
+      ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(
@@ -187,6 +190,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
+                      const SizedBox(height: 20),
                       Expanded(
                         child: CustomTextFielTexto(
                           controller: _searchController,
@@ -458,6 +462,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                           style: const TextStyle(
                             fontSize: 15,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 10),
                         Text(

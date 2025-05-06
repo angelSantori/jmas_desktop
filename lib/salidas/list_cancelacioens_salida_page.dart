@@ -5,6 +5,8 @@ import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 
+//TODO: sumar en capturainvini
+
 class ListCancelacioensSalidaPage extends StatefulWidget {
   const ListCancelacioensSalidaPage({super.key});
 
@@ -100,6 +102,9 @@ class _ListCancelacioensSalidaPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lista de salidas canceladas'),
+      ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(color: Colors.blue.shade900))

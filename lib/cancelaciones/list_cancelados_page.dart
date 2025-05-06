@@ -5,6 +5,7 @@ import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 
+//TODO: Restar devolución de capturainvini
 class ListCanceladosPage extends StatefulWidget {
   const ListCanceladosPage({super.key});
 
@@ -95,6 +96,9 @@ class _ListCanceladosPageState extends State<ListCanceladosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lista de entradas canceladas'),
+      ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(color: Colors.blue.shade900),
@@ -105,6 +109,7 @@ class _ListCanceladosPageState extends State<ListCanceladosPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
+                      const SizedBox(height: 20),
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _selectDateRange(context),
