@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/almacenes/edit_almacen_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class ListAlmacenesPage extends StatefulWidget {
-  final String? userRole;
-  const ListAlmacenesPage({super.key, this.userRole});
+  const ListAlmacenesPage({super.key});
 
   @override
   State<ListAlmacenesPage> createState() => _ListAlmacenesPageState();
@@ -58,9 +58,6 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
-    final isGestion = widget.userRole == "Gestion";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Almacenes'),
@@ -155,8 +152,9 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                                       ),
                                     ),
                                     //Espacio para editar
-                                    if (isAdmin || isGestion)
-                                      IconButton(
+                                    PermissionWidget(
+                                      permission: 'edit',
+                                      child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
@@ -183,6 +181,7 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                                           }
                                         },
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),

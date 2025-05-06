@@ -9,10 +9,10 @@ import 'package:jmas_desktop/productos/edit_producto_page.dart';
 import 'package:jmas_desktop/widgets/excel_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class ListProductoPage extends StatefulWidget {
-  final String? userRole;
-  const ListProductoPage({super.key, required this.userRole});
+  const ListProductoPage({super.key});
 
   @override
   State<ListProductoPage> createState() => _ListProductoPageState();
@@ -226,9 +226,6 @@ class _ListProductoPageState extends State<ListProductoPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
-    final isGestion = widget.userRole == "Gestion";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de productos'),
@@ -427,8 +424,9 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                           ],
                                         ),
                                       ),
-                                      if (isAdmin || isGestion)
-                                        Row(
+                                      PermissionWidget(
+                                        permission: 'edit',
+                                        child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             IconButton(
@@ -454,6 +452,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                             ),
                                           ],
                                         ),
+                                      ),
                                     ],
                                   ),
                                 ),

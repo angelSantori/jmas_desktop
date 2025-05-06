@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 
-class ListPadronPage extends StatefulWidget {
-  final String? userRole;
-  const ListPadronPage({super.key, this.userRole});
+class ListPadronPage extends StatefulWidget {  
+  const ListPadronPage({super.key});
 
   @override
   State<ListPadronPage> createState() => _ListPadronPageState();

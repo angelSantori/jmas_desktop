@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/calles/edit_calles_page.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class ListCallesPage extends StatefulWidget {
-  final String? userRole;
-  const ListCallesPage({super.key, this.userRole});
+  const ListCallesPage({super.key});
 
   @override
   State<ListCallesPage> createState() => _ListCallesPageState();
@@ -59,9 +59,6 @@ class _ListCallesPageState extends State<ListCallesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
-    final isGestion = widget.userRole == "Gestion";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista Calles'),
@@ -155,8 +152,9 @@ class _ListCallesPageState extends State<ListCallesPage> {
                                         ],
                                       ),
                                     ),
-                                    if (isAdmin || isGestion)
-                                      IconButton(
+                                    PermissionWidget(
+                                      permission: 'edit',
+                                      child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
@@ -182,6 +180,7 @@ class _ListCallesPageState extends State<ListCallesPage> {
                                           }
                                         },
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),

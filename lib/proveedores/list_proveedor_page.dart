@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/proveedores/edit_proveedor_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class ListProveedorPage extends StatefulWidget {
-  final String? userRole;
-  const ListProveedorPage({super.key, this.userRole});
+  const ListProveedorPage({super.key});
 
   @override
   State<ListProveedorPage> createState() => _ListProveedorPageState();
@@ -62,9 +62,6 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
-    final isGestion = widget.userRole == "Gestion";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Proveedores'),
@@ -203,8 +200,9 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                                       ),
                                     ),
                                     // Botón de editar (solo para admin)
-                                    if (isAdmin || isGestion)
-                                      IconButton(
+                                    PermissionWidget(
+                                      permission: 'edit',
+                                      child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
@@ -231,6 +229,7 @@ class _ListProveedorPageState extends State<ListProveedorPage> {
                                           }
                                         },
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),

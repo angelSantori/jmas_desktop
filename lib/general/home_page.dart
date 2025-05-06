@@ -14,7 +14,7 @@ import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
-import 'package:jmas_desktop/herramientas/lsit_herrameintas_page.dart';
+import 'package:jmas_desktop/herramientas/list_herramientas_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
 import 'package:jmas_desktop/juntas/list_juntas_page.dart';
 import 'package:jmas_desktop/padron/list_padron_page.dart';
@@ -22,6 +22,8 @@ import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
 import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
+import 'package:jmas_desktop/roles/add_role_page.dart';
+import 'package:jmas_desktop/roles/admin_role_page.dart';
 import 'package:jmas_desktop/salidas/add_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_cancelacioens_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_salida_page.dart';
@@ -30,6 +32,7 @@ import 'package:jmas_desktop/universal/consulta_universal_page.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -93,11 +96,13 @@ class _HomePageState extends State<HomePage>
     return {
       //Productos
       'addProducto': () => const AddProductoPage(),
-      'listProducto': () => ListProductoPage(userRole: userRole),
+      'listProducto': () => const ListProductoPage(),
 
       //Users
       'addUser': () => const AddUserPage(),
       'listUser': () => const ListUserPage(),
+      'adminRole': () => const AdminRolePage(),
+      'addRole': () => const AddRolePage(),
 
       //Entradas
       'addEntrada': () => AddEntradaPage(userName: userName, idUser: idUser),
@@ -105,7 +110,7 @@ class _HomePageState extends State<HomePage>
       'listCancelados': () => const ListCanceladosPage(),
 
       //Proveedores
-      'listProveedores': () => ListProveedorPage(userRole: userRole),
+      'listProveedores': () => const ListProveedorPage(),
       'addProveedores': () => const AddProveedorPage(),
 
       //Salidas
@@ -114,23 +119,23 @@ class _HomePageState extends State<HomePage>
       'listCanceladosSalida': () => const ListCancelacioensSalidaPage(),
 
       //Alamcen
-      'listAlmacenes': () => ListAlmacenesPage(userRole: userRole),
+      'listAlmacenes': () => const ListAlmacenesPage(),
       'addAlmacenes': () => const AddAlmacenPage(),
 
       //Juntas
-      'listJuntas': () => ListJuntasPage(userRole: userRole),
+      'listJuntas': () => const ListJuntasPage(),
       'addJunta': () => const AddJuntaPage(),
 
       //Colonias
-      'listColonias': () => ListColoniasPage(userRole: userRole),
+      'listColonias': () => const ListColoniasPage(),
       'addColonia': () => const AddColoniasPage(),
 
       //Calles
-      'listCalles': () => ListCallesPage(userRole: userRole),
+      'listCalles': () => const ListCallesPage(),
       'addCalle': () => const AddCallesPage(),
 
       //Herramientas
-      'listHerramientas': () => LsitHerrameintasPage(userRole: userRole),
+      'listHerramientas': () => const ListHerramientasPage(),
       'addHerramienta': () => const AddHerramientaPage(),
 
       //Consulta universal
@@ -141,7 +146,7 @@ class _HomePageState extends State<HomePage>
       //'mapa': () => const MapaLecturasPage(),
       'addAjusteMas': () => const AddAjusteMasPage(),
       'addAjusteMenos': () => const AddAjusteMenosPage(),
-      'listPadron': () => ListPadronPage(userRole: userRole),
+      'listPadron': () => const ListPadronPage(),
       'listCC': () => const ListCcontablesPage(),
     };
   }
@@ -195,7 +200,6 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     final isAdmin = userRole == "Admin";
-    final isGestion = userRole == "Gestion";
 
     return Scaffold(
       body: Row(
@@ -306,8 +310,9 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listProducto'),
                                   ),
-                                  if (isAdmin || isGestion)
-                                    CustomListTile(
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
                                       title: 'Agregar Producto',
                                       icon: SvgPicture.asset(
                                         'assets/icons/addprod.svg',
@@ -317,6 +322,7 @@ class _HomePageState extends State<HomePage>
                                       ),
                                       onTap: () => _navigateTo('addProducto'),
                                     ),
+                                  ),
                                 ],
                               ),
 
@@ -335,8 +341,9 @@ class _HomePageState extends State<HomePage>
                                     onTap: () =>
                                         _navigateTo('listHerramientas'),
                                   ),
-                                  if (isAdmin || isGestion)
-                                    CustomListTile(
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
                                       title: 'Agregar Herramienta',
                                       icon: const Icon(
                                         Icons.texture,
@@ -345,6 +352,7 @@ class _HomePageState extends State<HomePage>
                                       onTap: () =>
                                           _navigateTo('addHerramienta'),
                                     ),
+                                  ),
                                 ],
                               ),
 
@@ -363,8 +371,9 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listProveedores'),
                                   ),
-                                  if (isAdmin || isGestion)
-                                    CustomListTile(
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
                                       title: 'Agregar Proveedor',
                                       icon: const Icon(
                                         Icons.person_add,
@@ -373,6 +382,7 @@ class _HomePageState extends State<HomePage>
                                       onTap: () =>
                                           _navigateTo('addProveedores'),
                                     ),
+                                  ),
                                 ],
                               ),
 
@@ -394,8 +404,9 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listAlmacenes'),
                                   ),
-                                  if (isAdmin || isGestion)
-                                    CustomListTile(
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
                                       title: 'Agregar almacen',
                                       icon: const Icon(
                                         Icons.add_business_rounded,
@@ -403,6 +414,7 @@ class _HomePageState extends State<HomePage>
                                       ),
                                       onTap: () => _navigateTo('addAlmacenes'),
                                     ),
+                                  ),
                                 ],
                               ),
 
@@ -424,8 +436,9 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listJuntas'),
                                   ),
-                                  if (isAdmin || isGestion)
-                                    CustomListTile(
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
                                       title: 'Agregar Junta',
                                       icon: const Icon(
                                         Icons.add_home_work_sharp,
@@ -433,6 +446,7 @@ class _HomePageState extends State<HomePage>
                                       ),
                                       onTap: () => _navigateTo('addJunta'),
                                     ),
+                                  ),
                                 ],
                               ),
 
@@ -452,8 +466,9 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listColonias'),
                                   ),
-                                  if (isAdmin || isGestion)
-                                    CustomListTile(
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
                                       title: 'Agregar Colonia',
                                       icon: const Icon(
                                         Icons.public_rounded,
@@ -461,6 +476,7 @@ class _HomePageState extends State<HomePage>
                                       ),
                                       onTap: () => _navigateTo('addColonia'),
                                     ),
+                                  ),
                                 ],
                               ),
 
@@ -480,8 +496,9 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () => _navigateTo('listCalles'),
                                   ),
-                                  if (isAdmin || isGestion)
-                                    CustomListTile(
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
                                       title: 'Agregar Calle',
                                       icon: const Icon(
                                         Icons.stacked_line_chart_outlined,
@@ -489,6 +506,7 @@ class _HomePageState extends State<HomePage>
                                       ),
                                       onTap: () => _navigateTo('addCalle'),
                                     ),
+                                  ),
                                 ],
                               ),
 
@@ -631,8 +649,9 @@ class _HomePageState extends State<HomePage>
                               ],
                             ),
 
-                          if (isAdmin)
-                            CustomExpansionTile(
+                          PermissionWidget(
+                            permission: 'manage_users',
+                            child: CustomExpansionTile(
                               title: 'Configuración',
                               icon: const Icon(Icons.settings),
                               children: [
@@ -660,10 +679,33 @@ class _HomePageState extends State<HomePage>
                                       ),
                                       onTap: () => _navigateTo('addUser'),
                                     ),
+                                    PermissionWidget(
+                                      permission: 'manage_roles',
+                                      child: CustomListTile(
+                                        title: 'Admin Roles',
+                                        icon: const Icon(
+                                          Icons.rocket_launch_sharp,
+                                          color: Colors.white,
+                                        ),
+                                        onTap: () => _navigateTo('adminRole'),
+                                      ),
+                                    ),
+                                    PermissionWidget(
+                                      permission: 'manage_roles',
+                                      child: CustomListTile(
+                                        title: 'Agregar Rol',
+                                        icon: const Icon(
+                                          Icons.plus_one,
+                                          color: Colors.white,
+                                        ),
+                                        onTap: () => _navigateTo('addRole'),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
                             ),
+                          ),
                         ],
                       ),
                     ),

@@ -3,10 +3,10 @@ import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/juntas/edit_junta_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
-class ListJuntasPage extends StatefulWidget {
-  final String? userRole;
-  const ListJuntasPage({super.key, this.userRole});
+class ListJuntasPage extends StatefulWidget {  
+  const ListJuntasPage({super.key});
 
   @override
   State<ListJuntasPage> createState() => _ListJuntasPageState();
@@ -75,9 +75,6 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
-    final isGestion = widget.userRole == "Gestion";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Juntas'),
@@ -214,8 +211,9 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                         ],
                                       ),
                                     ),
-                                    if (isAdmin || isGestion)
-                                      IconButton(
+                                    PermissionWidget(
+                                      permission: 'edit',
+                                      child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
@@ -241,6 +239,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                           }
                                         },
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),

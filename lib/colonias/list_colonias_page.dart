@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/colonias/edit_colonias_page.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class ListColoniasPage extends StatefulWidget {
-  final String? userRole;
-  const ListColoniasPage({super.key, this.userRole});
+  const ListColoniasPage({super.key});
 
   @override
   State<ListColoniasPage> createState() => _ListColoniasPageState();
@@ -61,9 +61,6 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = widget.userRole == "Admin";
-    final isGestion = widget.userRole == "Gestion";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Colonias'),
@@ -156,8 +153,9 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
                                         ],
                                       ),
                                     ),
-                                    if (isAdmin || isGestion)
-                                      IconButton(
+                                    PermissionWidget(
+                                      permission: 'edit',
+                                      child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
@@ -184,6 +182,7 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
                                           }
                                         },
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),
