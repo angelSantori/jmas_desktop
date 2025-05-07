@@ -177,11 +177,19 @@ class _HomePageState extends State<HomePage>
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () {
-                _authService.deleteToken();
-                Navigator.pushReplacement(
+              onPressed: () async {
+                //1. Cerrar el diálogo
+                Navigator.of(context).pop();
+
+                //2. Limpiar datos de autenticación
+                await _authService.clearAuthData();
+                await _authService.deleteToken();
+
+                //3. Navegar al login limpiando toda la pila
+                Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (Route<dynamic> route) => false,
                 );
               },
               child: const Text(
