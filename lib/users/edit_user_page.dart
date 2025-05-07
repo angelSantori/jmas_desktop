@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jmas_desktop/contollers/role_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -23,14 +24,10 @@ class _EditUserPageState extends State<EditUserPage> {
   final TextEditingController _passwordConfirmController =
       TextEditingController();
 
-  String? _selectedRole;
-  final List<String> _roles = [
-    'Admin',
-    'Sistemas',
-    'Gestion',
-    'Electro',
-    'Empleado',
-  ];
+  //Roles
+  final RoleController _roleController = RoleController();
+  List<Role> _roles = [];
+  Role? _selectedRole;
 
   bool _isLoading = false;
 
@@ -45,7 +42,8 @@ class _EditUserPageState extends State<EditUserPage> {
         TextEditingController(text: widget.user.user_Contacto);
     _accessController = TextEditingController(text: widget.user.user_Access);
     _passwordController = TextEditingController();
-    _selectedRole = widget.user.user_Rol;
+
+    _loadRoles();
   }
 
   @override
@@ -55,6 +53,15 @@ class _EditUserPageState extends State<EditUserPage> {
     _accessController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadRoles() async {
+    final roles = await _roleController.listRole();
+    setState(() {
+      _roles = roles;
+      _selectedRole =
+          roles.firstWhere((rol) => rol.idRole == widget.user.idRole);
+    });
   }
 
   Future<void> _saveChanges() async {
@@ -76,7 +83,8 @@ class _EditUserPageState extends State<EditUserPage> {
         user_Name: _nameController.text,
         user_Contacto: _contactoController.text,
         user_Access: _accessController.text,
-        user_Rol: _selectedRole!,
+        user_Rol: _selectedRole!.roleNombre,
+        idRole: _selectedRole!.idRole,
       );
 
       final result = await _usersController.editUser(
@@ -173,25 +181,27 @@ class _EditUserPageState extends State<EditUserPage> {
                           ],
                         ),
                       ),
-
                       const SizedBox(width: 30),
 
+                      //Roles
                       Expanded(
-                        child: CustomListaDesplegable(
+                        child: CustomListaDesplegableTipo<Role>(
                           value: _selectedRole,
                           labelText: 'Rol',
                           items: _roles,
-                          onChanged: (rol) {
+                          onChanged: (valueRol) {
                             setState(() {
-                              _selectedRole = rol;
+                              _selectedRole = valueRol;
                             });
                           },
-                          validator: (rol) {
-                            if (rol == null || rol.isEmpty) {
-                              return 'Rol obligatorio.';
+                          validator: (valueRol) {
+                            if (valueRol == null) {
+                              return 'Debe seleccionar un rol';
                             }
                             return null;
                           },
+                          itemLabelBuilder: (rol) =>
+                              rol.roleNombre ?? 'Sin nombre',
                         ),
                       ),
                     ],

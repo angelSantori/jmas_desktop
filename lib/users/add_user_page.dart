@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jmas_desktop/contollers/role_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -27,18 +28,26 @@ class _AddUserPageState extends State<AddUserPage> {
   bool _isSubmitted = false;
   bool _isLoading = false;
 
-  String? _selectedRol;
-
-  final List<String> _roles = [
-    'Admin',
-    'Sistemas',
-    'Gestion',
-    'Electro',
-    'Empleado',
-  ];
+  //Roles
+  final RoleController _roleController = RoleController();
+  List<Role> _roles2 = [];
+  Role? _selectedRole2;
 
   bool _isPasswordVisibles = false;
   bool _isConfirmPasswordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoles();
+  }
+
+  Future<void> _loadRoles() async {
+    final roles = await _roleController.listRole();
+    setState(() {
+      _roles2 = roles;
+    });
+  }
 
   void _clearFOrm() {
     _userNameController.clear();
@@ -47,7 +56,7 @@ class _AddUserPageState extends State<AddUserPage> {
     _userPasswordController.clear();
     _passwordConfirmController.clear();
     setState(() {
-      _selectedRol = null;
+      _selectedRole2 = null;
     });
   }
 
@@ -73,7 +82,8 @@ class _AddUserPageState extends State<AddUserPage> {
           user_Contacto: _userContactoController.text,
           user_Access: _userAccessController.text,
           user_Password: _userPasswordController.text,
-          user_Rol: _selectedRol,
+          user_Rol: _selectedRole2!.roleNombre,
+          idRole: _selectedRole2!.idRole,
         );
 
         final success = await _usersController.addUser(user, context);
@@ -169,15 +179,23 @@ class _AddUserPageState extends State<AddUserPage> {
                       ),
                       const SizedBox(width: 30),
                       Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedRol,
+                        child: CustomListaDesplegableTipo<Role>(
+                          value: _selectedRole2,
                           labelText: 'Rol',
-                          items: _roles,
-                          onChanged: (value) {
+                          items: _roles2,
+                          onChanged: (valueRol) {
                             setState(() {
-                              _selectedRol = value;
+                              _selectedRole2 = valueRol;
                             });
                           },
+                          validator: (valueRol) {
+                            if (valueRol == null) {
+                              return 'Debe seleccionar un rol';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (rol) =>
+                              rol.roleNombre ?? 'Sin nombre',
                         ),
                       ),
                     ],

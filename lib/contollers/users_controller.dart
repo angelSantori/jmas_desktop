@@ -1,9 +1,7 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+// Librerías
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/contollers/role_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -139,7 +137,7 @@ class UsersController {
         },
         body: json.encode(updateUserData),
       );
-      if (response.statusCode == 204) {
+      if (response.statusCode == 204 || response.statusCode == 200) {
         return true;
       } else {
         print(
@@ -160,8 +158,8 @@ class Users {
   String? user_Access;
   String? user_Password;
   String? user_Rol;
-  final int? idRole;
-  final Role? role;
+  int? idRole;
+  Role? role;
   Users({
     this.id_User,
     this.user_Name,
