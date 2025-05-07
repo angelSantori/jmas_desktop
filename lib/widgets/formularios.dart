@@ -804,7 +804,10 @@ class _CustomListaDesplegableTipoState<T>
             items: widget.items.map((item) {
               return DropdownMenuItem(
                 value: item,
-                child: Text(widget.itemLabelBuilder(item)),
+                child: Text(
+                  widget.itemLabelBuilder(item),
+                  overflow: TextOverflow.ellipsis,
+                ),
               );
             }).toList(),
             onChanged: widget.onChanged,
