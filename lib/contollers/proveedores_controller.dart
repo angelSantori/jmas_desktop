@@ -56,6 +56,33 @@ class ProveedoresController {
     }
   }
 
+  //GetProvXNombre
+  Future<List<Proveedores>> getProvXNombre(String nombreProveedor) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Proveedores/ProveedorPorNombre?nombreProveedor=$nombreProveedor'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data
+            .map((nameProvList) => Proveedores.fromMap(nameProvList))
+            .toList();
+      } else {
+        print(
+            'Error getProvXNombre | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error getProvXNombre | Try | Controller: $e');
+      return [];
+    }
+  }
+
   Future<List<Proveedores>> listProveedores() async {
     try {
       final response = await http.get(
