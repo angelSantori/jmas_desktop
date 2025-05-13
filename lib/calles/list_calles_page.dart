@@ -132,7 +132,7 @@ class _ListCallesPageState extends State<ListCallesPage> {
                                         color: Colors.blue,
                                       ),
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(width: 16),
                                     //Información
                                     Expanded(
                                       child: Column(
@@ -147,6 +147,14 @@ class _ListCallesPageState extends State<ListCallesPage> {
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.blue.shade900,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'ID: ${calles.idCalle ?? 'No disponible'}',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
                                             ),
                                           )
                                         ],

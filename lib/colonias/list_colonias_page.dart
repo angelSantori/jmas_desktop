@@ -150,6 +150,14 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
                                               color: Colors.blue.shade900,
                                             ),
                                           ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'ID: ${colonias.idColonia ?? 'No disponible'}',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
