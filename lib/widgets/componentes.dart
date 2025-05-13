@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
-import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -85,6 +84,7 @@ class _CustomListTileState extends State<CustomListTile> {
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -160,6 +160,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -238,6 +239,7 @@ class _SubCustomExpansionTileState extends State<SubCustomExpansionTile> {
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -902,21 +904,19 @@ class BuscarProductoWidget extends StatefulWidget {
   final ProductosController productosController;
   final Productos? selectedProducto;
   final Function(Productos?) onProductoSeleccionado;
-  final Function(String) onAdvertencia;
-  final CapturainviniController capturainviniController;
+  final Function(String) onAdvertencia;  
   final VoidCallback? onEnterPressed;
 
   const BuscarProductoWidget({
-    Key? key,
+    super.key,
     required this.idProductoController,
     required this.cantidadController,
     required this.productosController,
     required this.selectedProducto,
     required this.onProductoSeleccionado,
-    required this.onAdvertencia,
-    required this.capturainviniController,
+    required this.onAdvertencia,    
     this.onEnterPressed,
-  }) : super(key: key);
+  });
 
   @override
   State<BuscarProductoWidget> createState() => _BuscarProductoWidgetState();
@@ -1024,29 +1024,8 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
     setState(() {
       _productosSugeridos = [];
       _nombreProducto.clear();
-    });
-
-    _getInventarioInicial(producto);
-  }
-
-  Future<void> _getInventarioInicial(Productos producto) async {
-    try {
-      //final captuaList = await widget.capturainviniController.listCapturaI();
-      final existenciaList = await widget.productosController.listProductos();
-      // final captura = captuaList.firstWhere(
-      //   (captura) => captura.id_Producto == producto.id_Producto,
-      //   orElse: () => Capturainvini(invIniConteo: null),
-      // );
-      final captura = existenciaList.firstWhere(
-        (element) => element.id_Producto == producto.id_Producto,
-        orElse: () => Productos(prodExistencia: null),
-      );
-      //setState(() => _invIniConteo = captura.invIniConteo);
-      setState(() => _existencia = captura.prodExistencia);
-    } catch (e) {
-      widget.onAdvertencia('Error al obtener existencia: $e');
-    }
-  }
+    });    
+  }  
 
   // Widget de búsqueda por nombre (modificado ligeramente)
   Widget _buildBuscadorPorNombre() {
