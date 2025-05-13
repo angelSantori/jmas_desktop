@@ -5,8 +5,6 @@ import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 
-//TODO: sumar en capturainvini
-
 class ListCancelacioensSalidaPage extends StatefulWidget {
   const ListCancelacioensSalidaPage({super.key});
 

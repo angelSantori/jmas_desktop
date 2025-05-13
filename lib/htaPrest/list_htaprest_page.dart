@@ -21,6 +21,7 @@ class _ListHtaprestPageState extends State<ListHtaprestPage> {
       HerramientasController();
   final TextEditingController _searchController = TextEditingController();
 
+  // ignore: unused_field
   List<HtaPrestamo> _allHtasPest = [];
   Map<String, List<HtaPrestamo>> _groupedPrestamos = {};
   List<String> _filteredFolios = [];

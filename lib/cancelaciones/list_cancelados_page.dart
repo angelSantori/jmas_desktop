@@ -5,7 +5,6 @@ import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 
-//TODO: Restar devolución de capturainvini
 class ListCanceladosPage extends StatefulWidget {
   const ListCanceladosPage({super.key});
 
