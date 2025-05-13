@@ -11,9 +11,6 @@ class SalidasController {
   static List<Salidas>? cacheSalidas;
 
   Future<List<Salidas>> listSalidas() async {
-    if (cacheSalidas != null) {
-      return cacheSalidas!;
-    }
     try {
       final response =
           await http.get(Uri.parse('${_authService.apiURL}/Salidas'), headers: {
