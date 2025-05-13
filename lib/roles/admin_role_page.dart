@@ -130,6 +130,12 @@ class _AdminRolePageState extends State<AdminRolePage> {
                                   (value) => _updateRole(
                                       role.copyWith(canView: value))),
                               _buildPermissionChip(
+                                  'Agregar',
+                                  role.canAdd ?? false,
+                                  Icons.visibility,
+                                  (value) => _updateRole(
+                                      role.copyWith(canAdd: value))),
+                              _buildPermissionChip(
                                   'Editar',
                                   role.canEdit ?? false,
                                   Icons.edit,
