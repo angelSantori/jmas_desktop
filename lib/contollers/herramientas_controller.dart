@@ -87,6 +87,33 @@ class HerramientasController {
     }
   }
 
+  //GetHtaPorEstado
+  Future<List<Herramientas>> getHtasXEstado(String htaEstado) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Herramientas/HtaPorEstado?estado=$htaEstado'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data
+            .map((htaXEstado) => Herramientas.fromMap(htaXEstado))
+            .toList();
+      } else {
+        print(
+            'Error getHtaXEstado | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error getHtaXEstado | Try | Controller: $e');
+      return [];
+    }
+  }
+
   //AddHta
   Future<bool> addHta(Herramientas herramienta) async {
     try {
