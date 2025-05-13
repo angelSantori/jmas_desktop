@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
-import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
+// import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
+// import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
 import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/calles/add_calles_page.dart';
@@ -15,6 +15,8 @@ import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
 import 'package:jmas_desktop/herramientas/list_herramientas_page.dart';
+import 'package:jmas_desktop/htaPrest/add_htaprest_page.dart';
+import 'package:jmas_desktop/htaPrest/list_htaprest_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
 import 'package:jmas_desktop/juntas/list_juntas_page.dart';
 import 'package:jmas_desktop/padron/list_padron_page.dart';
@@ -138,14 +140,18 @@ class _HomePageState extends State<HomePage>
       'listHerramientas': () => const ListHerramientasPage(),
       'addHerramienta': () => const AddHerramientaPage(),
 
+      //HtaPrestamos
+      'listHtaPrest': () => const ListHtaprestPage(),
+      'addHtaPrest': () => AddHtaprestPage(idUser: idUser, userName: userName),
+
       //Consulta universal
       'ConsultaU': () => const ConsultaUniversalPage(),
 
       //X
       'home': () => const Center(child: Text('Welcome to home Page!')),
       //'mapa': () => const MapaLecturasPage(),
-      'addAjusteMas': () => const AddAjusteMasPage(),
-      'addAjusteMenos': () => const AddAjusteMenosPage(),
+      // 'addAjusteMas': () => const AddAjusteMasPage(),
+      // 'addAjusteMenos': () => const AddAjusteMenosPage(),
       'listPadron': () => const ListPadronPage(),
       'listCC': () => const ListCcontablesPage(),
     };
@@ -337,13 +343,12 @@ class _HomePageState extends State<HomePage>
                               //Herramientas
                               SubCustomExpansionTile(
                                 title: 'Herraminetas',
-                                icon: const Icon(
-                                    Icons.settings_applications_rounded),
+                                icon: const Icon(Icons.insert_emoticon),
                                 children: [
                                   CustomListTile(
                                     title: 'Lista Herramientas',
                                     icon: const Icon(
-                                      Icons.toys_outlined,
+                                      Icons.insert_emoticon,
                                       color: Colors.white,
                                     ),
                                     onTap: () =>
@@ -354,7 +359,7 @@ class _HomePageState extends State<HomePage>
                                     child: CustomListTile(
                                       title: 'Agregar Herramienta',
                                       icon: const Icon(
-                                        Icons.texture,
+                                        Icons.insert_emoticon,
                                         color: Colors.white,
                                       ),
                                       onTap: () =>
@@ -553,13 +558,16 @@ class _HomePageState extends State<HomePage>
                                 icon: const Icon(
                                     Icons.arrow_circle_right_outlined),
                                 children: [
-                                  CustomListTile(
-                                    title: 'Agregar entrada',
-                                    icon: const Icon(
-                                      Icons.add,
-                                      color: Colors.white,
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
+                                      title: 'Agregar entrada',
+                                      icon: const Icon(
+                                        Icons.add,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('addEntrada'),
                                     ),
-                                    onTap: () => _navigateTo('addEntrada'),
                                   ),
                                   CustomListTile(
                                     title: 'Lista de entradas',
@@ -584,13 +592,16 @@ class _HomePageState extends State<HomePage>
                                 icon: const Icon(
                                     Icons.arrow_circle_left_outlined),
                                 children: [
-                                  CustomListTile(
-                                    title: 'Agregar salida',
-                                    icon: const Icon(
-                                      Icons.add_box_outlined,
-                                      color: Colors.white,
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
+                                      title: 'Agregar salida',
+                                      icon: const Icon(
+                                        Icons.add_box_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('addSalida'),
                                     ),
-                                    onTap: () => _navigateTo('addSalida'),
                                   ),
                                   CustomListTile(
                                     title: 'Lista de salidas',
@@ -608,6 +619,33 @@ class _HomePageState extends State<HomePage>
                                     ),
                                     onTap: () =>
                                         _navigateTo('listCanceladosSalida'),
+                                  ),
+                                ],
+                              ),
+
+                              //HtaPrestamo
+                              SubCustomExpansionTile(
+                                title: 'Prestamos',
+                                icon: const Icon(Icons.insert_emoticon),
+                                children: [
+                                  CustomListTile(
+                                    title: 'Lista Prestamos',
+                                    icon: const Icon(
+                                      Icons.insert_emoticon,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () => _navigateTo('listHtaPrest'),
+                                  ),
+                                  PermissionWidget(
+                                    permission: 'add',
+                                    child: CustomListTile(
+                                      title: 'Add Prestamos',
+                                      icon: const Icon(
+                                        Icons.insert_emoticon,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('addHtaPrest'),
+                                    ),
                                   ),
                                 ],
                               ),
