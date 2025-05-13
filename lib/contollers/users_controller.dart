@@ -87,6 +87,30 @@ class UsersController {
     }
   }
 
+  //GetUserXNombre
+  Future<List<Users>> getUserXNombre(String userNombre) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/Users/UserPorNombre?userNombre=$userNombre'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((userNameList) => Users.fromMap(userNameList)).toList();
+      } else {
+        print(
+            'Error getUserXNombre | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error getUserXNombre | Try | Controller: $e');
+      return [];
+    }
+  }
+
   Future<bool> loginUser(
       String userAccess, String userPassword, BuildContext context) async {
     try {
