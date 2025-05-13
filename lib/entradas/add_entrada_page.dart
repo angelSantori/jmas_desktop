@@ -37,6 +37,12 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
   final TextEditingController _referenciaController = TextEditingController();
 
+  final TextEditingController _busquedaProveedorController =
+      TextEditingController();
+  List<Proveedores> _proveedoresFiltrados = [];
+  bool _buscandoProveedores = false;
+  Proveedores? _selectedProveedor;
+
   String? idUserReporte;
 
   final List<Map<String, dynamic>> _productosAgregados = [];
@@ -50,8 +56,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   //Proveedores
   final ProveedoresController _proveedoresController = ProveedoresController();
-  List<Proveedores> _proveedores = [];
-  Proveedores? _selectedProveedor;
 
   //Almacen
   final AlmacenesController _almacenesController = AlmacenesController();
@@ -110,15 +114,27 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   Future<void> _loadDataEntrada() async {
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
-    List<Proveedores> proveedores =
-        await _proveedoresController.listProveedores();
-
     List<Juntas> juntas = await _juntasController.listJuntas();
 
     setState(() {
       _almacenes = almacenes;
-      _proveedores = proveedores;
       _juntas = juntas;
+    });
+  }
+
+  Future<void> _buscarProveedores(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _proveedoresFiltrados = [];
+      });
+      return;
+    }
+    setState(() => _buscandoProveedores = true);
+    final resultados = await _proveedoresController.getProvXNombre(query);
+
+    setState(() {
+      _proveedoresFiltrados = resultados;
+      _buscandoProveedores = false;
     });
   }
 
@@ -135,7 +151,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       final double existenciaActual = _selectedProducto!.prodExistencia ?? 0.0;
       final double nuevaExistencia = existenciaActual + cantidad;
       final double totalExceso =
-          nuevaExistencia - (_selectedProducto!.prodMax!);      
+          nuevaExistencia - (_selectedProducto!.prodMax!);
 
       if (nuevaExistencia > (_selectedProducto!.prodMax!)) {
         showAdvertence(context,
@@ -296,6 +312,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       _selectedJunta = null;
       _imagenFactura = null;
       _idProductoController.clear();
+      _busquedaProveedorController.clear();
+      _proveedoresFiltrados = [];
       _cantidadController.clear();
     });
   }
@@ -399,47 +417,92 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: CustomListaDesplegableTipo(
-                              value: _selectedAlmacen,
-                              labelText: 'Almacen',
-                              items: _almacenes,
-                              onChanged: (ent) {
-                                setState(() {
-                                  _selectedAlmacen = ent;
-                                });
-                              },
-                              validator: (ent) {
-                                if (ent == null) {
-                                  return 'Debe seleccionar una almacen.';
-                                }
-                                return null;
-                              },
-                              itemLabelBuilder: (ent) =>
-                                  ent.almacen_Nombre ?? 'Sin nombre',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomTextFielTexto(
+                                  controller: _busquedaProveedorController,
+                                  labelText: 'Buscar Proveedor',
+                                  onChanged: _buscarProveedores,
+                                  validator: (value) {
+                                    if (_selectedProveedor == null) {
+                                      return 'Seleccione un proveedor válido';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                if (_buscandoProveedores)
+                                  const CircularProgressIndicator(),
+                                if (_proveedoresFiltrados.isNotEmpty)
+                                  Card(
+                                    elevation: 3,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxHeight:
+                                            MediaQuery.of(context).size.height *
+                                                0.3,
+                                      ),
+                                      child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: _proveedoresFiltrados.length,
+                                        itemBuilder: (context, index) {
+                                          final proveedor =
+                                              _proveedoresFiltrados[index];
+                                          return ListTile(
+                                            leading: const Icon(
+                                              Icons.business,
+                                              color: Colors.blue,
+                                            ),
+                                            title: Text(
+                                              proveedor.proveedor_Name ??
+                                                  'Sin Nombre',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            subtitle: Text(
+                                              'ID: ${proveedor.id_Proveedor}',
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedProveedor = proveedor;
+                                                _proveedoresFiltrados = [];
+                                                _busquedaProveedorController
+                                                    .clear();
+                                              });
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                if (_selectedProveedor != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Chip(
+                                      label: Text(
+                                        _selectedProveedor!.proveedor_Name ??
+                                            'Proveedor seleccionado',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 20),
+                                      ),
+                                      backgroundColor: Colors.blue.shade800,
+                                      deleteIcon: const Icon(Icons.close,
+                                          color: Colors.white),
+                                      onDeleted: () {
+                                        setState(() {
+                                          _selectedProveedor = null;
+                                          _busquedaProveedorController.clear();
+                                        });
+                                      },
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 30),
-                          Expanded(
-                            child: CustomListaDesplegableTipo(
-                              value: _selectedProveedor,
-                              labelText: 'Proveedor',
-                              items: _proveedores,
-                              onChanged: (prov) {
-                                setState(() {
-                                  _selectedProveedor = prov;
-                                });
-                              },
-                              validator: (prov) {
-                                if (prov == null) {
-                                  return 'Debe seleccionar un proveedor.';
-                                }
-                                return null;
-                              },
-                              itemLabelBuilder: (prov) =>
-                                  prov.proveedor_Name ?? 'Sin nombre',
-                            ),
-                          ),
-                          const SizedBox(width: 30),
+                          const SizedBox(width: 20),
                           Expanded(
                             child: CustomListaDesplegableTipo(
                               value: _selectedJunta,
@@ -460,6 +523,27 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                   jnt.junta_Name ?? 'Sin nombre',
                             ),
                           ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: CustomListaDesplegableTipo(
+                              value: _selectedAlmacen,
+                              labelText: 'Almacen',
+                              items: _almacenes,
+                              onChanged: (ent) {
+                                setState(() {
+                                  _selectedAlmacen = ent;
+                                });
+                              },
+                              validator: (ent) {
+                                if (ent == null) {
+                                  return 'Debe seleccionar una almacen.';
+                                }
+                                return null;
+                              },
+                              itemLabelBuilder: (ent) =>
+                                  ent.almacen_Nombre ?? 'Sin nombre',
+                            ),
+                          ),
                         ],
                       ),
 
@@ -467,7 +551,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       BuscarProductoWidget(
                         idProductoController: _idProductoController,
                         cantidadController: _cantidadController,
-                        productosController: _productosController,                        
+                        productosController: _productosController,
                         selectedProducto: _selectedProducto,
                         onProductoSeleccionado: (producto) {
                           setState(() {
@@ -479,33 +563,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                         },
                         onEnterPressed: _agregarProducto,
                       ),
-
                       const SizedBox(height: 20),
-
-                      //Botón para agregar producto a la tabla
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.end,
-                      //   children: [
-                      //     ElevatedButton.icon(
-                      //       onPressed: _agregarProducto,
-                      //       icon: const Icon(
-                      //         Icons.add,
-                      //         color: Colors.white,
-                      //       ),
-                      //       style: ElevatedButton.styleFrom(
-                      //         backgroundColor: Colors.blue.shade900,
-                      //       ),
-                      //       label: const Text(
-                      //         'Agregar',
-                      //         style: TextStyle(
-                      //           color: Colors.white,
-                      //           fontWeight: FontWeight.bold,
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      // const SizedBox(height: 20),
 
                       //Tabla productos agregados
                       buildProductosAgregados(
@@ -513,7 +571,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                         eliminarProducto,
                         actualizarCosto,
                       ),
-
                       const SizedBox(height: 30),
 
                       //Botón
