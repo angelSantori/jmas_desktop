@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
-import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
@@ -37,9 +36,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final CallesController _callesController = CallesController();
   final UsersController _usersController = UsersController();
   final PadronController _padronController = PadronController();
-
-  final CapturainviniController _capturainviniController =
-      CapturainviniController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -142,22 +138,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         return;
       }
 
-      // Obtener el valor de invIniConteo desde Capturainvini
-      final capturaList = await _capturainviniController.listCapturaI();
-      final captura = capturaList.firstWhere(
-        (captura) => captura.id_Producto == _selectedProducto!.id_Producto,
-        orElse: () => Capturainvini(invIniConteo: 0.0),
-      );
+      final double existenciaActual = _selectedProducto!.prodExistencia ?? 0.0;
 
-      final double invIniConteo = captura.invIniConteo ?? 0.0;
-
-      if (cantidad > (invIniConteo)) {
+      if (cantidad > existenciaActual) {
         showAdvertence(context,
             'La cantidad no puede ser mayor a la existencia del producto.');
         return;
       }
 
-      final double nuevaExistencia = invIniConteo - cantidad;
+      final double nuevaExistencia = existenciaActual - cantidad;
       final double totalDeficit =
           nuevaExistencia - (_selectedProducto!.prodMin!);
 
@@ -168,7 +157,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
       setState(() {
         final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
-
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
@@ -197,10 +185,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       return;
     }
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      bool success = true; // Para verificar si al menos una entrada fue exitosa
+      setState(() => _isLoading = true);
+      bool success = true;
       for (var producto in _productosAgregados) {
         await _getUserId();
         final nuevaSalida = _crearSalida(producto);
@@ -241,34 +227,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           // ignore: use_build_context_synchronously
           showAdvertence(context,
               'Error al actualizar las existencias del producto con ID ${producto['id_Producto']}');
-          success = false;
-          break;
-        }
-
-        // Actualizar las existencias en la tabla Capturainvini
-        final capturaList = await _capturainviniController.listCapturaI();
-        final captura = capturaList.firstWhere(
-          (captura) => captura.id_Producto == producto['id'],
-          orElse: () => Capturainvini(
-            id_Producto: producto['id'],
-            invIniConteo: 0.0,
-          ),
-        );
-
-        final nuevaCantidadCaptura =
-            (captura.invIniConteo ?? 0.0) - producto['cantidad'];
-
-        final updatedCaptura = captura.copyWith(
-          invIniConteo: nuevaCantidadCaptura,
-        );
-
-        bool capturaResult =
-            await _capturainviniController.editCapturaI(updatedCaptura);
-
-        if (!capturaResult) {
-          // ignore: use_build_context_synchronously
-          showAdvertence(context,
-              'Error al actualizar las existencias en Capturainvini para el producto con ID ${producto['id']}');
           success = false;
           break;
         }
@@ -337,7 +295,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedColonia = null;
       _selectedCalle = null;
       _selectedPadron = null;
-  
+
       _selectedUser = null;
       _selectedTipoTrabajo = null;
       _referenciaController.clear();
@@ -570,7 +528,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               idProductoController: _idProductoController,
                               cantidadController: _cantidadController,
                               productosController: _productosController,
-                              capturainviniController: _capturainviniController,
                               selectedProducto: _selectedProducto,
                               onProductoSeleccionado: (producto) {
                                 setState(() => _selectedProducto = producto);

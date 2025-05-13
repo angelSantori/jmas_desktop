@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
-import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -29,8 +28,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   final AuthService _authService = AuthService();
   final EntradasController _entradasController = EntradasController();
   final ProductosController _productosController = ProductosController();
-  final CapturainviniController _capturainviniController =
-      CapturainviniController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -134,19 +131,11 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
         return;
       }
 
-      // Obtener el valor de invIniConteo desde Capturainvini
-      final capturaList = await _capturainviniController.listCapturaI();
-      final captura = capturaList.firstWhere(
-        (captura) => captura.id_Producto == _selectedProducto!.id_Producto,
-        orElse: () => Capturainvini(invIniConteo: 0.0),
-      );
-
-      final double invIniConteo = captura.invIniConteo ?? 0.0;
-
-      // Calcular la nueva existencia
-      final double nuevaExistencia = invIniConteo + cantidad;
+      // Usar directamente la existencia del producto
+      final double existenciaActual = _selectedProducto!.prodExistencia ?? 0.0;
+      final double nuevaExistencia = existenciaActual + cantidad;
       final double totalExceso =
-          nuevaExistencia - (_selectedProducto!.prodMax!);
+          nuevaExistencia - (_selectedProducto!.prodMax!);      
 
       if (nuevaExistencia > (_selectedProducto!.prodMax!)) {
         showAdvertence(context,
@@ -204,10 +193,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     }
 
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      bool success = true; // Para verificar si al menos una entrada fue exitosa
+      setState(() => _isLoading = true);
+      bool success = true;
       for (var producto in _productosAgregados) {
         await _getUserId();
         final nuevaEntrada = _crearEntrada(producto);
@@ -249,34 +236,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
           // ignore: use_build_context_synchronously
           showAdvertence(context,
               'Error al actualizar las existencias del producto con ID ${producto['id_Producto']}');
-          success = false;
-          break;
-        }
-
-        // Actualizar las existencias en la tabla Capturainvini
-        final capturaList = await _capturainviniController.listCapturaI();
-        final captura = capturaList.firstWhere(
-          (captura) => captura.id_Producto == producto['id'],
-          orElse: () => Capturainvini(
-            id_Producto: producto['id'],
-            invIniConteo: 0.0,
-          ),
-        );
-
-        final nuevaCantidadCaptura =
-            (captura.invIniConteo ?? 0.0) + producto['cantidad'];
-
-        final updatedCaptura = captura.copyWith(
-          invIniConteo: nuevaCantidadCaptura,
-        );
-
-        bool capturaResult =
-            await _capturainviniController.editCapturaI(updatedCaptura);
-
-        if (!capturaResult) {
-          // ignore: use_build_context_synchronously
-          showAdvertence(context,
-              'Error al actualizar las existencias en Capturainvini para el producto con ID ${producto['id']}');
           success = false;
           break;
         }
@@ -508,8 +467,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       BuscarProductoWidget(
                         idProductoController: _idProductoController,
                         cantidadController: _cantidadController,
-                        productosController: _productosController,
-                        capturainviniController: _capturainviniController,
+                        productosController: _productosController,                        
                         selectedProducto: _selectedProducto,
                         onProductoSeleccionado: (producto) {
                           setState(() {
