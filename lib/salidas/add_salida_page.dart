@@ -40,6 +40,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _referenciaController = TextEditingController();
+  final TextEditingController _busquedaUsuarioController =
+      TextEditingController();
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _idPadronController = TextEditingController();
   final TextEditingController _idColoniaController = TextEditingController();
@@ -52,10 +54,14 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   String? codFolio;
 
+  //Empleados
+  List<Users> _empleadosFiltrados = [];
+  bool _buscandoEmpleados = false;
+  Users? _selectedEmpleado;
+
   List<Almacenes> _almacenes = [];
   // ignore: unused_field
   List<Juntas> _juntas = [];
-  List<Users> _users = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
   Almacenes? _selectedAlmacen;
@@ -64,7 +70,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Productos? _selectedProducto;
   Colonias? _selectedColonia;
   Calles? _selectedCalle;
-  Users? _selectedUser;
   Padron? _selectedPadron;
 
   bool _isLoading = false;
@@ -109,15 +114,28 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Future<void> _loadDataSalidas() async {
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
     List<Juntas> juntas = await _juntasController.listJuntas();
-    List<Users> users = await _usersController.listUsers();
 
-    //Filtro usuario donde rol sea empleado
-    List<Users> empleados =
-        users.where((user) => user.user_Rol == "Empleado").toList();
     setState(() {
       _almacenes = almacenes;
       _juntas = juntas;
-      _users = empleados;
+    });
+  }
+
+  Future<void> _buscarEmpleados(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _empleadosFiltrados = [];
+      });
+      return;
+    }
+    setState(() => _buscandoEmpleados = true);
+    final resultados = await _usersController.getUserXNombre(query);
+
+    final empleados =
+        resultados.where((users) => users.user_Rol == "Empleado").toList();
+    setState(() {
+      _empleadosFiltrados = empleados;
+      _buscandoEmpleados = false;
     });
   }
 
@@ -278,7 +296,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: 1, // Junta
       id_Almacen: _selectedAlmacen?.id_Almacen ?? 0, // Almacen
-      id_User_Asignado: _selectedUser?.id_User,
+      id_User_Asignado: _selectedEmpleado?.id_User,
       idPadron: _selectedPadron?.idPadron,
       idCalle: _selectedCalle?.idCalle,
       idColonia: _selectedColonia?.idColonia,
@@ -295,9 +313,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedColonia = null;
       _selectedCalle = null;
       _selectedPadron = null;
-
-      _selectedUser = null;
+      _selectedEmpleado = null;
       _selectedTipoTrabajo = null;
+
       _referenciaController.clear();
       _idProductoController.clear();
       _idColoniaController.clear();
@@ -360,7 +378,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 30),
+                          const SizedBox(width: 20),
                           Expanded(
                             child: CustomTextFielFecha(
                               controller: _fechaController,
@@ -374,7 +392,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 30),
+                          const SizedBox(width: 20),
                           Expanded(
                             child: CustomListaDesplegable(
                               value: _selectedTipoTrabajo,
@@ -393,17 +411,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 10),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 20),
                           Expanded(
                             child: CustomListaDesplegableTipo(
                               value: _selectedAlmacen,
@@ -424,25 +432,101 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                   ent.almacen_Nombre ?? 'Sin nombre',
                             ),
                           ),
-                          const SizedBox(width: 30),
+                          const SizedBox(width: 10),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(width: 10),
                           Expanded(
-                            child: CustomListaDesplegableTipo(
-                              value: _selectedUser,
-                              labelText: 'Asignar empleado',
-                              items: _users,
-                              onChanged: (user) {
-                                setState(() {
-                                  _selectedUser = user;
-                                });
-                              },
-                              validator: (user) {
-                                if (user == null) {
-                                  return 'Debe asignar un empleado.';
-                                }
-                                return null;
-                              },
-                              itemLabelBuilder: (user) =>
-                                  user.user_Name ?? 'Sin nombre',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CustomTextFielTexto(
+                                  controller: _busquedaUsuarioController,
+                                  labelText: 'Buscar Empleado',
+                                  onChanged: _buscarEmpleados,
+                                  validator: (value) {
+                                    if (_selectedEmpleado == null) {
+                                      return 'Seleccione un empleado válido';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                if (_buscandoEmpleados)
+                                  const CircularProgressIndicator(),
+                                if (_empleadosFiltrados.isNotEmpty)
+                                  Card(
+                                    elevation: 3,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxHeight:
+                                            MediaQuery.of(context).size.height *
+                                                0.3,
+                                      ),
+                                      child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: _empleadosFiltrados.length,
+                                        itemBuilder: (context, index) {
+                                          final empleado =
+                                              _empleadosFiltrados[index];
+                                          return ListTile(
+                                            leading: const Icon(
+                                              Icons.person,
+                                              color: Colors.blue,
+                                            ),
+                                            title: Text(
+                                              empleado.user_Name ??
+                                                  'Sin Nombre',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            subtitle: Text(
+                                              'ID: ${empleado.id_User}',
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedEmpleado = empleado;
+                                                _empleadosFiltrados = [];
+                                                _busquedaUsuarioController
+                                                    .clear();
+                                              });
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                if (_selectedEmpleado != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Chip(
+                                      label: Text(
+                                        _selectedEmpleado!.user_Name ??
+                                            'Empleado seleccionado',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 20),
+                                      ),
+                                      backgroundColor: Colors.blue.shade800,
+                                      deleteIcon: const Icon(Icons.close,
+                                          color: Colors.white),
+                                      onDeleted: () {
+                                        setState(() {
+                                          _selectedEmpleado = null;
+                                          _busquedaUsuarioController.clear();
+                                        });
+                                      },
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -541,33 +625,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           const SizedBox(width: 10),
                         ],
                       ),
-
                       const SizedBox(height: 10),
-
-                      //Botón para agregar producto a la tabla
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.end,
-                      //   children: [
-                      //     ElevatedButton.icon(
-                      //       onPressed: _agregarProducto,
-                      //       icon: const Icon(
-                      //         Icons.add,
-                      //         color: Colors.white,
-                      //       ),
-                      //       label: const Text(
-                      //         'Agregar',
-                      //         style: TextStyle(
-                      //           color: Colors.white,
-                      //           fontWeight: FontWeight.bold,
-                      //         ),
-                      //       ),
-                      //       style: ElevatedButton.styleFrom(
-                      //         backgroundColor: Colors.blue.shade900,
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      // const SizedBox(height: 20),
 
                       //Tabla productos agregados
                       buildProductosAgregados(
@@ -603,7 +661,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           colonia: _idColoniaController,
                                           calle: _idCalleController,
                                           selectedAlmacen: _selectedAlmacen,
-                                          selectedUser: _selectedUser,
+                                          selectedUser: _selectedEmpleado,
                                           selectedTrabajo: _selectedTipoTrabajo,
                                         );
 
@@ -621,7 +679,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           userName: widget.userName!,
                                           idUser: widget.idUser!,
                                           alamcenA: _selectedAlmacen!,
-                                          userAsignado: _selectedUser!,
+                                          userAsignado: _selectedEmpleado!,
                                           tipoTrabajo: _selectedTipoTrabajo!,
                                           padron: _selectedPadron!,
                                           colonia: _selectedColonia!,
