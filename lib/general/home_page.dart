@@ -343,12 +343,19 @@ class _HomePageState extends State<HomePage>
                               //Herramientas
                               SubCustomExpansionTile(
                                 title: 'Herraminetas',
-                                icon: const Icon(Icons.insert_emoticon),
+                                icon: SvgPicture.asset(
+                                  'assets/icons/worktools.svg',
+                                  width: 20,
+                                  height: 20,
+                                  color: Colors.white,
+                                ),
                                 children: [
                                   CustomListTile(
                                     title: 'Lista Herramientas',
-                                    icon: const Icon(
-                                      Icons.insert_emoticon,
+                                    icon: SvgPicture.asset(
+                                      'assets/icons/worktools.svg',
+                                      width: 20,
+                                      height: 20,
                                       color: Colors.white,
                                     ),
                                     onTap: () =>
@@ -358,8 +365,10 @@ class _HomePageState extends State<HomePage>
                                     permission: 'add',
                                     child: CustomListTile(
                                       title: 'Agregar Herramienta',
-                                      icon: const Icon(
-                                        Icons.insert_emoticon,
+                                      icon: SvgPicture.asset(
+                                        'assets/icons/worktools.svg',
+                                        width: 20,
+                                        height: 20,
                                         color: Colors.white,
                                       ),
                                       onTap: () =>
@@ -626,12 +635,19 @@ class _HomePageState extends State<HomePage>
                               //HtaPrestamo
                               SubCustomExpansionTile(
                                 title: 'Prestamos',
-                                icon: const Icon(Icons.insert_emoticon),
+                                icon: SvgPicture.asset(
+                                  'assets/icons/worktools.svg',
+                                  width: 20,
+                                  height: 20,
+                                  color: Colors.white,
+                                ),
                                 children: [
                                   CustomListTile(
                                     title: 'Lista Prestamos',
-                                    icon: const Icon(
-                                      Icons.insert_emoticon,
+                                    icon: SvgPicture.asset(
+                                      'assets/icons/worktools.svg',
+                                      width: 20,
+                                      height: 20,
                                       color: Colors.white,
                                     ),
                                     onTap: () => _navigateTo('listHtaPrest'),
@@ -640,8 +656,10 @@ class _HomePageState extends State<HomePage>
                                     permission: 'add',
                                     child: CustomListTile(
                                       title: 'Add Prestamos',
-                                      icon: const Icon(
-                                        Icons.insert_emoticon,
+                                      icon: SvgPicture.asset(
+                                        'assets/icons/worktools.svg',
+                                        width: 20,
+                                        height: 20,
                                         color: Colors.white,
                                       ),
                                       onTap: () => _navigateTo('addHtaPrest'),

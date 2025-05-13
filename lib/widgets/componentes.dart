@@ -1111,38 +1111,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                 },
               ),
             ),
-            const SizedBox(width: 15),
-
-            // Botón para buscar producto
-            // ValueListenableBuilder<bool>(
-            //   valueListenable: _isLoading,
-            //   builder: (context, isLoading, child) {
-            //     return ElevatedButton(
-            //       onPressed: isLoading ? null : _buscarProducto,
-            //       style: ElevatedButton.styleFrom(
-            //         backgroundColor:
-            //             isLoading ? Colors.grey : Colors.blue.shade900,
-            //       ),
-            //       child: isLoading
-            //           ? const SizedBox(
-            //               height: 16,
-            //               width: 16,
-            //               child: CircularProgressIndicator(
-            //                 strokeWidth: 2,
-            //                 color: Colors.white,
-            //               ),
-            //             )
-            //           : const Text(
-            //               'Buscar producto',
-            //               style: TextStyle(
-            //                 color: Colors.white,
-            //                 fontWeight: FontWeight.bold,
-            //               ),
-            //             ),
-            //     );
-            //   },
-            // ),
-            // const SizedBox(width: 15),
+            const SizedBox(width: 15),            
 
             // Información del Producto
             if (widget.selectedProducto != null)
