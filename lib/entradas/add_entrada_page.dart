@@ -140,7 +140,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   void _agregarProducto() async {
     if (_selectedProducto != null && _cantidadController.text.isNotEmpty) {
-      final int cantidad = int.tryParse(_cantidadController.text) ?? 0;
+      final double cantidad = double.tryParse(_cantidadController.text) ?? 0;
 
       if (cantidad <= 0) {
         showAdvertence(context, 'La cantidad debe ser mayor a 0.');
