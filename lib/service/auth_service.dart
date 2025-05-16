@@ -99,4 +99,24 @@ class AuthService {
         utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
     return jsonDecode(payload);
   }
+
+  Future<bool> isLoggedIn() async {
+    final token = await getToken();
+    if (token == null) return false;
+
+    try {
+      //Veridicar token
+      final decoded = await decodeToken();
+      if (decoded == null) return false;
+
+      final exp = decoded['exp'] as int?;
+      if (exp == null) return false;
+
+      final expirationDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      return DateTime.now().isBefore(expirationDate);
+    } catch (e) {
+      print('Error isLoggedIn | AuthService: $e');
+      return false;
+    }
+  }
 }
