@@ -535,57 +535,72 @@ class _CustomListaDesplegableState extends State<CustomListaDesplegable>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _animation,
-      child: SizedBox(
-        width: 500,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.shade900, // Color de la sombra
-                blurRadius: 8, // Difuminado de la sombra
-                offset: Offset(0, 4), // Desplazamiento de la sombra
-              ),
-            ],
-          ),
-          child: DropdownButtonFormField<String>(
-            value: widget.value,
-            decoration: InputDecoration(
-              labelText: widget.labelText,
-              labelStyle: TextStyle(
-                color: Colors.blue.shade900,
-                fontWeight: FontWeight.bold,
-                overflow: TextOverflow.ellipsis,
-              ),
-              filled: true,
-              fillColor: Colors.blue.shade50,
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red, width: 1.5),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red, width: 2.0),
-              ),
+      child: Container(
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.9),
+        child: IntrinsicWidth(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade900, // Color de la sombra
+                  blurRadius: 8, // Difuminado de la sombra
+                  offset: const Offset(0, 4), // Desplazamiento de la sombra
+                ),
+              ],
             ),
-            items: widget.items.map((item) {
-              return DropdownMenuItem(
-                value: item,
-                child: Text(item),
-              );
-            }).toList(),
-            onChanged: widget.onChanged,
-            validator: widget.validator,
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              value: widget.value,
+              decoration: InputDecoration(
+                labelText: widget.labelText,
+                labelStyle: TextStyle(
+                  color: Colors.blue.shade900,
+                  fontWeight: FontWeight.bold,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                filled: true,
+                fillColor: Colors.blue.shade50,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: Colors.blue.shade200, width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: Colors.blue.shade900, width: 2.0),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2.0),
+                ),
+              ),
+              items: widget.items.map((item) {
+                return DropdownMenuItem(
+                  value: item,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.8),
+                    child: Text(
+                      item,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: widget.onChanged,
+              validator: widget.validator,
+            ),
           ),
         ),
       ),
@@ -732,12 +747,12 @@ class _CustomListaDesplegableTipoState<T>
     // Inicializa el AnimationController
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 1000), // Duración de la animación
+      duration: const Duration(milliseconds: 1000), // Duración de la animación
     );
 
     // Define la animación de desplazamiento
     _animation = Tween<Offset>(
-      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
+      begin: const Offset(0, -1), // Comienza fuera de la pantalla (arriba)
       end: Offset.zero, // Termina en su posición original
     ).animate(
       CurvedAnimation(
@@ -759,59 +774,71 @@ class _CustomListaDesplegableTipoState<T>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _animation,
-      child: SizedBox(
-        width: 500,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.shade900, // Color de la sombra
-                blurRadius: 8, // Difuminado de la sombra
-                offset: Offset(0, 4), // Desplazamiento de la sombra
-              ),
-            ],
-          ),
-          child: DropdownButtonFormField<T>(
-            value: widget.value,
-            decoration: InputDecoration(
-              labelText: widget.labelText,
-              labelStyle: TextStyle(
-                  color: Colors.blue.shade900,
-                  fontWeight: FontWeight.bold,
-                  overflow: TextOverflow.ellipsis),
-              filled: true,
-              fillColor: Colors.blue.shade50,
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red, width: 1.5),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red, width: 2.0),
-              ),
-            ),
-            items: widget.items.map((item) {
-              return DropdownMenuItem(
-                value: item,
-                child: Text(
-                  widget.itemLabelBuilder(item),
-                  overflow: TextOverflow.ellipsis,
+      child: Container(
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.9),
+        child: IntrinsicWidth(
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.shade900, // Color de la sombra
+                  blurRadius: 8, // Difuminado de la sombra
+                  offset: const Offset(0, 4), // Desplazamiento de la sombra
                 ),
-              );
-            }).toList(),
-            onChanged: widget.onChanged,
-            validator: widget.validator,
+              ],
+            ),
+            child: DropdownButtonFormField<T>(
+              isExpanded: true,
+              value: widget.value,
+              decoration: InputDecoration(
+                labelText: widget.labelText,
+                labelStyle: TextStyle(
+                    color: Colors.blue.shade900,
+                    fontWeight: FontWeight.bold,
+                    overflow: TextOverflow.ellipsis),
+                filled: true,
+                fillColor: Colors.blue.shade50,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: Colors.blue.shade200, width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: Colors.blue.shade900, width: 2.0),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.red, width: 2.0),
+                ),
+              ),
+              items: widget.items.map((item) {
+                return DropdownMenuItem(
+                  value: item,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.8),
+                    child: Text(
+                      widget.itemLabelBuilder(item),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: widget.onChanged,
+              validator: widget.validator,
+            ),
           ),
         ),
       ),
