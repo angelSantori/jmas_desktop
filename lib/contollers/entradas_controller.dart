@@ -7,12 +7,8 @@ import 'package:jmas_desktop/service/auth_service.dart';
 
 class EntradasController {
   final AuthService _authService = AuthService();
-  static List<Entradas>? cacheEntradas;
 
   Future<List<Entradas>> listEntradas() async {
-    if (cacheEntradas != null) {
-      return cacheEntradas!;
-    }
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Entradas'),
@@ -46,7 +42,6 @@ class EntradasController {
       );
 
       if (response.statusCode == 201) {
-        cacheEntradas = null;
         return true;
       } else {
         print(
@@ -137,7 +132,6 @@ class EntradasController {
       );
 
       if (response.statusCode == 204) {
-        cacheEntradas = null;
         return true;
       } else {
         print(
