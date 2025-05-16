@@ -1,8 +1,13 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/general/home_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
+import 'package:jmas_desktop/service/auth_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //Ventana
   doWhenWindowReady(
     () {
       const initialSize = Size(1300, 800);
@@ -13,11 +18,20 @@ void main() {
       appWindow.show();
     },
   );
-  runApp(const MyApp());
+
+  //Verificar autenticación antes de iniciar la app
+  final authService = AuthService();
+  final isLoggedIn = await authService.isLoggedIn();
+
+  runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  const MyApp({
+    super.key,
+    required this.isLoggedIn,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +42,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LoginPage(),
+      home: isLoggedIn ? const HomePage() : const LoginPage(),
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
+      },
     );
   }
 }
