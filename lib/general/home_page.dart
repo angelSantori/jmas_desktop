@@ -10,6 +10,7 @@ import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
 import 'package:jmas_desktop/ccontables/list_ccontables_page.dart';
 import 'package:jmas_desktop/colonias/add_colonias_page.dart';
 import 'package:jmas_desktop/colonias/list_colonias_page.dart';
+import 'package:jmas_desktop/conteoinicial/list_conteoinicial_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
@@ -99,6 +100,7 @@ class _HomePageState extends State<HomePage>
       //Productos
       'addProducto': () => const AddProductoPage(),
       'listProducto': () => const ListProductoPage(),
+      'listConteo': () => const ListConteoinicialPage(),
 
       //Users
       'addUser': () => const AddUserPage(),
@@ -314,6 +316,14 @@ class _HomePageState extends State<HomePage>
                                   color: Colors.white,
                                 ),
                                 children: [
+                                  CustomListTile(
+                                    title: 'Conteo Inicial',
+                                    icon: const Icon(
+                                      Icons.abc_sharp,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () => _navigateTo('listConteo'),
+                                  ),
                                   CustomListTile(
                                     title: 'Lista productos',
                                     icon: SvgPicture.asset(

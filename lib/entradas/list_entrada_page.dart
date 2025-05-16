@@ -67,6 +67,10 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
   Future<void> _loadData() async {
     try {
+      setState(() => _isLoading = true);
+      _allEntradas.clear();
+      _filteredEntradas.clear();
+      
       final entradas = await _entradasController.listEntradas();
       //final productos = await _productosController.listProductos();
       final almacenes = await _almacenesController.listAlmacenes();
@@ -176,7 +180,11 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista de Entradas'),
+        title: const Text(
+          'Lista de Entradas',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
       ),
       body: _isLoading
           ? Center(
@@ -452,6 +460,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                         const SizedBox(height: 10),
                         Text(
                           'Total Unidades: $totalUnidades',
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 15,
                           ),
@@ -478,30 +487,14 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        entrada.entrada_Fecha ?? 'Sin Fecha',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      SizedBox(
+                        width: 81,
+                        child: Text(
+                          entrada.entrada_Fecha ?? 'Sin Fecha',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 14),
                         ),
                       ),
-                      // if (widget.userRole == "Admin" &&
-                      //     entrada.entrada_Estado == true)
-                      //   Column(
-                      //     crossAxisAlignment: CrossAxisAlignment.center,
-                      //     mainAxisSize: MainAxisSize.min,
-                      //     children: [
-                      //       const SizedBox(height: 30),
-                      //       IconButton(
-                      //         icon: Icon(
-                      //           size: 40,
-                      //           Icons.delete_forever,
-                      //           color: Colors.red.shade900,
-                      //         ),
-                      //         onPressed: () => _confirmarCancelacion(entrada),
-                      //       ),
-                      //     ],
-                      //   ),
                     ],
                   ),
                 ],
@@ -517,159 +510,4 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     final decodeToken = await _authService.decodeToken();
     idUserDelete = decodeToken?['Id_User'] ?? '0';
   }
-
-  // void _confirmarCancelacion(Entradas entrada) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Confirmar Cancelación'),
-  //       content: Text(
-  //           '¿Estás seguro de que deseas cancelar esta entrada? \nFolio entrada: ${entrada.entrada_CodFolio} \nIdEntrada: ${entrada.id_Entradas}'),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: Text(
-  //             'No',
-  //             style: TextStyle(
-  //               color: Colors.blue.shade900,
-  //             ),
-  //           ),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.pop(context);
-  //             _mostrarMotivoDialog(entrada);
-  //           },
-  //           child: Text(
-  //             'Sí, cancelar',
-  //             style: TextStyle(
-  //               color: Colors.red.shade900,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // void _mostrarMotivoDialog(Entradas entrada) {
-  //   // Limpiar el controlador de motivo
-  //   _motivoController.clear();
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Motivo de Cancelación', textAlign: TextAlign.center),
-  //       content: CustomTextFielTexto(
-  //         labelText: 'Motivo',
-  //         controller: _motivoController,
-  //         validator: (motivo) {
-  //           if (motivo == null || motivo.isEmpty) {
-  //             return 'Motivo obligaorio';
-  //           }
-  //           return null;
-  //         },
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: Text(
-  //             'Cancelar',
-  //             style: TextStyle(
-  //               color: Colors.blue.shade900,
-  //             ),
-  //           ),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.pop(context);
-  //             _cancelarEntrada(entrada);
-  //           },
-  //           child: Text(
-  //             'Registrar Cancelación',
-  //             style: TextStyle(
-  //               color: Colors.red.shade900,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Future<void> _cancelarEntrada(Entradas entrada) async {
-  //   final CanceladoController canceladoController = CanceladoController();
-
-  //   if (_motivoController.text.isEmpty) {
-  //     showAdvertence(context, 'Motivo obligatorio');
-  //     return;
-  //   }
-
-  //   setState(() {
-  //     _isLoadingCancel = true;
-  //   });
-
-  //   try {
-  //     // Obtener todas las entradas con el mismo CodFolio
-  //     final List<Entradas> entradasACancelar = _allEntradas
-  //         .where((e) => e.entrada_CodFolio == entrada.entrada_CodFolio)
-  //         .toList();
-
-  //     // Mapa para agrupar productos y sus cantidades a restar
-  //     final Map<int, double> productosARestar = {};
-
-  //     // Primero registrar todas las cancelaciones y preparar productos
-  //     for (var entradaItem in entradasACancelar) {
-  //       // Registrar cancelación
-  //       final Cancelados cancelacion = Cancelados(
-  //         idCancelacion: 0,
-  //         cancelMotivo: _motivoController.text,
-  //         cancelFecha: _fecha,
-  //         id_Entrada: entradaItem.id_Entradas,
-  //         id_User: int.tryParse(idUserDelete!),
-  //       );
-
-  //       final bool success =
-  //           await canceladoController.addCancelacion(cancelacion);
-  //       if (!success) throw Exception('Error al registrar cancelación');
-
-  //       // Actualizar estado de la entrada
-  //       final Entradas entradaEdit =
-  //           entradaItem.copyWith(entrada_Estado: false);
-  //       final bool entradaUpdated =
-  //           await _entradasController.editEntrada(entradaEdit);
-  //       if (!entradaUpdated) throw Exception('Error al actualizar entrada');
-
-  //       // Acumular cantidades a restar por producto
-  //       final int? productoId = entradaItem.idProducto;
-  //       if (productoId != null) {
-  //         productosARestar.update(productoId,
-  //             (value) => value + (entradaItem.entrada_Unidades ?? 0),
-  //             ifAbsent: () => entradaItem.entrada_Unidades ?? 0);
-  //       }
-  //     }
-
-  //     // Actualizar productos
-  //     for (var entry in productosARestar.entries) {
-  //       final Productos? producto = _productosCache[entry.key];
-  //       if (producto != null) {
-  //         final double nuevaExistencia =
-  //             (producto.prodExistencia ?? 0) - entry.value;
-  //         final Productos productoEdit =
-  //             producto.copyWith(prodExistencia: nuevaExistencia);
-  //         await _productosController.editProducto(productoEdit);
-  //       }
-  //     }
-
-  //     showOk(context,
-  //         'Todas las entradas del folio ${entrada.entrada_CodFolio} han sido canceladas.');
-  //     await _loadData();
-  //   } catch (e) {
-  //     showError(context, 'Error durante el proceso de cancelación: $e');
-  //   } finally {
-  //     setState(() {
-  //       _isLoadingCancel = false;
-  //     });
-  //   }
-  // }
 }

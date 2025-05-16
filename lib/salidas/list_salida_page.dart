@@ -582,11 +582,14 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        salida.salida_Fecha ?? 'Sin Fecha',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      SizedBox(
+                        width: 82,
+                        child: Text(
+                          salida.salida_Fecha ?? 'Sin Fecha',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
