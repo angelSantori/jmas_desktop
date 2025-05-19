@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -10,6 +11,12 @@ import 'package:jmas_desktop/widgets/excel_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/permission_widget.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
 
 class ListProductoPage extends StatefulWidget {
   const ListProductoPage({super.key});
@@ -224,6 +231,101 @@ class _ListProductoPageState extends State<ListProductoPage> {
     );
   }
 
+  Future<Uint8List> _generateQrPdf(int productId) async {
+    final pdf = pw.Document();
+
+    // Configuración específica para ZDesigner ZT610
+    const labelWidthInInches = 0.787; // Ancho de etiqueta
+    const labelHeightInInches = 0.528; // Alto de etiqueta
+    const dpi = 400; // Resolución de la impresora
+
+    // Tamaño del QR (usamos 80% del lado más corto para dejar margen)
+    const qrSizeInInches = labelHeightInInches * 0.85;
+    final qrPixelSize = (qrSizeInInches * dpi).toDouble();
+
+    // Generar imagen QR
+    final qrPainter = QrPainter(
+      data: productId.toString(),
+      version: QrVersions.auto,
+      gapless: true,
+    );
+
+    // Crear imagen del QR
+    final qrImage = await qrPainter.toImageData(qrPixelSize,
+        format: ui.ImageByteFormat.png);
+    if (qrImage == null) throw Exception('Error al generar imagen QR');
+
+    // Tamaño de página en puntos (1 pulgada = 72 puntos en PDF)
+    const pageWidth = labelWidthInInches * 72;
+    const pageHeight = labelHeightInInches * 72;
+
+    // Calcular posición centrada
+    final qrWidth = qrSizeInInches * 72;
+    final qrHeight = qrSizeInInches * 72;
+    final posX = (pageWidth - qrWidth) / 3.3;
+    final posY = (pageHeight - qrHeight) / 2;
+
+    // Crear PDF con tamaño exacto
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat(pageWidth, pageHeight),
+        margin: pw.EdgeInsets.zero,
+        build: (pw.Context context) {
+          return pw.Stack(
+            children: [
+              // Fondo blanco
+              pw.Container(
+                width: pageWidth,
+                height: pageHeight,
+                color: PdfColors.white,
+              ),
+              // QR posicionado exactamente en el centro
+              pw.Positioned(
+                left: posX,
+                top: posY,
+                child: pw.Container(
+                  width: qrWidth,
+                  height: qrHeight,
+                  child: pw.Image(
+                    pw.MemoryImage(qrImage.buffer.asUint8List()),
+                    fit: pw.BoxFit.cover,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  Future<void> _showPrintDialog(int productId) async {
+    try {
+      final pdfBytes = await _generateQrPdf(productId);
+
+      // Esperar un breve momento antes de mostrar el diálogo
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Usar un nuevo contexto para el diálogo de impresión
+      if (!mounted) return;
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+        name: 'Etiqueta_Producto_$productId',
+      );
+
+      // Mostrar mensaje solo si el diálogo se cerró
+      if (!mounted) return;
+      showOk(context, 'QR generado correctamente');
+    } catch (e) {
+      if (!mounted) return;
+      showError(context, 'Error al generar QR: ${e.toString()}');
+      print('Error al generar QR: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -426,7 +528,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                       ),
                                       PermissionWidget(
                                         permission: 'edit',
-                                        child: Row(
+                                        child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             IconButton(
@@ -435,6 +537,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                                 color: Colors.black,
                                                 size: 30,
                                               ),
+                                              tooltip: 'Editar producto',
                                               onPressed: () async {
                                                 final result =
                                                     await Navigator.push(
@@ -449,6 +552,16 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                                   _loadProductos();
                                                 }
                                               },
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.qr_code,
+                                                color: Colors.black,
+                                                size: 30,
+                                              ),
+                                              tooltip: 'Generar etiqueta QR',
+                                              onPressed: () => _showPrintDialog(
+                                                  producto.id_Producto!),
                                             ),
                                           ],
                                         ),
