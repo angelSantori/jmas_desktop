@@ -157,18 +157,59 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       }
 
       final double existenciaActual = _selectedProducto!.prodExistencia ?? 0.0;
-
-      if (cantidad > existenciaActual) {
-        showAdvertence(context,
-            'La cantidad no puede ser mayor a la existencia del producto.');
-        return;
-      }
-
       final double nuevaExistencia = existenciaActual - cantidad;
       final double totalDeficit =
           nuevaExistencia - (_selectedProducto!.prodMin!);
 
-      if (nuevaExistencia < (_selectedProducto!.prodMin!)) {
+      // Mostrar advertencia si la existencia queda negativa
+      if (nuevaExistencia < 0) {
+        final bool confirmado = await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Column(
+                  children: [
+                    Icon(Icons.warning_amber_sharp,
+                        color: Colors.yellow.shade800),
+                    Text('Advertencia',
+                        style: TextStyle(
+                          color: Colors.yellow.shade800,
+                          fontWeight: FontWeight.bold,
+                        )),
+                  ],
+                ),
+                content: Text(
+                  'Está intentando registrar una salida que dejará el producto con existencia negativa:\n\n'
+                  'Producto: ${_selectedProducto!.prodDescripcion}\n'
+                  'Existencia actual: $existenciaActual\n'
+                  'Cantidad a descontar: $cantidad\n'
+                  'Nueva existencia: $nuevaExistencia\n\n'
+                  '¿Desea continuar?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar',
+                        style: TextStyle(color: Colors.black)),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Continuar',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        )),
+                  ),
+                ],
+              ),
+            ) ??
+            false;
+
+        if (!confirmado) {
+          return; // El usuario canceló la operación
+        }
+      }
+      // Mostrar advertencia si está por debajo del mínimo (pero no negativo)
+      else if (nuevaExistencia < (_selectedProducto!.prodMin!)) {
         showAdvertence(context,
             'La cantidad está por debajo de las existencias mínimas del producto: ${_selectedProducto!.prodDescripcion}. \nCantidad mínima: ${_selectedProducto!.prodMin} \nTotal unidades tras salida: $nuevaExistencia  \nDeficit: $totalDeficit unidades de menos.');
       }
@@ -570,16 +611,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 10),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 20),
+
                           Expanded(
                             child: BuscarPadronWidgetSalida(
                               idPadronController: _idPadronController,
@@ -595,10 +628,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               },
                             ),
                           ),
+
                           const SizedBox(width: 10),
                         ],
                       ),
-
+                      const SizedBox(height: 30),
                       const SizedBox(height: 30),
 
                       Row(
