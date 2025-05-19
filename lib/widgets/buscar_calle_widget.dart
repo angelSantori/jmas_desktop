@@ -195,10 +195,15 @@ class _BuscarCalleWidgetState extends State<BuscarCalleWidget> {
                   ),
                   const SizedBox(height: 5),
                   Text(
+                    'ID: ${widget.selectedCalle!.idCalle ?? 'No disponible'}',
+                    style: const TextStyle(fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
                     'Nombre: ${widget.selectedCalle!.calleNombre ?? 'No disponible'}',
                     style: const TextStyle(fontSize: 14),
                     overflow: TextOverflow.ellipsis,
-                  )
+                  ),
                 ],
               ))
             else

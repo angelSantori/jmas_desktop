@@ -200,6 +200,11 @@ class _BuscarColoniaWidgetState extends State<BuscarColoniaWidget> {
                         ),
                         const SizedBox(height: 5),
                         Text(
+                          'ID: ${widget.selectedColonia!.idColonia ?? 'No disponible'}',
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
                           'Nombre: ${widget.selectedColonia!.nombreColonia ?? 'No disponible'}',
                           style: const TextStyle(fontSize: 14),
                           overflow: TextOverflow.ellipsis,
