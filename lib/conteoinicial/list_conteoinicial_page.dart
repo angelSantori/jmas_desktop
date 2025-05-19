@@ -122,6 +122,7 @@ class _ListConteoinicialPageState extends State<ListConteoinicialPage> {
     });
   }
 
+  // ignore: unused_element
   String _formatDate(String? date) {
     if (date == null) return 'N/A';
 
