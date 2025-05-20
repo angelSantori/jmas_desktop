@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/juntas/edit_junta_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/permission_widget.dart';
 
-class ListJuntasPage extends StatefulWidget {  
+class ListJuntasPage extends StatefulWidget {
   const ListJuntasPage({super.key});
 
   @override
@@ -14,12 +13,10 @@ class ListJuntasPage extends StatefulWidget {
 
 class _ListJuntasPageState extends State<ListJuntasPage> {
   final JuntasController _juntasController = JuntasController();
-  final UsersController _usersController = UsersController();
   final TextEditingController _searchController = TextEditingController();
 
   List<Juntas> _allJuntas = [];
   List<Juntas> _filteredJuntas = [];
-  Map<int, Users> _usersCache = {};
 
   bool _isLoading = false;
 
@@ -37,13 +34,10 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
 
     try {
       final juntas = await _juntasController.listJuntas();
-      final users = await _usersController.listUsers();
 
       setState(() {
         _allJuntas = juntas;
         _filteredJuntas = juntas;
-
-        _usersCache = {for (var us in users) us.id_User!: us};
 
         _isLoading = false;
       });
@@ -62,9 +56,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
       _filteredJuntas = _allJuntas.where((junta) {
         final name = junta.junta_Name?.toLowerCase() ?? '';
         final contacto = junta.junta_Telefono?.toLowerCase() ?? '';
-
-        final encargado =
-            _usersCache[junta.id_User]?.user_Name?.toLowerCase() ?? '';
+        final encargado = junta.junta_Encargado?.toLowerCase() ?? '';
 
         return name.contains(query) ||
             contacto.contains(query) ||
@@ -111,7 +103,6 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                               const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final junta = _filteredJuntas[index];
-                            final user = _usersCache[junta.id_User];
 
                             return Container(
                               decoration: BoxDecoration(
@@ -198,7 +189,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                               const SizedBox(width: 4),
                                               Expanded(
                                                 child: Text(
-                                                  user!.user_Name ??
+                                                  junta.junta_Encargado ??
                                                       'Encargado no diponible',
                                                   style: const TextStyle(
                                                     fontSize: 14,

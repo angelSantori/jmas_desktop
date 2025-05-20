@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -13,31 +12,14 @@ class AddJuntaPage extends StatefulWidget {
 
 class _AddJuntaPageState extends State<AddJuntaPage> {
   final JuntasController _juntasController = JuntasController();
-  final UsersController _usersController = UsersController();
 
   final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _encargadoController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
-  List<Users> _users = [];
-  Users? _selectedUser;
-
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDataJunta();
-  }
-
-  Future<void> _loadDataJunta() async {
-    List<Users> users = await _usersController.listUsers();
-
-    setState(() {
-      _users = users;
-    });
-  }
 
   void _submitForm() async {
     setState(() {
@@ -50,7 +32,7 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
           id_Junta: 0,
           junta_Name: _nombreController.text,
           junta_Telefono: _phoneController.text,
-          id_User: _selectedUser?.id_User ?? 0,
+          junta_Encargado: _encargadoController.text,
         );
 
         final success = await _juntasController.addJunta(junta);
@@ -79,9 +61,7 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
   void _clearForm() {
     _nombreController.clear();
     _phoneController.clear();
-    setState(() {
-      _selectedUser = null;
-    });
+    _encargadoController.clear();
   }
 
   @override
@@ -142,23 +122,16 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: CustomListaDesplegableTipo(
-                          value: _selectedUser,
-                          labelText: 'Encargado',
-                          items: _users,
-                          onChanged: (user) {
-                            setState(() {
-                              _selectedUser = user;
-                            });
-                          },
-                          validator: (user) {
-                            if (user == null) {
-                              return 'Encargado obligatorio.';
+                        child: CustomTextFielTexto(
+                          controller: _encargadoController,
+                          prefixIcon: Icons.person,
+                          labelText: 'Nombre de encargado',
+                          validator: (encJnt) {
+                            if (encJnt == null || encJnt.isEmpty) {
+                              return 'Encargado obligatorio';
                             }
                             return null;
                           },
-                          itemLabelBuilder: (user) =>
-                              user.user_Name ?? 'Sin nombre',
                         ),
                       ),
                     ],

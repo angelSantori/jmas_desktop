@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -16,12 +15,9 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
   final JuntasController _juntasController = JuntasController();
   final _formKey = GlobalKey<FormState>();
 
-  final UsersController _usersController = UsersController();
-  List<Users> _users = [];
-  Users? _selectedUser;
-
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
+  late TextEditingController _encargadoController;
 
   bool _isLoading = false;
 
@@ -30,24 +26,15 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
     super.initState();
     _nameController = TextEditingController(text: widget.junta.junta_Name);
     _phoneController = TextEditingController(text: widget.junta.junta_Telefono);
-
-    _loadUsers();
-  }
-
-  Future<void> _loadUsers() async {
-    List<Users> users = await _usersController.listUsers();
-
-    setState(() {
-      _users = users;
-      _selectedUser =
-          users.firstWhere((user) => user.id_User == widget.junta.id_User);
-    });
+    _encargadoController =
+        TextEditingController(text: widget.junta.junta_Encargado);
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _encargadoController.dispose();
     super.dispose();
   }
 
@@ -57,9 +44,10 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
     });
     if (_formKey.currentState!.validate()) {
       final updateJunta = widget.junta.copyWith(
-          junta_Name: _nameController.text,
-          junta_Telefono: _phoneController.text,
-          id_User: _selectedUser!.id_User);
+        junta_Name: _nameController.text,
+        junta_Telefono: _phoneController.text,
+        junta_Encargado: _encargadoController.text,
+      );
 
       final result = await _juntasController.editJunta(updateJunta);
 
@@ -121,22 +109,17 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
                   ),
                   const SizedBox(height: 30),
 
-                  CustomListaDesplegableTipo(
-                    value: _selectedUser,
+                  //Encargado
+                  CustomTextFielTexto(
+                    controller: _encargadoController,
+                    prefixIcon: Icons.person,
                     labelText: 'Encargado',
-                    items: _users,
-                    onChanged: (user) {
-                      setState(() {
-                        _selectedUser = user;
-                      });
-                    },
-                    validator: (user) {
-                      if (user == null) {
+                    validator: (encJnt) {
+                      if (encJnt == null || encJnt.isEmpty) {
                         return 'Encargado obligatorio';
                       }
                       return null;
                     },
-                    itemLabelBuilder: (user) => user.user_Name ?? 'Sin nombre',
                   ),
                   const SizedBox(height: 30),
 

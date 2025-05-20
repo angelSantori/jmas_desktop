@@ -84,25 +84,25 @@ class Juntas {
   int? id_Junta;
   String? junta_Name;
   String? junta_Telefono;
-  int? id_User;
+  String? junta_Encargado;
   Juntas({
     this.id_Junta,
     this.junta_Name,
     this.junta_Telefono,
-    this.id_User,
+    this.junta_Encargado,
   });
 
   Juntas copyWith({
     int? id_Junta,
     String? junta_Name,
     String? junta_Telefono,
-    int? id_User,
+    String? junta_Encargado,
   }) {
     return Juntas(
       id_Junta: id_Junta ?? this.id_Junta,
       junta_Name: junta_Name ?? this.junta_Name,
       junta_Telefono: junta_Telefono ?? this.junta_Telefono,
-      id_User: id_User ?? this.id_User,
+      junta_Encargado: junta_Encargado ?? this.junta_Encargado,
     );
   }
 
@@ -111,16 +111,21 @@ class Juntas {
       'id_Junta': id_Junta,
       'junta_Name': junta_Name,
       'junta_Telefono': junta_Telefono,
-      'id_User': id_User,
+      'junta_Encargado': junta_Encargado,
     };
   }
 
   factory Juntas.fromMap(Map<String, dynamic> map) {
     return Juntas(
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
-      junta_Name: map['junta_Name'] != null ? map['junta_Name'] as String : null,
-      junta_Telefono: map['junta_Telefono'] != null ? map['junta_Telefono'] as String : null,
-      id_User: map['id_User'] != null ? map['id_User'] as int : null,
+      junta_Name:
+          map['junta_Name'] != null ? map['junta_Name'] as String : null,
+      junta_Telefono: map['junta_Telefono'] != null
+          ? map['junta_Telefono'] as String
+          : null,
+      junta_Encargado: map['junta_Encargado'] != null
+          ? map['junta_Encargado'] as String
+          : null,
     );
   }
 
@@ -131,25 +136,24 @@ class Juntas {
 
   @override
   String toString() {
-    return 'Juntas(id_Junta: $id_Junta, junta_Name: $junta_Name, junta_Telefono: $junta_Telefono, id_User: $id_User)';
+    return 'Juntas(id_Junta: $id_Junta, junta_Name: $junta_Name, junta_Telefono: $junta_Telefono, junta_Encargado: $junta_Encargado)';
   }
 
   @override
   bool operator ==(covariant Juntas other) {
     if (identical(this, other)) return true;
-  
-    return 
-      other.id_Junta == id_Junta &&
-      other.junta_Name == junta_Name &&
-      other.junta_Telefono == junta_Telefono &&
-      other.id_User == id_User;
+
+    return other.id_Junta == id_Junta &&
+        other.junta_Name == junta_Name &&
+        other.junta_Telefono == junta_Telefono &&
+        other.junta_Encargado == junta_Encargado;
   }
 
   @override
   int get hashCode {
     return id_Junta.hashCode ^
-      junta_Name.hashCode ^
-      junta_Telefono.hashCode ^
-      id_User.hashCode;
+        junta_Name.hashCode ^
+        junta_Telefono.hashCode ^
+        junta_Encargado.hashCode;
   }
 }
