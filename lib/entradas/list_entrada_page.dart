@@ -70,7 +70,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
       setState(() => _isLoading = true);
       _allEntradas.clear();
       _filteredEntradas.clear();
-      
+
       final entradas = await _entradasController.listEntradas();
       //final productos = await _productosController.listProductos();
       final almacenes = await _almacenesController.listAlmacenes();
@@ -108,13 +108,30 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         final folio = (entrada.entrada_CodFolio ?? '').toString().toLowerCase();
         final referencia =
             (entrada.entrada_Referencia ?? '').toString().toLowerCase();
-        final fechaString = entrada.entrada_Fecha;
 
         //Parsear la fecha del string
-        final fecha = fechaString != null ? parseDate(fechaString) : null;
+        final fecha = entrada.entrada_Fecha != null
+            ? DateFormat('dd/MM/yyyy HH:mm').parse(entrada.entrada_Fecha!)
+            : null;
 
-        if (fecha == null && (_startDate != null || _endDate != null)) {
-          return false;
+        final fechaDMY =
+            fecha != null ? DateTime(fecha.year, fecha.month, fecha.day) : null;
+
+        bool matchesDate = true;
+        if (_startDate != null || _endDate != null) {
+          if (fechaDMY == null) return false;
+
+          if (_startDate != null) {
+            matchesDate = matchesDate &&
+                !fechaDMY.isBefore(DateTime(
+                    _startDate!.year, _startDate!.month, _startDate!.day));
+          }
+
+          if (_endDate != null) {
+            matchesDate = matchesDate &&
+                !fechaDMY.isAfter(
+                    DateTime(_endDate!.year, _endDate!.month, _endDate!.day));
+          }
         }
 
         //Validar folio
@@ -132,11 +149,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         //Validar por proveedor
         final matchesProveedor = _selectedProveedor == null ||
             entrada.id_Proveedor.toString() == _selectedProveedor;
-
-        //Validar rango de fechas
-        final matchesDate = fecha != null &&
-            (_startDate == null || !fecha.isBefore(_startDate!)) &&
-            (_endDate == null || !fecha.isAfter(_endDate!));
 
         return matchesText && matchesDate && matchesAlmacen && matchesProveedor;
       }).toList();
