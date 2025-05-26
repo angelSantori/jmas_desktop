@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:jmas_desktop/service/auth_service.dart';
@@ -30,6 +29,27 @@ class AjusteMasController {
     }
   }
 
+  Future<String> getNextFolioAJM() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/AjustesMas/nextFolioAJM'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+      if (response.statusCode == 200) {
+        return response.body;
+      } else {
+        print(
+            'Error GetNextFolioAJM | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return '';
+      }
+    } catch (e) {
+      print('Error GetNextFolioAJM | Try | Controller: $e');
+      return '';
+    }
+  }
+
   Future<bool> addAjusteMas(AjusteMas ajusteMore) async {
     try {
       final response = await http.post(
@@ -58,6 +78,7 @@ class AjusteMasController {
 class AjusteMas {
   int? id_AjusteMas;
   String? ajuesteMas_Descripcion;
+  String? ajusteMas_CodFolio;
   double? ajusteMas_Cantidad;
   String? ajusteMas_Fecha;
   int? id_Producto;
@@ -65,6 +86,7 @@ class AjusteMas {
   AjusteMas({
     this.id_AjusteMas,
     this.ajuesteMas_Descripcion,
+    this.ajusteMas_CodFolio,
     this.ajusteMas_Cantidad,
     this.ajusteMas_Fecha,
     this.id_Producto,
@@ -74,6 +96,7 @@ class AjusteMas {
   AjusteMas copyWith({
     int? id_AjusteMas,
     String? ajuesteMas_Descripcion,
+    String? ajusteMas_CodFolio,
     double? ajusteMas_Cantidad,
     String? ajusteMas_Fecha,
     int? id_Producto,
@@ -83,6 +106,7 @@ class AjusteMas {
       id_AjusteMas: id_AjusteMas ?? this.id_AjusteMas,
       ajuesteMas_Descripcion:
           ajuesteMas_Descripcion ?? this.ajuesteMas_Descripcion,
+      ajusteMas_CodFolio: ajusteMas_CodFolio ?? this.ajusteMas_CodFolio,
       ajusteMas_Cantidad: ajusteMas_Cantidad ?? this.ajusteMas_Cantidad,
       ajusteMas_Fecha: ajusteMas_Fecha ?? this.ajusteMas_Fecha,
       id_Producto: id_Producto ?? this.id_Producto,
@@ -94,6 +118,7 @@ class AjusteMas {
     return <String, dynamic>{
       'id_AjusteMas': id_AjusteMas,
       'ajuesteMas_Descripcion': ajuesteMas_Descripcion,
+      'ajusteMas_CodFolio': ajusteMas_CodFolio,
       'ajusteMas_Cantidad': ajusteMas_Cantidad,
       'ajusteMas_Fecha': ajusteMas_Fecha,
       'id_Producto': id_Producto,
@@ -108,10 +133,11 @@ class AjusteMas {
       ajuesteMas_Descripcion: map['ajuesteMas_Descripcion'] != null
           ? map['ajuesteMas_Descripcion'] as String
           : null,
+      ajusteMas_CodFolio: map['ajusteMas_CodFolio'] != null
+          ? map['ajusteMas_CodFolio'] as String
+          : null,
       ajusteMas_Cantidad: map['ajusteMas_Cantidad'] != null
-          ? (map['ajusteMas_Cantidad'] is int
-              ? (map['ajusteMas_Cantidad'] as int).toDouble()
-              : map['ajusteMas_Cantidad'] as double)
+          ? map['ajusteMas_Cantidad'] as double
           : null,
       ajusteMas_Fecha: map['ajusteMas_Fecha'] != null
           ? map['ajusteMas_Fecha'] as String
@@ -129,7 +155,7 @@ class AjusteMas {
 
   @override
   String toString() {
-    return 'AjusteMas(id_AjusteMas: $id_AjusteMas, ajuesteMas_Descripcion: $ajuesteMas_Descripcion, ajusteMas_Cantidad: $ajusteMas_Cantidad, ajusteMas_Fecha: $ajusteMas_Fecha, id_Producto: $id_Producto, id_User: $id_User)';
+    return 'AjusteMas(id_AjusteMas: $id_AjusteMas, ajuesteMas_Descripcion: $ajuesteMas_Descripcion, ajusteMas_CodFolio: $ajusteMas_CodFolio, ajusteMas_Cantidad: $ajusteMas_Cantidad, ajusteMas_Fecha: $ajusteMas_Fecha, id_Producto: $id_Producto, id_User: $id_User)';
   }
 
   @override
@@ -138,6 +164,7 @@ class AjusteMas {
 
     return other.id_AjusteMas == id_AjusteMas &&
         other.ajuesteMas_Descripcion == ajuesteMas_Descripcion &&
+        other.ajusteMas_CodFolio == ajusteMas_CodFolio &&
         other.ajusteMas_Cantidad == ajusteMas_Cantidad &&
         other.ajusteMas_Fecha == ajusteMas_Fecha &&
         other.id_Producto == id_Producto &&
@@ -148,6 +175,7 @@ class AjusteMas {
   int get hashCode {
     return id_AjusteMas.hashCode ^
         ajuesteMas_Descripcion.hashCode ^
+        ajusteMas_CodFolio.hashCode ^
         ajusteMas_Cantidad.hashCode ^
         ajusteMas_Fecha.hashCode ^
         id_Producto.hashCode ^
