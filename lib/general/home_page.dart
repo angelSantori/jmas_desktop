@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 // import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
-// import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
+import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
 import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/calles/add_calles_page.dart';
@@ -151,11 +151,13 @@ class _HomePageState extends State<HomePage>
 
       //X
       'home': () => const Center(child: Text('Welcome to home Page!')),
-      //'mapa': () => const MapaLecturasPage(),
-      // 'addAjusteMas': () => const AddAjusteMasPage(),
-      // 'addAjusteMenos': () => const AddAjusteMenosPage(),
+      'addAjusteMas': () =>
+          AddAjusteMasPage(idUser: idUser, userName: userName),
       'listPadron': () => const ListPadronPage(),
       'listCC': () => const ListCcontablesPage(),
+
+      //'mapa': () => const MapaLecturasPage(),
+      // 'addAjusteMenos': () => const AddAjusteMenosPage(),
     };
   }
 
@@ -677,22 +679,29 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
-                              // SubCustomExpansionTile(
-                              //   title: 'Ajustes',
-                              //   icon: Icon(Icons.abc_outlined),
-                              //   children: [
-                              //     CustomListTile(
-                              //       title: 'Ajuste +',
-                              //       icon: Icon(Icons.list_alt_rounded),
-                              //       onTap: () {},
-                              //     ),
-                              //     CustomListTile(
-                              //       title: 'Ajuste -',
-                              //       icon: Icon(Icons.list_alt_rounded),
-                              //       onTap: () {},
-                              //     ),
-                              //   ],
-                              // ),
+                              PermissionWidget(
+                                permission: 'add',
+                                child: SubCustomExpansionTile(
+                                  title: 'Ajustes',
+                                  icon: const Icon(Icons.abc_outlined),
+                                  children: [
+                                    CustomListTile(
+                                      title: 'Ajuste +',
+                                      icon: const Icon(
+                                        Icons.list_alt_rounded,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('addAjusteMas'),
+                                    ),
+                                    // CustomListTile(
+                                    //   title: 'Ajuste -',
+                                    //   icon: Icon(Icons.list_alt_rounded),
+                                    //   onTap: () {},
+                                    // ),
+                                  ],
+                                ),
+                              ),
+
                               CustomListTile(
                                 title: 'Consulta Universal',
                                 icon: const Icon(

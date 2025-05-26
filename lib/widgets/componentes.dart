@@ -50,7 +50,8 @@ class _CustomListTileState extends State<CustomListTile> {
       child: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 200), // Duración de la animación
+          duration:
+              const Duration(milliseconds: 200), // Duración de la animación
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             color: _isHovered
@@ -62,7 +63,7 @@ class _CustomListTileState extends State<CustomListTile> {
                       color:
                           Colors.black.withOpacity(0.3), // Color de la sombra
                       blurRadius: 10, // Difuminado de la sombra
-                      offset: Offset(0, 5), // Desplazamiento de la sombra
+                      offset: const Offset(0, 5), // Desplazamiento de la sombra
                     ),
                   ]
                 : [], // Sin sombra cuando no hay hover
@@ -125,7 +126,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> {
       onExit: (_) =>
           setState(() => _isHovered = false), // Detecta cuando el cursor sale
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 200), // Duración de la animación
+        duration: const Duration(milliseconds: 200), // Duración de la animación
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           color: _isHovered
@@ -136,7 +137,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> {
                   BoxShadow(
                     color: Colors.black.withOpacity(0.3), // Color de la sombra
                     blurRadius: 10, // Difuminado de la sombra
-                    offset: Offset(0, 5), // Desplazamiento de la sombra
+                    offset: const Offset(0, 5), // Desplazamiento de la sombra
                   ),
                 ]
               : [], // Sin sombra cuando no hay hover
@@ -203,7 +204,8 @@ class _SubCustomExpansionTileState extends State<SubCustomExpansionTile> {
       child: Padding(
         padding: const EdgeInsets.only(left: 16),
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 200), // Duración de la animación
+          duration:
+              const Duration(milliseconds: 200), // Duración de la animación
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             color: _isHovered
@@ -215,7 +217,7 @@ class _SubCustomExpansionTileState extends State<SubCustomExpansionTile> {
                       color:
                           Colors.black.withOpacity(0.3), // Color de la sombra
                       blurRadius: 10, // Difuminado de la sombra
-                      offset: Offset(0, 5), // Desplazamiento de la sombra
+                      offset: const Offset(0, 5), // Desplazamiento de la sombra
                     ),
                   ]
                 : [], // Sin sombra cuando no hay hover
@@ -327,7 +329,7 @@ Future<void> generateAndPrintPdfEntrada({
                       width: 80,
                       height: 80,
                       child: pw.Image(logoImage),
-                      margin: pw.EdgeInsets.only(right: 15),
+                      margin: const pw.EdgeInsets.only(right: 15),
                     ),
                     // Información de la organización centrada
                     pw.Expanded(
@@ -439,11 +441,11 @@ Future<void> generateAndPrintPdfEntrada({
                 // Tabla de productos con solución alternativa para celdas fusionadas
                 pw.Table(
                   columnWidths: {
-                    0: pw.FixedColumnWidth(50), // Clave
-                    1: pw.FixedColumnWidth(50), // Cantidad
-                    2: pw.FlexColumnWidth(3), // Descripción
-                    3: pw.FixedColumnWidth(50), // Costo
-                    4: pw.FixedColumnWidth(60), // Total
+                    0: const pw.FixedColumnWidth(50), // Clave
+                    1: const pw.FixedColumnWidth(50), // Cantidad
+                    2: const pw.FlexColumnWidth(3), // Descripción
+                    3: const pw.FixedColumnWidth(50), // Costo
+                    4: const pw.FixedColumnWidth(60), // Total
                   },
                   border: pw.TableBorder.all(width: 0.5),
                   children: [
@@ -617,7 +619,7 @@ Future<void> generateAndPrintPdfEntrada({
                       ),
                     ),
                     pw.SizedBox(height: 6),
-                    pw.Text('Autoriza',
+                    pw.Text('Autorizó',
                         style: const pw.TextStyle(fontSize: 10)),
                   ],
                 ),
@@ -797,8 +799,11 @@ Widget buildProductosAgregados(
             int index = entry.key;
             Map<String, dynamic> producto = entry.value;
 
-            TextEditingController costoController =
-                TextEditingController(text: producto['costo'].toString());
+            TextEditingController costoController = TextEditingController(
+              text: producto['costo'] is double
+                  ? producto['costo'].toStringAsFixed(2)
+                  : producto['costo'].toString(),
+            );
 
             return TableRow(
               children: [
@@ -809,12 +814,18 @@ Widget buildProductosAgregados(
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: costoController,
-                    keyboardType: TextInputType.number,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     textAlign: TextAlign.center,
                     onSubmitted: (nuevoValor) {
-                      double nuevoCosto =
-                          double.tryParse(nuevoValor) ?? producto['costo'];
-                      actualizarCosto(index, nuevoCosto);
+                      double nuevoCosto = double.tryParse(nuevoValor) ??
+                          (producto['costo'] is double
+                              ? producto['costo']
+                              : double.tryParse(producto['costo'].toString()) ??
+                                  0.0);
+                      // Asegurar que el nuevo costo tenga 2 decimales
+                      actualizarCosto(
+                          index, double.parse(nuevoCosto.toStringAsFixed(2)));
                     },
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -824,7 +835,9 @@ Widget buildProductosAgregados(
                   ),
                 ),
                 TableCellText(texto: producto['cantidad'].toString()),
-                TableCellText(texto: '\$${producto['precio'].toString()}'),
+                TableCellText(
+                    texto:
+                        '\$${producto['precio'] is double ? producto['precio'].toStringAsFixed(2) : (double.tryParse(producto['precio'].toString())?.toStringAsFixed(2) ?? '0.00')}'),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: IconButton(
@@ -844,14 +857,20 @@ Widget buildProductosAgregados(
               child: Text(
                 'Total',
                 style: TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.right,
+                textAlign: TextAlign.center,
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                '\$${productosAgregados.fold<double>(0.0, (previousValue, producto) => previousValue + (producto['precio'] ?? 0.0)).toStringAsFixed(2)}',
+                '\$${productosAgregados.fold<double>(0.0, (previousValue, producto) {
+                  double precio = producto['precio'] is double
+                      ? producto['precio']
+                      : double.tryParse(producto['precio'].toString()) ?? 0.0;
+                  return previousValue + precio;
+                }).toStringAsFixed(2)}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
             ),
             const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
@@ -904,7 +923,7 @@ class BuscarProductoWidget extends StatefulWidget {
   final ProductosController productosController;
   final Productos? selectedProducto;
   final Function(Productos?) onProductoSeleccionado;
-  final Function(String) onAdvertencia;  
+  final Function(String) onAdvertencia;
   final VoidCallback? onEnterPressed;
 
   const BuscarProductoWidget({
@@ -914,7 +933,7 @@ class BuscarProductoWidget extends StatefulWidget {
     required this.productosController,
     required this.selectedProducto,
     required this.onProductoSeleccionado,
-    required this.onAdvertencia,    
+    required this.onAdvertencia,
     this.onEnterPressed,
   });
 
@@ -1024,8 +1043,8 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
     setState(() {
       _productosSugeridos = [];
       _nombreProducto.clear();
-    });    
-  }  
+    });
+  }
 
   // Widget de búsqueda por nombre (modificado ligeramente)
   Widget _buildBuscadorPorNombre() {
@@ -1071,7 +1090,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                       return ListTile(
                         title: Text(producto.prodDescripcion ?? 'Sin nombre'),
                         subtitle: Text(
-                          'ID: ${producto.id_Producto} - Precio: \$${producto.prodPrecio?.toStringAsFixed(2)}',
+                          'ID: ${producto.id_Producto} - Precio: \$${producto.prodPrecio?.toStringAsFixed(2) ?? 'No disponible'}',
                         ),
                         onTap: () => _seleccionarProducto(producto),
                       );
@@ -1111,7 +1130,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                 },
               ),
             ),
-            const SizedBox(width: 15),            
+            const SizedBox(width: 15),
 
             // Información del Producto
             if (widget.selectedProducto != null)

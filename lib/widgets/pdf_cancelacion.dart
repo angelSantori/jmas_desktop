@@ -51,7 +51,7 @@ Future<void> generarPdfCancelacion({
 
   // Título según el tipo de movimiento
   final tituloMovimiento = tipoMovimiento == 'ENTRADA'
-      ? 'CANCELACIÓN DE ENTRADA'
+      ? 'DEVOLUCIÓN DE ENTRADA'
       : 'DEVOLUCIÓN DE SALIDA';
 
   // Generar contenido del PDF
@@ -147,8 +147,9 @@ Future<void> generarPdfCancelacion({
                           pw.Text('Ref: $referencia',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('Motivo: $motivo',
-                              style: const pw.TextStyle(fontSize: 9)),
+                          if (tipoTrabajo != null)
+                            pw.Text('Tipo trabajo: $tipoTrabajo',
+                                style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           if (proveedor != null)
                             pw.Text('Proveedor: $proveedor',
@@ -170,9 +171,6 @@ Future<void> generarPdfCancelacion({
                           if (junta != null)
                             pw.Text('Junta: $junta',
                                 style: const pw.TextStyle(fontSize: 9)),
-                          if (tipoTrabajo != null)
-                            pw.Text('Tipo trabajo: $tipoTrabajo',
-                                style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
 
@@ -182,9 +180,11 @@ Future<void> generarPdfCancelacion({
                         children: [
                           pw.Text('Almacén: $almacen',
                               style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
                           if (padron != null)
                             pw.Text('Padrón: $padron',
                                 style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
                           if (usuarioAsignado != null)
                             pw.Text('Asignado a: $usuarioAsignado',
                                 style: const pw.TextStyle(fontSize: 9)),
@@ -305,7 +305,30 @@ Future<void> generarPdfCancelacion({
                         .toList(),
                   ],
                 ),
+                pw.SizedBox(height: 20),
 
+                //Motivo
+                pw.Container(
+                    width: double.infinity,
+                    padding: const pw.EdgeInsets.all(10),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(width: 1),
+                      borderRadius: pw.BorderRadius.circular(5),
+                    ),
+                    child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Motivo de cancelación:',
+                              style: pw.TextStyle(
+                                fontSize: 10,
+                                fontWeight: pw.FontWeight.bold,
+                              )),
+                          pw.SizedBox(height: 5),
+                          pw.Text(
+                            motivo,
+                            style: const pw.TextStyle(fontSize: 9),
+                          )
+                        ])),
                 pw.SizedBox(height: 30),
               ],
             ),
@@ -340,7 +363,7 @@ Future<void> generarPdfCancelacion({
                     ),
                     pw.SizedBox(height: 6),
                     pw.Text(
-                      tipoMovimiento == 'ENTRADA' ? 'Cancela' : 'Devuelve',
+                      tipoMovimiento == 'ENTRADA' ? 'Devuelve' : 'Devuelve',
                       style: const pw.TextStyle(fontSize: 10),
                     ),
                   ]),
@@ -354,8 +377,7 @@ Future<void> generarPdfCancelacion({
                       ),
                     ),
                     pw.SizedBox(height: 6),
-                    pw.Text('Autoriza',
-                        style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('Recibe', style: const pw.TextStyle(fontSize: 10)),
                   ]),
                 ],
               ),

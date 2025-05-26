@@ -858,11 +858,11 @@ Future<void> generateAndPrintPdfSalida({
                 // Tabla de productos con solución alternativa para celdas fusionadas
                 pw.Table(
                   columnWidths: {
-                    0: pw.FixedColumnWidth(50), // Clave
-                    1: pw.FixedColumnWidth(50), // Cantidad
-                    2: pw.FlexColumnWidth(3), // Descripción
-                    3: pw.FixedColumnWidth(50), // Costo
-                    4: pw.FixedColumnWidth(60), // Total
+                    0: const pw.FixedColumnWidth(50), // Clave
+                    1: const pw.FixedColumnWidth(50), // Cantidad
+                    2: const pw.FlexColumnWidth(3), // Descripción
+                    3: const pw.FixedColumnWidth(50), // Costo
+                    4: const pw.FixedColumnWidth(60), // Total
                   },
                   border: pw.TableBorder.all(width: 0.5),
                   children: [
@@ -1038,7 +1038,7 @@ Future<void> generateAndPrintPdfSalida({
                           ),
                         ),
                         pw.SizedBox(height: 6),
-                        pw.Text('Entrega',
+                        pw.Text('Solicitó',
                             style: const pw.TextStyle(fontSize: 10)),
                       ]),
                       //Fimra de Autoriza
@@ -1051,7 +1051,7 @@ Future<void> generateAndPrintPdfSalida({
                           ),
                         ),
                         pw.SizedBox(height: 6),
-                        pw.Text('Autoriza',
+                        pw.Text('Autorizó',
                             style: const pw.TextStyle(fontSize: 10)),
                       ]),
                       //Fimra de Recibe
@@ -1064,7 +1064,7 @@ Future<void> generateAndPrintPdfSalida({
                           ),
                         ),
                         pw.SizedBox(height: 6),
-                        pw.Text('Recibe',
+                        pw.Text('Entregó',
                             style: const pw.TextStyle(fontSize: 10)),
                       ]),
                     ])),
