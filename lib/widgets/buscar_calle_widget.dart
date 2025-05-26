@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/generales.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class BuscarCalleWidget extends StatefulWidget {
   final TextEditingController idCalleController;
@@ -12,14 +13,17 @@ class BuscarCalleWidget extends StatefulWidget {
   final Calles? selectedCalle;
   final Function(Calles?) onCalleSeleccionada;
   final Function(String) onAdvertencia;
+  final bool mostrarOpcionAgregar;
 
-  const BuscarCalleWidget(
-      {super.key,
-      required this.idCalleController,
-      required this.callesController,
-      this.selectedCalle,
-      required this.onCalleSeleccionada,
-      required this.onAdvertencia});
+  const BuscarCalleWidget({
+    super.key,
+    required this.idCalleController,
+    required this.callesController,
+    this.selectedCalle,
+    required this.onCalleSeleccionada,
+    required this.onAdvertencia,
+    this.mostrarOpcionAgregar = true,
+  });
 
   @override
   State<BuscarCalleWidget> createState() => _BuscarCalleWidgetState();
@@ -30,10 +34,13 @@ class _BuscarCalleWidgetState extends State<BuscarCalleWidget> {
   final TextEditingController _nombreCalle = TextEditingController();
   List<Calles> _callesSugeridas = [];
   Timer? _debounce;
+  bool _mostrarFomrularioAgregar = false;
+  final TextEditingController _nuevoNombreCalle = TextEditingController();
 
   @override
   void dispose() {
     _nombreCalle.dispose();
+    _nuevoNombreCalle.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -91,60 +98,151 @@ class _BuscarCalleWidgetState extends State<BuscarCalleWidget> {
     setState(() {
       _callesSugeridas = [];
       _nombreCalle.clear();
+      _mostrarFomrularioAgregar = false;
     });
   }
 
+  void _toggleFormularioAgregar() {
+    setState(() {
+      _mostrarFomrularioAgregar = !_mostrarFomrularioAgregar;
+      if (!_mostrarFomrularioAgregar) {
+        _nuevoNombreCalle.clear();
+      }
+    });
+  }
+
+  Future<void> _agregarNuevaCalle() async {
+    if (_nuevoNombreCalle.text.isEmpty) {
+      widget.onAdvertencia('Por favor, ingrese un nombre para la calle');
+      return;
+    }
+
+    _isLoading.value = true;
+    try {
+      final nuevaCalle = Calles(
+        idCalle: 0,
+        calleNombre: _nuevoNombreCalle.text,
+      );
+      final resultado = await widget.callesController.addCalles(nuevaCalle);
+
+      if (resultado) {
+        final calles =
+            await widget.callesController.calleXNombre(_nuevoNombreCalle.text);
+        if (calles.isNotEmpty) {
+          final calleAgregada = calles.first;
+          _seleccionarCalle(calleAgregada);
+          showOk(context, 'Calle agregada exitosamente');
+        } else {
+          widget.onAdvertencia('Calle agregada pero no se pudo recuperar');
+        }
+      } else {
+        widget.onAdvertencia('Error al agregar la calle');
+      }
+    } catch (e) {
+      print('Error al agregar la calle: $e');
+      widget.onAdvertencia('Error al agregar la colonia: $e');
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
   Widget _buildBuscarXNombre() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
           children: [
-            Row(
+            Expanded(
+              child: CustomTextFielTexto(
+                controller: _nombreCalle,
+                labelText: 'Escribe el nombre de la calle',
+                prefixIcon: Icons.search,
+                onChanged: _getCalleXNombre,
+              ),
+            ),
+            if (widget.mostrarOpcionAgregar && !_mostrarFomrularioAgregar)
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Agregar nueva calle',
+                onPressed: _toggleFormularioAgregar,
+              ),
+          ],
+        ),
+        if (_mostrarFomrularioAgregar)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Row(
               children: [
                 Expanded(
                   child: CustomTextFielTexto(
-                    controller: _nombreCalle,
-                    labelText: 'Escribe el nombre de la calle',
-                    prefixIcon: Icons.search,
-                    onChanged: _getCalleXNombre,
+                    controller: _nuevoNombreCalle,
+                    labelText: 'Nombre de la nueva calle',
+                    prefixIcon: Icons.stream,
                   ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _agregarNuevaCalle,
+                      child: const Text('Guardar'),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _toggleFormularioAgregar,
+                      child: const Text('Cancelar'),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        if (_callesSugeridas.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-            if (_callesSugeridas.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.only(top: 5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+            constraints: const BoxConstraints(maxHeight: 500),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _callesSugeridas.length,
+              itemBuilder: (context, index) {
+                final calle = _callesSugeridas[index];
+                return ListTile(
+                  title: Text(calle.calleNombre ?? 'Sin nombre'),
+                  subtitle: Text(
+                      'Id: ${calle.idCalle} \nNombre: ${calle.calleNombre}'),
+                  onTap: () => _seleccionarCalle(calle),
+                );
+              },
+            ),
+          ),
+        if (_callesSugeridas.isEmpty &&
+            _nombreCalle.text.isNotEmpty &&
+            !_mostrarFomrularioAgregar &&
+            widget.mostrarOpcionAgregar)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Row(
+              children: [
+                const Text('No se encontraron calles.'),
+                TextButton(
+                  onPressed: _toggleFormularioAgregar,
+                  child: const Text('¿Desea agregar una nueva colonia?'),
                 ),
-                constraints: const BoxConstraints(maxHeight: 500),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _callesSugeridas.length,
-                  itemBuilder: (context, index) {
-                    final calle = _callesSugeridas[index];
-                    return ListTile(
-                      title: Text(calle.calleNombre ?? 'Sin nombre'),
-                      subtitle: Text(
-                          'Id: ${calle.idCalle} \nNombre: ${calle.calleNombre}'),
-                      onTap: () => _seleccionarCalle(calle),
-                    );
-                  },
-                ),
-              )
-          ],
-        ))
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -186,24 +284,30 @@ class _BuscarCalleWidgetState extends State<BuscarCalleWidget> {
             //Infotmación
             if (widget.selectedCalle != null)
               Expanded(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Información de la Calle:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'ID: ${widget.selectedCalle!.idCalle ?? 'No disponible'}',
-                    style: const TextStyle(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    'Nombre: ${widget.selectedCalle!.calleNombre ?? 'No disponible'}',
-                    style: const TextStyle(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Información de la Calle:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'ID: ${widget.selectedCalle!.idCalle ?? 'No disponible'}',
+                        style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Nombre: ${widget.selectedCalle!.calleNombre ?? 'No disponible'}',
+                        style: const TextStyle(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  )),
                 ],
               ))
             else

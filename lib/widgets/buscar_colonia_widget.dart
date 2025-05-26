@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/generales.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class BuscarColoniaWidget extends StatefulWidget {
   final TextEditingController idColoniaController;
@@ -11,14 +12,17 @@ class BuscarColoniaWidget extends StatefulWidget {
   final Colonias? selectedColonia;
   final Function(Colonias?) onColoniaSeleccionada;
   final Function(String) onAdvertencia;
+  final bool mostrarOpcionAgregar;
 
-  const BuscarColoniaWidget(
-      {super.key,
-      required this.idColoniaController,
-      required this.coloniasController,
-      this.selectedColonia,
-      required this.onColoniaSeleccionada,
-      required this.onAdvertencia});
+  const BuscarColoniaWidget({
+    super.key,
+    required this.idColoniaController,
+    required this.coloniasController,
+    this.selectedColonia,
+    required this.onColoniaSeleccionada,
+    required this.onAdvertencia,
+    this.mostrarOpcionAgregar = true,
+  });
 
   @override
   State<BuscarColoniaWidget> createState() => _BuscarColoniaWidgetState();
@@ -29,10 +33,13 @@ class _BuscarColoniaWidgetState extends State<BuscarColoniaWidget> {
   final TextEditingController _nombreColonia = TextEditingController();
   List<Colonias> _coloniasSugeridas = [];
   Timer? _debounce;
+  bool _mostrarFormularioAgregar = false;
+  final TextEditingController _nuevoNombreColonia = TextEditingController();
 
   @override
   void dispose() {
     _nombreColonia.dispose();
+    _nuevoNombreColonia.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -93,60 +100,156 @@ class _BuscarColoniaWidgetState extends State<BuscarColoniaWidget> {
     setState(() {
       _coloniasSugeridas = [];
       _nombreColonia.clear();
+      _mostrarFormularioAgregar = false;
     });
   }
 
+  void _toggleFormularioAgregar() {
+    setState(() {
+      _mostrarFormularioAgregar = !_mostrarFormularioAgregar;
+      if (!_mostrarFormularioAgregar) {
+        _nuevoNombreColonia.clear();
+      }
+    });
+  }
+
+  Future<void> _agregarNuevaColonia() async {
+    if (_nuevoNombreColonia.text.isEmpty) {
+      widget.onAdvertencia('Por favor, ingrese un nombre para la colonia');
+      return;
+    }
+
+    _isLoading.value = true;
+    try {
+      final nuevaColonia = Colonias(
+        idColonia: 0,
+        nombreColonia: _nuevoNombreColonia.text,
+      );
+      final resultado =
+          await widget.coloniasController.addColonia(nuevaColonia);
+
+      if (resultado) {
+        // Buscar la colonia recién agregada para obtener su ID
+        final colonias = await widget.coloniasController
+            .coloniaByNombre(_nuevoNombreColonia.text);
+        if (colonias.isNotEmpty) {
+          final coloniaAgregada = colonias.first;
+          _seleccionarColonia(coloniaAgregada);
+          showOk(context, 'Colonia agregada exitosamente');
+        } else {
+          widget.onAdvertencia('Colonia agregada pero no se pudo recuperar');
+        }
+      } else {
+        widget.onAdvertencia('Error al agregar la colonia');
+      }
+    } catch (e) {
+      print('Error al agregar la colonia: $e');
+      widget.onAdvertencia('Error al agregar la colonia: $e');
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
   Widget _buildBuscarXNombre() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
           children: [
-            Row(
+            Expanded(
+              child: CustomTextFielTexto(
+                controller: _nombreColonia,
+                labelText: 'Escribe el nombre de la colonia',
+                prefixIcon: Icons.search,
+                onChanged: _getColoniaXNombre,
+              ),
+            ),
+            if (widget.mostrarOpcionAgregar && !_mostrarFormularioAgregar)
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Agregar nueva colonia',
+                onPressed: _toggleFormularioAgregar,
+              ),
+          ],
+        ),
+        if (_mostrarFormularioAgregar)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Row(
               children: [
                 Expanded(
                   child: CustomTextFielTexto(
-                    controller: _nombreColonia,
-                    labelText: 'Escribe el nombre de la colonia',
-                    prefixIcon: Icons.search,
-                    onChanged: _getColoniaXNombre,
+                    controller: _nuevoNombreColonia,
+                    labelText: 'Nombre de la nueva colonia',
+                    prefixIcon: Icons.location_city,
                   ),
                 ),
-              ],
-            ),
-            if (_coloniasSugeridas.isNotEmpty)
-              Container(
-                margin: const EdgeInsets.only(top: 5),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
+                const SizedBox(width: 10),
+                Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _agregarNuevaColonia,
+                      child: const Text('Guardar'),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _toggleFormularioAgregar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey,
+                      ),
+                      child: const Text('Cancelar'),
                     ),
                   ],
                 ),
-                constraints: const BoxConstraints(maxHeight: 500),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _coloniasSugeridas.length,
-                  itemBuilder: (context, index) {
-                    final colonia = _coloniasSugeridas[index];
-                    return ListTile(
-                      title: Text(colonia.nombreColonia ?? 'Sin nombre'),
-                      subtitle: Text(
-                          'ID: ${colonia.idColonia}  \nNombre: ${colonia.nombreColonia}'),
-                      onTap: () => _seleccionarColonia(colonia),
-                    );
-                  },
+              ],
+            ),
+          ),
+        if (_coloniasSugeridas.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
                 ),
-              ),
-          ],
-        ))
+              ],
+            ),
+            constraints: const BoxConstraints(maxHeight: 500),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _coloniasSugeridas.length,
+              itemBuilder: (context, index) {
+                final colonia = _coloniasSugeridas[index];
+                return ListTile(
+                  title: Text(colonia.nombreColonia ?? 'Sin nombre'),
+                  subtitle: Text(
+                      'ID: ${colonia.idColonia}  \nNombre: ${colonia.nombreColonia}'),
+                  onTap: () => _seleccionarColonia(colonia),
+                );
+              },
+            ),
+          ),
+        if (_coloniasSugeridas.isEmpty &&
+            _nombreColonia.text.isNotEmpty &&
+            !_mostrarFormularioAgregar &&
+            widget.mostrarOpcionAgregar)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Row(
+              children: [
+                const Text('No se encontraron colonias.'),
+                TextButton(
+                  onPressed: _toggleFormularioAgregar,
+                  child: const Text('¿Desea agregar una nueva colonia?'),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
