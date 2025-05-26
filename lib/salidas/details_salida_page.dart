@@ -14,6 +14,8 @@ import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/pdf_cancelacion.dart';
 
+import '../widgets/reimpresion_salida_pdf.dart';
+
 class DetailsSalidaPage extends StatefulWidget {
   final String userRole;
   final List<Salidas> salidas;
@@ -53,12 +55,20 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
   String? _currentUserId;
   Users? _currentUser;
   bool _isLoading = false;
+  final TextEditingController _motivoController = TextEditingController();
+  Map<int, Productos>? productosCache;
 
   @override
   void initState() {
     super.initState();
     _productosFuture = _loadProductos();
     _getCurrentUser();
+  }
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    super.dispose();
   }
 
   Future<void> _getCurrentUser() async {
@@ -82,37 +92,85 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     }
   }
 
-  Future<void> _devolverProductoSalida(Salidas salida) async {
-    final cantidadController = TextEditingController(
-        text: salida.salida_Unidades?.toStringAsFixed(2) ?? '0');
+  Future<void> _imprimirSalida() async {
+    setState(() => _isLoading = true);
+    try {
+      final productosCache = await _productosFuture;
+      final productosParaPDF = <Map<String, dynamic>>[];
 
-    //Clave global
+      // Agrupar salidas por producto para el PDF
+      final Map<int, List<Salidas>> salidasPorProducto = {};
+      for (var salida in widget.salidas) {
+        salidasPorProducto.update(
+          salida.idProducto!,
+          (value) => [...value, salida],
+          ifAbsent: () => [salida],
+        );
+      }
+
+      // Preparar datos para el PDF
+      for (var entry in salidasPorProducto.entries) {
+        final producto = productosCache[entry.key];
+        final cantidad = entry.value.fold<double>(
+            0, (sum, salida) => sum + (salida.salida_Unidades ?? 0));
+        final total = entry.value.fold<double>(
+            0.0, (sum, salida) => sum + (salida.salida_Costo ?? 0.0));
+        final tieneActivos = entry.value.any((s) => s.salida_Estado == true);
+
+        productosParaPDF.add({
+          'id': entry.key,
+          'descripcion': producto?.prodDescripcion ?? 'Producto desconocido',
+          'cantidad': cantidad,
+          'costo': total / cantidad,
+          'precio': total,
+          'estado': tieneActivos ? 'Activo' : 'Cancelado',
+        });
+      }
+
+      await ReimpresionSalidaPdf.generateAndPrintPdfSalida(
+        movimiento: 'SALIDA',
+        fecha: widget.salidas.first.salida_Fecha ?? '',
+        folio: widget.salidas.first.salida_CodFolio ?? '',
+        referencia: widget.salidas.first.salida_Referencia ?? '',
+        userName: widget.user,
+        idUser: _currentUserId ?? '0',
+        almacen: widget.almacen,
+        userAsignado: widget.userAsignado,
+        tipoTrabajo: widget.salidas.first.salida_TipoTrabajo ?? '',
+        padron: widget.padron,
+        colonia: widget.colonia,
+        calle: widget.calle,
+        productos: productosParaPDF,
+        mostrarEstado: true, // Mostrar columna de estado
+      );
+    } catch (e) {
+      showError(context, 'Error al generar PDF: $e');
+      debugPrint('Error al generar PDF: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _cancelarTodaLaSalida() async {
     final formKey = GlobalKey<FormState>();
-
     final confirmacion = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Devolver producto'),
+        title: const Text('Cancelar toda la salida'),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('¿Qué cantidad desea devolver?'),
+              const Text('¿Está seguro que desea cancelar toda esta salida?'),
               const SizedBox(height: 20),
-              CustomTextFieldNumero(
-                controller: cantidadController,
-                labelText: 'Cantidad a devolver',
-                prefixIcon: Icons.delete_outline,
+              CustomTextFielTexto(
+                controller: _motivoController,
+                labelText: 'Motivo de la cancelación',
+                prefixIcon: Icons.info_outline,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Ingrese una cantidad';
-                  }
-
-                  final cantidad = double.tryParse(value) ?? 0;
-                  if (cantidad <= 0) return 'La cantidad debe ser mayor a 0';
-                  if (cantidad > (salida.salida_Unidades ?? 0)) {
-                    return 'No puede devolver más de lo registrado';
+                    return 'Ingrese un motivo';
                   }
                   return null;
                 },
@@ -141,93 +199,95 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     );
     if (confirmacion != true) return;
 
-    final cantidadDevolver = double.tryParse(cantidadController.text) ?? 0;
-
     setState(() => _isLoading = true);
 
     try {
-      //1. Registrar cancelación
-      final cancelacion = CanceladoSalidas(
-        idCanceladoSalida: 0,
-        cancelSalidaMotivo: cantidadDevolver == salida.salida_Unidades
-            ? 'Devolución total'
-            : 'Devolución parcial ($cantidadDevolver/${salida.salida_Unidades})',
-        cancelSalidaFecha:
-            DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
-        id_Salida: salida.id_Salida,
-        id_User: int.parse(_currentUserId!),
-      );
+      // Preparar datos para el PDF
+      final List<Map<String, dynamic>> productosParaPDF = [];
+      final productosCache = await _productosFuture;
 
-      final cancelacionExitosa =
-          await _canceladoSalidaController.addCancelSalida(cancelacion);
-      if (!cancelacionExitosa) {
-        throw Exception('TH1: Error al registrar la cancelación');
-      }
+      // Procesar cada salida individual
+      for (var salida in widget.salidas) {
+        if (salida.salida_Estado == true) {
+          // 1. Registrar cancelación para esta salida
+          final cancelacion = CanceladoSalidas(
+            idCanceladoSalida: 0,
+            cancelSalidaMotivo: _motivoController.text,
+            cancelSalidaFecha:
+                DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
+            id_Salida: salida.id_Salida,
+            id_User: int.parse(_currentUserId!),
+          );
 
-      // 2. Actualizar la salida original
-      if (cantidadDevolver == salida.salida_Unidades) {
-        // Devolución total - marcar como cancelado
-        salida.salida_Estado = false;
-      } else {
-        // Devolución parcial - ajustar cantidades
-        salida.salida_Unidades = salida.salida_Unidades! - cantidadDevolver;
-        salida.salida_Costo = salida.salida_Costo! *
-            (salida.salida_Unidades! /
-                (salida.salida_Unidades! + cantidadDevolver));
-      }
-
-      final actualizado = await SalidasController().editSalida(salida);
-      if (!actualizado) {
-        throw Exception('TH2: Error al actualizar la salida');
-      }
-
-      //3. Actualizar existencias del produco
-      final producto =
-          await _productosController.getProductoById(salida.idProducto!);
-      if (producto != null) {
-        producto.prodExistencia =
-            (producto.prodExistencia ?? 0) + cantidadDevolver;
-        await _productosController.editProducto(producto);
-      }
-
-      //4. Generar PDF cancelación
-      await generarPdfCancelacion(
-        tipoMovimiento: 'DEVOLUCIÓN_SALIDA',
-        fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
-        motivo: cantidadDevolver == salida.salida_Unidades
-            ? 'Devolución total'
-            : 'Devolución parcial ($cantidadDevolver/${salida.salida_Unidades})',
-        folio: salida.salida_CodFolio ?? '',
-        referencia: salida.salida_Referencia ?? '',
-        user: _currentUser!,
-        almacen: widget.almacen.almacen_Nombre ?? '',
-        junta: widget.junta.junta_Name ?? '',
-        padron: widget.padron.padronNombre ?? '',
-        usuarioAsignado: widget.userAsignado.user_Name ?? '',
-        tipoTrabajo: salida.salida_TipoTrabajo ?? '',
-        productos: [
-          {
-            'id': salida.idProducto,
-            'descripcion': producto?.prodDescripcion ?? 'Producto desconocido',
-            'cantidad': cantidadDevolver,
-            'costo': salida.salida_Costo! / salida.salida_Unidades!,
-            'precio': (salida.salida_Costo! / salida.salida_Unidades!) *
-                cantidadDevolver,
+          final cancelacionExitosa =
+              await _canceladoSalidaController.addCancelSalida(cancelacion);
+          if (!cancelacionExitosa) {
+            throw Exception(
+                'Error al registrar la cancelación para salida ${salida.id_Salida}');
           }
-        ],
-      );
 
-      //5. Mostrar mensaje de éxito y actualizar vist
-      await showOk(context, 'Devolución registrada exitosamente');
+          // 2. Actualizar la salida original
+          salida.salida_Estado = false;
+          final actualizado = await SalidasController().editSalida(salida);
+          if (!actualizado) {
+            throw Exception(
+                'Error al actualizar la salida ${salida.id_Salida}');
+          }
 
-      //Recargar datos
+          // 3. Actualizar existencias del producto
+          final producto = productosCache[salida.idProducto];
+          if (producto != null) {
+            final cantidad = salida.salida_Unidades ?? 0;
+            producto.prodExistencia = (producto.prodExistencia ?? 0) + cantidad;
+            await _productosController.editProducto(producto);
+
+            // Agregar al PDF si no está ya incluido
+            if (!productosParaPDF.any((p) => p['id'] == salida.idProducto)) {
+              productosParaPDF.add({
+                'id': salida.idProducto,
+                'descripcion':
+                    producto.prodDescripcion ?? 'Producto desconocido',
+                'cantidad': cantidad,
+                'costo': salida.salida_Costo! / (salida.salida_Unidades ?? 1),
+                'precio': salida.salida_Costo ?? 0,
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Generar PDF cancelación si hay productos
+      if (productosParaPDF.isNotEmpty) {
+        await generarPdfCancelacion(
+          tipoMovimiento: 'CANCELACION_SALIDA',
+          fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
+          motivo: _motivoController.text,
+          folio: widget.salidas.first.salida_CodFolio ?? '',
+          referencia: widget.salidas.first.salida_Referencia ?? '',
+          user: _currentUser!,
+          almacen: widget.almacen.almacen_Nombre ?? '',
+          junta: widget.junta.junta_Name ?? '',
+          padron: widget.padron.padronNombre ?? '',
+          usuarioAsignado: widget.userAsignado.user_Name ?? '',
+          tipoTrabajo: widget.salidas.first.salida_TipoTrabajo ?? '',
+          productos: productosParaPDF,
+        );
+      }
+
+      // 5. Mostrar mensaje de éxito
+      await showOk(context, 'Salida cancelada exitosamente');
+
+      // Recargar datos
       final futureProductos = _loadProductos();
       setState(() {
         _productosFuture = futureProductos;
       });
+
+      // Cerrar la pantalla después de la cancelación exitosa
+      Navigator.pop(context);
     } catch (e) {
-      showError(context, 'Error al procesar devolución');
-      print('Error al procesar devolución: $e');
+      showError(context, 'Error al procesar cancelación');
+      print('Error al procesar cancelación: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -237,6 +297,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
   Widget build(BuildContext context) {
     final Map<int, Map<String, dynamic>> groupProductos = {};
     final Map<int, List<Salidas>> salidasPorProducto = {};
+    final tieneActivos = widget.salidas.any((s) => s.salida_Estado == true);
 
     final isAdmin = widget.userRole == "Admin";
     final isGestion = widget.userRole == "Gestion";
@@ -289,65 +350,97 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                       borderRadius: BorderRadius.circular(12)),
                   margin: const EdgeInsets.all(100),
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          'Referencia: ${widget.salidas.first.salida_Referencia}',
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                        Row(
+                          //crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Referencia: ${widget.salidas.first.salida_Referencia}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            if ((isAdmin || isGestion) && tieneActivos) ...[
+                              IconButton(
+                                icon: Icon(Icons.delete,
+                                    color: Colors.red.shade800),
+                                onPressed: _cancelarTodaLaSalida,
+                                tooltip: 'Cancelar toda la salida',
+                              ),
+                            ],
+                            IconButton(
+                              icon: Icon(Icons.print,
+                                  color: Colors.blue.shade800),
+                              onPressed: _imprimirSalida,
+                              tooltip: 'Reimprimir salida',
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 15),
+                        const Divider(),
                         //Columnas
-
                         //Columna 1
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                      'Almacen: ${widget.almacen.almacen_Nombre}'),
-                                  Text('Junta: ${widget.junta.junta_Name}'),
-                                  Text(
-                                      'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
-                                ],
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                        'Almacen: ${widget.almacen.almacen_Nombre}'),
+                                    Text('Junta: ${widget.junta.junta_Name}'),
+                                    Text(
+                                        'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
+                                  ],
+                                ),
                               ),
                             ),
 
                             //Columna 2
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                      'Colonia: ${widget.colonia.idColonia} - ${widget.colonia.nombreColonia}'),
-                                  Text(
-                                      'Calle: ${widget.calle.idCalle} - ${widget.calle.calleNombre}'),
-                                  Text('Realizado por: ${widget.user}'),
-                                ],
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                        'Colonia: ${widget.colonia.idColonia} - ${widget.colonia.nombreColonia}'),
+                                    Text(
+                                        'Calle: ${widget.calle.idCalle} - ${widget.calle.calleNombre}'),
+                                    Text('Realizado por: ${widget.user}'),
+                                  ],
+                                ),
                               ),
                             ),
 
                             //Columna 3
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                      'Asignado a: ${widget.userAsignado.user_Name}'),
-                                  Text(
-                                      'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo}'),
-                                  Text(
-                                      'Fecha: ${widget.salidas.first.salida_Fecha}'),
-                                ],
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                        'Asignado a: ${widget.userAsignado.user_Name}'),
+                                    Text(
+                                        'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo ?? 'N/A'}'),
+                                    Text(
+                                        'Fecha: ${widget.salidas.first.salida_Fecha}'),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 20),
+                        const Divider(),
                         const SizedBox(height: 20),
                         Expanded(
                           child: FutureBuilder<Map<int, Productos>>(
@@ -371,17 +464,13 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                               return SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: DataTable(
-                                  columns: [
-                                    const DataColumn(
-                                        label: Text('Id Producto')),
-                                    const DataColumn(label: Text('Nombre')),
-                                    const DataColumn(label: Text('Cantidad')),
-                                    const DataColumn(
-                                        label: Text('Precio unitario')),
-                                    const DataColumn(label: Text('Total (\$)')),
-                                    const DataColumn(label: Text('Estado')),
-                                    if (isAdmin || isGestion)
-                                      const DataColumn(label: Text('Acciones')),
+                                  columns: const [
+                                    DataColumn(label: Text('Id Producto')),
+                                    DataColumn(label: Text('Nombre')),
+                                    DataColumn(label: Text('Cantidad')),
+                                    DataColumn(label: Text('Precio unitario')),
+                                    DataColumn(label: Text('Total (\$)')),
+                                    DataColumn(label: Text('Estado')),
                                   ],
                                   rows: groupProductos.entries.map((entry) {
                                     final idProducto = entry.key;
@@ -410,23 +499,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                               color: tieneActivos
                                                   ? Colors.green
                                                   : Colors.red))),
-                                      if (isAdmin || isGestion)
-                                        DataCell(
-                                          tieneActivos
-                                              ? IconButton(
-                                                  icon: Icon(Icons.delete,
-                                                      color:
-                                                          Colors.red.shade800),
-                                                  onPressed: () =>
-                                                      _devolverProductoSalida(
-                                                          salidasProducto
-                                                              .firstWhere((s) =>
-                                                                  s.salida_Estado ==
-                                                                  true)),
-                                                  tooltip: 'Devolver producto',
-                                                )
-                                              : const Text(''),
-                                        ),
                                     ]);
                                   }).toList(),
                                 ),

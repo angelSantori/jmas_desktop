@@ -12,6 +12,8 @@ import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/pdf_cancelacion.dart';
 
+import '../widgets/reimpresion_entraada_pdf.dart' show ReimpresionEntradaPdf;
+
 class DetailsEntradaPage extends StatefulWidget {
   final String userRole;
   final List<Entradas> entradas;
@@ -44,12 +46,19 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
   String? _currentUserId;
   Users? _currentUser;
   bool _isLoading = false;
+  final TextEditingController _motivoController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _productosFuture = _loadProductos();
     _getCurrentUser();
+  }
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    super.dispose();
   }
 
   Future<void> _getCurrentUser() async {
@@ -73,37 +82,26 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
     }
   }
 
-  Future<void> _cancelarEntrada(Entradas entrada) async {
-    final cantidadController = TextEditingController(
-        text: entrada.entrada_Unidades?.toStringAsFixed(2) ?? '0');
-
-    // Clave global
+  Future<void> _cancelarTodaLaEntrada() async {
     final formKey = GlobalKey<FormState>();
-
     final confirmacion = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancelar entrada'),
+        title: const Text('Cancelar toda la entrada'),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('¿Qué cantidad desea cancelar?'),
+              const Text('¿Está seguro que desea cancelar toda esta entrada?'),
               const SizedBox(height: 20),
-              CustomTextFieldNumero(
-                controller: cantidadController,
-                labelText: 'Cantidad a cancelar',
-                prefixIcon: Icons.delete_outline,
+              CustomTextFielTexto(
+                controller: _motivoController,
+                labelText: 'Motivo de la cancelación',
+                prefixIcon: Icons.info_outline,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Ingrese una cantidad';
-                  }
-
-                  final cantidad = double.tryParse(value) ?? 0;
-                  if (cantidad <= 0) return 'La cantidad debe ser mayor a 0';
-                  if (cantidad > (entrada.entrada_Unidades ?? 0)) {
-                    return 'No puede cancelar más de lo registrado';
+                    return 'Ingrese un motivo';
                   }
                   return null;
                 },
@@ -132,90 +130,149 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
     );
     if (confirmacion != true) return;
 
-    final cantidadCancelar = double.tryParse(cantidadController.text) ?? 0;
-
     setState(() => _isLoading = true);
 
     try {
-      // 1. Registrar cancelación
-      final cancelacion = Cancelados(
-        idCancelacion: 0,
-        cancelMotivo: cantidadCancelar == entrada.entrada_Unidades
-            ? 'Cancelación total'
-            : 'Cancelación parcial ($cantidadCancelar/${entrada.entrada_Unidades})',
-        cancelFecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
-        id_Entrada: entrada.id_Entradas,
-        id_User: int.parse(_currentUserId!),
-      );
+      // Preparar datos para el PDF
+      final List<Map<String, dynamic>> productosParaPDF = [];
+      final productosCache = await _productosFuture;
 
-      final cancelacionExitosa =
-          await _canceladoController.addCancelacion(cancelacion);
-      if (!cancelacionExitosa) {
-        throw Exception('TH1: Error al registrar la cancelación');
-      }
+      // Procesar cada entrada individual
+      for (var entrada in widget.entradas) {
+        if (entrada.entrada_Estado == true) {
+          // 1. Registrar cancelación para esta entrada
+          final cancelacion = Cancelados(
+            idCancelacion: 0,
+            cancelMotivo: _motivoController.text,
+            cancelFecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
+            id_Entrada: entrada.id_Entradas,
+            id_User: int.parse(_currentUserId!),
+          );
 
-      // 2. Actualizar la entrada original
-      if (cantidadCancelar == entrada.entrada_Unidades) {
-        // Cancelación total - marcar como cancelado
-        entrada.entrada_Estado = false;
-      } else {
-        // Cancelación parcial - ajustar cantidades
-        entrada.entrada_Unidades = entrada.entrada_Unidades! - cantidadCancelar;
-        entrada.entrada_Costo = entrada.entrada_Costo! *
-            (entrada.entrada_Unidades! /
-                (entrada.entrada_Unidades! + cantidadCancelar));
-      }
-
-      final actualizado = await EntradasController().editEntrada(entrada);
-      if (!actualizado) {
-        throw Exception('TH2: Error al actualizar la entrada');
-      }
-
-      // 3. Actualizar existencias del producto
-      final producto =
-          await _productosController.getProductoById(entrada.idProducto!);
-      if (producto != null) {
-        producto.prodExistencia =
-            (producto.prodExistencia ?? 0) - cantidadCancelar;
-        await _productosController.editProducto(producto);
-      }
-
-      //4. Generar PDF cancelación
-      await generarPdfCancelacion(
-        tipoMovimiento: 'DEVOLUCIÓN_ENTRADA',
-        fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
-        motivo: cantidadCancelar == entrada.entrada_Unidades
-            ? 'Cancelación total'
-            : 'Cancelación parcial ($cantidadCancelar/${entrada.entrada_Unidades})',
-        folio: entrada.entrada_CodFolio ?? '',
-        referencia: entrada.entrada_Referencia ?? '',
-        user: _currentUser!,
-        almacen: widget.almacen.almacen_Nombre ?? '',
-        proveedor: widget.proveedor.proveedor_Name ?? '',
-        junta: widget.junta.junta_Name ?? '',
-        productos: [
-          {
-            'id': entrada.idProducto,
-            'descripcion': producto?.prodDescripcion ?? 'Producto desconocido',
-            'cantidad': cantidadCancelar,
-            'costo': entrada.entrada_Costo! / entrada.entrada_Unidades!,
-            'precio': (entrada.entrada_Costo! / entrada.entrada_Unidades!) *
-                cantidadCancelar,
+          final cancelacionExitosa =
+              await _canceladoController.addCancelacion(cancelacion);
+          if (!cancelacionExitosa) {
+            throw Exception(
+                'Error al registrar la cancelación para entrada ${entrada.id_Entradas}');
           }
-        ],
-      );
 
-      // 5. Mostrar mensaje de éxito y actualizar vista
-      await showOk(context, 'Cancelación registrada exitosamente');
+          // 2. Actualizar la entrada original
+          entrada.entrada_Estado = false;
+          final actualizado = await EntradasController().editEntrada(entrada);
+          if (!actualizado) {
+            throw Exception(
+                'Error al actualizar la entrada ${entrada.id_Entradas}');
+          }
+
+          // 3. Actualizar existencias del producto
+          final producto = productosCache[entrada.idProducto];
+          if (producto != null) {
+            final cantidad = entrada.entrada_Unidades ?? 0;
+            producto.prodExistencia = (producto.prodExistencia ?? 0) - cantidad;
+            await _productosController.editProducto(producto);
+
+            // Agregar al PDF si no está ya incluido
+            if (!productosParaPDF.any((p) => p['id'] == entrada.idProducto)) {
+              productosParaPDF.add({
+                'id': entrada.idProducto,
+                'descripcion':
+                    producto.prodDescripcion ?? 'Producto desconocido',
+                'cantidad': cantidad,
+                'costo':
+                    entrada.entrada_Costo! / (entrada.entrada_Unidades ?? 1),
+                'precio': entrada.entrada_Costo ?? 0,
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Generar PDF cancelación si hay productos
+      if (productosParaPDF.isNotEmpty) {
+        await generarPdfCancelacion(
+          tipoMovimiento: 'CANCELACION_ENTRADA',
+          fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
+          motivo: _motivoController.text,
+          folio: widget.entradas.first.entrada_CodFolio ?? '',
+          referencia: widget.entradas.first.entrada_Referencia ?? '',
+          user: _currentUser!,
+          almacen: widget.almacen.almacen_Nombre ?? '',
+          proveedor: widget.proveedor.proveedor_Name ?? '',
+          junta: widget.junta.junta_Name ?? '',
+          productos: productosParaPDF,
+        );
+      }
+
+      // 5. Mostrar mensaje de éxito
+      await showOk(context, 'Entrada cancelada exitosamente');
 
       // Recargar datos
       final futureProductos = _loadProductos();
       setState(() {
         _productosFuture = futureProductos;
       });
+
+      // Cerrar la pantalla después de la cancelación exitosa
+      Navigator.pop(context);
     } catch (e) {
       showError(context, 'Error al procesar cancelación');
       print('Error al procesar cancelación: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _imprimirEntrada() async {
+    setState(() => _isLoading = true);
+    try {
+      final productosCache = await _productosFuture;
+      final productosParaPDF = <Map<String, dynamic>>[];
+
+      // Agrupar entradas por producto para el PDF
+      final Map<int, List<Entradas>> entradasPorProducto = {};
+      for (var entrada in widget.entradas) {
+        entradasPorProducto.update(
+          entrada.idProducto!,
+          (value) => [...value, entrada],
+          ifAbsent: () => [entrada],
+        );
+      }
+
+      // Preparar datos para el PDF
+      for (var entry in entradasPorProducto.entries) {
+        final producto = productosCache[entry.key];
+        final cantidad = entry.value.fold<double>(
+            0, (sum, entrada) => sum + (entrada.entrada_Unidades ?? 0));
+        final total = entry.value.fold<double>(
+            0.0, (sum, entrada) => sum + (entrada.entrada_Costo ?? 0.0));
+        final tieneActivos = entry.value.any((e) => e.entrada_Estado == true);
+
+        productosParaPDF.add({
+          'id': entry.key,
+          'descripcion': producto?.prodDescripcion ?? 'Producto desconocido',
+          'cantidad': cantidad,
+          'costo': total / cantidad,
+          'precio': total,
+          'estado': tieneActivos ? 'Activo' : 'Cancelado',
+        });
+      }
+
+      await ReimpresionEntradaPdf.generateAndPrintPdfEntrada(
+        movimiento: 'ENTRADA',
+        fecha: widget.entradas.first.entrada_Fecha ?? '',
+        folio: widget.entradas.first.entrada_CodFolio ?? '',
+        referencia: widget.entradas.first.entrada_Referencia ?? '',
+        userName: widget.user,
+        idUser: _currentUserId ?? '0',
+        almacen: widget.almacen,
+        proveedor: widget.proveedor,
+        junta: widget.junta,
+        productos: productosParaPDF,
+        mostrarEstado: true,
+      );
+    } catch (e) {
+      showError(context, 'Error al generar PDF: $e');
+      debugPrint('Error al generar PDF: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -228,6 +285,7 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
 
     final isAdmin = widget.userRole == "Admin";
     final isGestion = widget.userRole == "Gestion";
+    final tieneActivos = widget.entradas.any((e) => e.entrada_Estado == true);
 
     for (var entrada in widget.entradas) {
       // Agrupar por producto para mostrar en tabla
@@ -257,42 +315,93 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
       appBar: AppBar(
         title: Text(
           'Detalles de entrada: ${widget.entradas.first.entrada_CodFolio}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
         ),
         centerTitle: true,
+        elevation: 2,
+        backgroundColor: Colors.blue.shade900,
+        foregroundColor: Colors.white,
       ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(color: Colors.blue.shade900))
           : Center(
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(20),
                 child: Card(
                   elevation: 4,
                   color: const Color.fromARGB(255, 201, 230, 242),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
-                  margin: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.all(100),
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(10),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Referencia: ${widget.entradas.first.entrada_Referencia}',
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Referencia: ${widget.entradas.first.entrada_Referencia}',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            if ((isAdmin || isGestion) && tieneActivos) ...[
+                              IconButton(
+                                icon: Icon(Icons.delete,
+                                    color: Colors.red.shade800),
+                                onPressed: _cancelarTodaLaEntrada,
+                                tooltip: 'Cancelar toda la entrada',
+                              ),
+                            ],
+                            IconButton(
+                              icon: Icon(Icons.print,
+                                  color: Colors.blue.shade900),
+                              onPressed: _imprimirEntrada,
+                              tooltip: 'Reimprimir entrada',
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
-                        Text('Proveedor: ${widget.proveedor.proveedor_Name}'),
-                        Text('Almacén: ${widget.almacen.almacen_Nombre}'),
-                        Text('Junta: ${widget.junta.junta_Name}'),
-                        Text('Realizado por: ${widget.user}'),
-                        Text('Fecha: ${widget.entradas.first.entrada_Fecha}'),
+                        const SizedBox(height: 15),
+                        const Divider(),
+
+                        //Columna 1
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                                child: Container(
+                              alignment: Alignment.center,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      'Proveedor: ${widget.proveedor.proveedor_Name}'),
+                                  Text(
+                                      'Almacén: ${widget.almacen.almacen_Nombre}'),
+                                  Text('Junta: ${widget.junta.junta_Name}'),
+                                ],
+                              ),
+                            )),
+                            Expanded(
+                                child: Container(
+                              alignment: Alignment.center,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Realizado por: ${widget.user}'),
+                                  Text(
+                                      'Fecha: ${widget.entradas.first.entrada_Fecha}'),
+                                ],
+                              ),
+                            ))
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        const Divider(),
                         const SizedBox(height: 20),
                         Expanded(
                           child: FutureBuilder<Map<int, Productos>>(
@@ -317,17 +426,13 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                                 scrollDirection: Axis.horizontal,
                                 child: DataTable(
                                   border: TableBorder.all(),
-                                  columns: [
-                                    const DataColumn(
-                                        label: Text('ID Producto')),
-                                    const DataColumn(label: Text('Nombre')),
-                                    const DataColumn(label: Text('Cantidad')),
-                                    const DataColumn(
-                                        label: Text('Precio unitario')),
-                                    const DataColumn(label: Text('Total (\$)')),
-                                    const DataColumn(label: Text('Estado')),
-                                    if (isAdmin || isGestion)
-                                      const DataColumn(label: Text('Acciones')),
+                                  columns: const [
+                                    DataColumn(label: Text('ID Producto')),
+                                    DataColumn(label: Text('Nombre')),
+                                    DataColumn(label: Text('Cantidad')),
+                                    DataColumn(label: Text('Precio unitario')),
+                                    DataColumn(label: Text('Total (\$)')),
+                                    DataColumn(label: Text('Estado')),
                                   ],
                                   rows: groupProductos.entries.map((entry) {
                                     final idProducto = entry.key;
@@ -356,22 +461,6 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                                               color: tieneActivos
                                                   ? Colors.green
                                                   : Colors.red))),
-                                      if (isAdmin || isGestion)
-                                        DataCell(
-                                          tieneActivos
-                                              ? IconButton(
-                                                  icon: Icon(Icons.delete,
-                                                      color:
-                                                          Colors.red.shade800),
-                                                  onPressed: () => _cancelarEntrada(
-                                                      entradasProducto
-                                                          .firstWhere((e) =>
-                                                              e.entrada_Estado ==
-                                                              true)),
-                                                  tooltip: 'Cancelar entrada',
-                                                )
-                                              : const Text(''),
-                                        ),
                                     ]);
                                   }).toList(),
                                 ),
