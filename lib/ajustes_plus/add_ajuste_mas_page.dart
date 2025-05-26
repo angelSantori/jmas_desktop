@@ -170,6 +170,7 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
 
       setState(() {
         _isLoadingGaurdando = false;
+        _loadCodFolioAJM();
       });
     }
   }
