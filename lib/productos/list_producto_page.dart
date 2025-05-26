@@ -5,7 +5,6 @@ import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/productos/details_producto_page.dart';
-//import 'package:jmas_desktop/productos/details_producto_page.dart';
 import 'package:jmas_desktop/productos/edit_producto_page.dart';
 import 'package:jmas_desktop/widgets/excel_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -38,6 +37,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
   List<Capturainvini> capturaList = [];
 
   bool _isLoading = true;
+  bool _isLoadingQRRange = false;
   bool _showExcess = false;
   bool _showDeficit = false;
 
@@ -48,6 +48,215 @@ class _ListProductoPageState extends State<ListProductoPage> {
     _searchController.addListener(_filterProductos);
     _loadProveedores();
     _loadCaoturaList();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _imprimirQRsPorRango() async {
+    final idInicialController = TextEditingController();
+    final idFinalController = TextEditingController();
+
+    bool isGenerating = false;
+
+    final confirmacion = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Imprimir QRs por rango'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: idInicialController,
+              decoration:
+                  const InputDecoration(labelText: 'ID Producto inicial'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: idFinalController,
+              decoration: const InputDecoration(labelText: 'ID Producto final'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed:
+                isGenerating ? null : () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: isGenerating
+                ? null
+                : () async {
+                    final idInicial = int.tryParse(idInicialController.text);
+                    final idFinal = int.tryParse(idFinalController.text);
+
+                    if (idInicial == null || idFinal == null) {
+                      showError(context, 'Ingrese IDs válidos');
+                      return;
+                    }
+
+                    if (idInicial > idFinal) {
+                      showError(context,
+                          'El ID inicial debe ser menor o igual al final');
+                      return;
+                    }
+
+                    setState(() => isGenerating = true);
+                    await Future.delayed(const Duration(
+                        milliseconds:
+                            1)); // Para permitir que la UI se actualice
+                    Navigator.pop(context, true);
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade900,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: isGenerating
+                ? const Text('Generando...',
+                    style: TextStyle(color: Colors.white))
+                : const Text('Continuar',
+                    style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmacion != true) return;
+
+    setState(() {
+      _isLoadingQRRange = true;
+    });
+
+    try {
+      final idInicial = int.parse(idInicialController.text);
+      final idFinal = int.parse(idFinalController.text);
+
+      final productosEnRango = _allProductos.where((producto) {
+        final id = producto.id_Producto ?? 0;
+        return id >= idInicial && id <= idFinal;
+      }).toList();
+
+      if (productosEnRango.isEmpty) {
+        showError(context, 'No hay productos en el rango especificado');
+        return;
+      }
+
+      // Mostrar diálogo de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Generando QRs...'),
+                const SizedBox(height: 20),
+                CircularProgressIndicator(
+                  color: Colors.blue.shade900,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Generando ${productosEnRango.length} etiquetas',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Configuración y generación del PDF...
+      final pdf = pw.Document();
+      const dpi = 400;
+      const labelWidthInches = 0.787;
+      const labelHeightInches = 0.528;
+      const qrSizeInches = labelHeightInches * 0.85;
+
+      for (var producto in productosEnRango) {
+        final qrPainter = QrPainter(
+          data: producto.id_Producto.toString(),
+          version: QrVersions.auto,
+          gapless: true,
+        );
+
+        final qrImage = await qrPainter.toImageData(
+          (qrSizeInches * dpi).toDouble(),
+          format: ui.ImageByteFormat.png,
+        );
+
+        if (qrImage == null) continue;
+
+        pdf.addPage(
+          pw.Page(
+            pageFormat: PdfPageFormat(
+              labelWidthInches * 72,
+              labelHeightInches * 72,
+              marginAll: 0,
+            ),
+            build: (pw.Context context) {
+              return pw.Stack(
+                children: [
+                  pw.Container(
+                    width: labelWidthInches * 72,
+                    height: labelHeightInches * 72,
+                    color: PdfColors.white,
+                  ),
+                  pw.Positioned(
+                    left: ((labelWidthInches * dpi) - (qrSizeInches * dpi)) /
+                        3.3 *
+                        72 /
+                        dpi,
+                    top: ((labelHeightInches * dpi) - (qrSizeInches * dpi)) /
+                        2 *
+                        72 /
+                        dpi,
+                    child: pw.Container(
+                      width: qrSizeInches * 72,
+                      height: qrSizeInches * 72,
+                      child: pw.Image(
+                        pw.MemoryImage(qrImage.buffer.asUint8List()),
+                        fit: pw.BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      }
+
+      // Cerrar diálogo de carga
+      if (mounted) Navigator.of(context).pop();
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+        name: 'QRs_Productos_${idInicial}_a_${idFinal}',
+      );
+
+      if (!mounted) return;
+      showOk(context,
+          '${productosEnRango.length} etiquetas QR generadas correctamente');
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        showError(context, 'Error al generar QRs: ${e.toString()}');
+      }
+      print('Error al generar QRs: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingQRRange = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadCaoturaList() async {
@@ -345,6 +554,14 @@ class _ListProductoPageState extends State<ListProductoPage> {
             tooltip: 'Exportar por rango de IDs',
             onPressed: _exportarPorRango,
           ),
+          IconButton(
+            icon: Icon(
+              Icons.qr_code_2,
+              color: Colors.green.shade800,
+            ),
+            tooltip: 'Imprimir QRs por',
+            onPressed: _imprimirQRsPorRango,
+          ),
         ],
       ),
       body: Padding(
@@ -578,11 +795,5 @@ class _ListProductoPageState extends State<ListProductoPage> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 }
