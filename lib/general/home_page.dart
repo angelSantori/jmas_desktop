@@ -22,6 +22,7 @@ import 'package:jmas_desktop/htaPrest/list_htaprest_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
 import 'package:jmas_desktop/juntas/list_juntas_page.dart';
 import 'package:jmas_desktop/padron/list_padron_page.dart';
+import 'package:jmas_desktop/pdfs/pdf_list_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
@@ -154,6 +155,7 @@ class _HomePageState extends State<HomePage>
 
       //Consulta universal
       'ConsultaU': () => const ConsultaUniversalPage(),
+      'listPDF': () => const PdfListPage(),
 
       //X
       'home': () => const Center(child: Text('Welcome to home Page!')),
@@ -741,6 +743,14 @@ class _HomePageState extends State<HomePage>
                                   ),
                                   onTap: () => _navigateTo('listCC'),
                                 ),
+                                CustomListTile(
+                                  title: 'PDF',
+                                  icon: const Icon(
+                                    Icons.picture_as_pdf,
+                                    color: Colors.white,
+                                  ),
+                                  onTap: () => _navigateTo('listPDF'),
+                                )
                               ],
                             ),
 
