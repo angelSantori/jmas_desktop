@@ -21,7 +21,7 @@ Future<Uint8List> generateQrCode(String data) async {
 }
 
 // Función principal para generar PDF de ajuste más
-Future<void> generarPdfAjusteMas({
+Future<Uint8List> generarPdfAjusteMasBytes({
   required String fecha,
   required String motivo,
   required String folio,
@@ -347,25 +347,39 @@ Future<void> generarPdfAjusteMas({
     ),
   );
 
-  try {
-    // Generar nombre del archivo
-    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
-    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
-    final String fileName = 'AjusteMas_${currentDate}_$currentTime.pdf';
+  return await pdf.save();
+}
 
-    final bytes = await pdf.save();
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
+// Mantén la función original para descarga pero haz que devuelva el archivo
+Future<html.File> generarPdfAjusteMasFile({
+  required String fecha,
+  required String motivo,
+  required String folio,
+  required Users user,
+  required String almacen,
+  required List<Map<String, dynamic>> productos,
+}) async {
+  final bytes = await generarPdfAjusteMasBytes(
+    fecha: fecha,
+    motivo: motivo,
+    folio: folio,
+    user: user,
+    almacen: almacen,
+    productos: productos,
+  );
 
-    // ignore: unused_local_variable
-    final anchor = html.AnchorElement(href: url)
-      ..target = '_blank'
-      ..download = fileName
-      ..click();
+  final blob = html.Blob([bytes], 'application/pdf');
+  final url = html.Url.createObjectUrlFromBlob(blob);
+  final fileName =
+      'AjusteMas_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.pdf';
 
-    html.Url.revokeObjectUrl(url);
-    print('PDF de ajuste más generado exitosamente.');
-  } catch (e) {
-    print('Error al guardar el PDF: $e');
-  }
+  // ignore: unused_local_variable
+  final anchor = html.AnchorElement(href: url)
+    ..target = '_blank'
+    ..download = fileName
+    ..click();
+
+  html.Url.revokeObjectUrl(url);
+
+  return html.File([bytes], fileName, {'type': 'application/pdf'});
 }

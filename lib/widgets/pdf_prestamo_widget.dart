@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -7,6 +9,80 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:ui' as ui;
 // ignore: deprecated_member_use, avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+
+// Función para guardar el PDF en la base de datos
+Future<bool> guardarPdfPrestamoEnBD({
+  required String nombreDocPdf,
+  required String fechaDocPdf,
+  required String dataDocPdf,
+  required int idUser,
+}) async {
+  final pdfController = DocsPdfController();
+  return await pdfController.savePdf(
+    nombreDocPdf: nombreDocPdf,
+    fechaDocPdf: fechaDocPdf,
+    dataDocPdf: dataDocPdf,
+    idUser: idUser,
+  );
+}
+
+// Función principal que genera, guarda y descarga el PDF
+Future<void> generarPdfPrestamoHerramientas({
+  required String folio,
+  required String fechaPrestamo,
+  required String fechaDevolucion,
+  required Users responsable,
+  required Users? empleadoAsignado,
+  required String? externoNombre,
+  required String? externoContacto,
+  required List<Map<String, dynamic>> herramientas,
+}) async {
+  try {
+    // 1. Generar PDF como bytes
+    final pdfBytes = await generarPdfPrestamoHerramientasBytes(
+      folio: folio,
+      fechaPrestamo: fechaPrestamo,
+      fechaDevolucion: fechaDevolucion,
+      responsable: responsable,
+      empleadoAsignado: empleadoAsignado,
+      externoNombre: externoNombre,
+      externoContacto: externoContacto,
+      herramientas: herramientas,
+    );
+
+    // 2. Convertir a base64
+    final base64Pdf = base64Encode(pdfBytes);
+
+    // 3. Guardar en base de datos
+    final dbSuccess = await guardarPdfPrestamoEnBD(
+      nombreDocPdf: 'Prestamo_Herramientas_$folio.pdf',
+      fechaDocPdf: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
+      dataDocPdf: base64Pdf,
+      idUser: responsable.id_User ?? 0,
+    );
+
+    if (!dbSuccess) {
+      print('PDF se descargó pero no se guardó en la BD');
+    }
+
+    // 4. Descargar localmente
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
+    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
+    final fileName = 'Prestamo_Herramientas_${currentDate}_$currentTime.pdf';
+
+    final anchor = html.AnchorElement(href: url)
+      ..target = '_blank'
+      ..download = fileName
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  } catch (e) {
+    print('Error al generar PDF de préstamo: $e');
+    throw Exception('Error al generar el PDF');
+  }
+}
 
 Future<Uint8List> generateQrCode(String data) async {
   final qrCode = QrPainter(
@@ -19,7 +95,7 @@ Future<Uint8List> generateQrCode(String data) async {
   return byteData!.buffer.asUint8List();
 }
 
-Future<void> generarPdfPrestamoHerramientas({
+Future<Uint8List> generarPdfPrestamoHerramientasBytes({
   required String folio,
   required String fechaPrestamo,
   required String fechaDevolucion,
@@ -245,7 +321,8 @@ Future<void> generarPdfPrestamoHerramientas({
                                 ),
                                 pw.Padding(
                                   padding: const pw.EdgeInsets.all(3),
-                                  child: pw.Text('1', // Cantidad fija 1 por herramienta
+                                  child: pw.Text(
+                                      '1', // Cantidad fija 1 por herramienta
                                       textAlign: pw.TextAlign.center,
                                       style: const pw.TextStyle(fontSize: 8)),
                                 ),
@@ -263,7 +340,8 @@ Future<void> generarPdfPrestamoHerramientas({
                                 pw.Padding(
                                   padding: const pw.EdgeInsets.all(3),
                                   child: pw.Text(
-                                      herramienta['fechaDevolucion'] ?? 'Pendiente',
+                                      herramienta['fechaDevolucion'] ??
+                                          'Pendiente',
                                       textAlign: pw.TextAlign.center,
                                       style: const pw.TextStyle(fontSize: 8)),
                                 ),
@@ -326,8 +404,7 @@ Future<void> generarPdfPrestamoHerramientas({
                       ),
                     ),
                     pw.SizedBox(height: 6),
-                    pw.Text('Recibe',
-                        style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('Recibe', style: const pw.TextStyle(fontSize: 10)),
                   ]),
                   // Firma de quien entrega
                   pw.Column(children: [
@@ -339,8 +416,7 @@ Future<void> generarPdfPrestamoHerramientas({
                       ),
                     ),
                     pw.SizedBox(height: 6),
-                    pw.Text('Entrega',
-                        style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('Entrega', style: const pw.TextStyle(fontSize: 10)),
                   ]),
                   // Firma de autorización
                   pw.Column(children: [
@@ -364,26 +440,45 @@ Future<void> generarPdfPrestamoHerramientas({
     ),
   );
 
-  try {
-    // Generar nombre del archivo
-    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
-    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
-    final String fileName =
-        'Prestamo_Herramientas_${folio}_${currentDate}_$currentTime.pdf';
+  return await pdf.save();
+}
 
-    final bytes = await pdf.save();
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
+Future<html.File> generarPdfPrestamoHerramientasFile({
+  required String folio,
+  required String fechaPrestamo,
+  required String fechaDevolucion,
+  required Users responsable,
+  required Users? empleadoAsignado,
+  required String? externoNombre,
+  required String? externoContacto,
+  required List<Map<String, dynamic>> herramientas,
+}) async {
+  final bytes = await generarPdfPrestamoHerramientasBytes(
+      folio: folio,
+      fechaPrestamo: fechaPrestamo,
+      fechaDevolucion: fechaDevolucion,
+      responsable: responsable,
+      empleadoAsignado: empleadoAsignado,
+      externoNombre: externoNombre,
+      externoContacto: externoContacto,
+      herramientas: herramientas);
 
-    // ignore: unused_local_variable
-    final anchor = html.AnchorElement(href: url)
-      ..target = '_blank'
-      ..download = fileName
-      ..click();
+  final blob = html.Blob([bytes], 'application/pdf');
+  final url = html.Url.createObjectUrlFromBlob(blob);
 
-    html.Url.revokeObjectUrl(url);
-    print('PDF de préstamo generado exitosamente.');
-  } catch (e) {
-    print('Error al guardar el PDF: $e');
-  }
+  // Generar nombre del archivo
+  final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
+  final String currentTime = DateFormat('HHmmss').format(DateTime.now());
+  final String fileName =
+      'Prestamo_Herramientas_${folio}_${currentDate}_$currentTime.pdf';
+
+  // ignore: unused_local_variable
+  final anchor = html.AnchorElement(href: url)
+    ..target = '_blank'
+    ..download = fileName
+    ..click();
+
+  html.Url.revokeObjectUrl(url);
+
+  return html.File([bytes], fileName, {'type': 'application/pdf'});
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
+import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -265,7 +266,84 @@ Future<Uint8List> generateQrCode(String data) async {
   return byteData!.buffer.asUint8List();
 }
 
-Future<void> generateAndPrintPdfEntrada({
+Future<bool> guardarPDFEntradaBD({
+  required String nombreDocPdf,
+  required String fechaDocPdf,
+  required String dataDocPdf,
+  required int idUser,
+}) async {
+  final pdfController = DocsPdfController();
+  return await pdfController.savePdf(
+    nombreDocPdf: nombreDocPdf,
+    fechaDocPdf: fechaDocPdf,
+    dataDocPdf: dataDocPdf,
+    idUser: idUser,
+  );
+}
+
+Future<void> generarPdfEntrada({
+  required String movimiento,
+  required String fecha,
+  required String folio,
+  required String userName,
+  required String idUser,
+  required String referencia,
+  required Almacenes alamcenA,
+  required Proveedores proveedorP,
+  required Juntas juntaJ,
+  required List<Map<String, dynamic>> productos,
+}) async {
+  try {
+    // 1. Generar PDF con bytes
+    final pdfBytes = await generateAndPrintPdfEntradaByte(
+      movimiento: movimiento,
+      fecha: fecha,
+      folio: folio,
+      userName: userName,
+      idUser: idUser,
+      referencia: referencia,
+      alamcenA: alamcenA,
+      proveedorP: proveedorP,
+      juntaJ: juntaJ,
+      productos: productos,
+    );
+
+    // 2. Convertir a base 64
+    final base64Pdf = base64Encode(pdfBytes);
+
+    // 3. Guardar en base de datos
+    final dbSuccess = await guardarPDFEntradaBD(
+      nombreDocPdf: 'Entrada_Reporte_$folio.pdf',
+      fechaDocPdf: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
+      dataDocPdf: base64Pdf,
+      idUser: int.parse(idUser),
+    );
+
+    if (!dbSuccess) {
+      print('PDF se descargó pero no se guardó en la BD');
+    }
+
+    // 4. Descargar localmente
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
+    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
+    final String fileName = 'Entrada_Reporte_${currentDate}_$currentTime.pdf';
+
+    // ignore: unused_local_variable
+    final anchor = html.AnchorElement(href: url)
+      ..target = '_blank'
+      ..download = fileName
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  } catch (e) {
+    print('Error al generar PDF de entrada: $e');
+    throw Exception('Error al generar el PDF');
+  }
+}
+
+Future<Uint8List> generateAndPrintPdfEntradaByte({
   required String movimiento,
   required String fecha,
   required String folio,
@@ -631,29 +709,7 @@ Future<void> generateAndPrintPdfEntrada({
     ),
   );
 
-  try {
-    // Generar nombre del archivo con la fecha actual
-    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
-    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
-    final String fileName = 'Entrada_Reporte_${currentDate}_$currentTime.pdf';
-
-    final bytes = await pdf.save();
-
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    // ignore: unused_local_variable
-    final anchor = html.AnchorElement(href: url)
-      ..target = '_blank'
-      ..download = fileName
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
-
-    print('PDF Reporte entrada descargado exitosamente.');
-  } catch (e) {
-    print('Error al guardar el PDF: $e');
-  }
+  return await pdf.save();
 }
 
 // Función para convertir números a letras

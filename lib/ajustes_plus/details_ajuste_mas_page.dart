@@ -93,7 +93,7 @@ class _DetailsAjusteMasPageState extends State<DetailsAjusteMasPage> {
         });
       }
 
-      await generarPdfAjusteMas(
+      await generarPdfAjusteMasFile(
         fecha: widget.ajustes.first.ajusteMas_Fecha ?? '',
         motivo: widget.ajustes.first.ajuesteMas_Descripcion ?? '',
         folio: widget.ajustes.first.ajusteMas_CodFolio ?? '',

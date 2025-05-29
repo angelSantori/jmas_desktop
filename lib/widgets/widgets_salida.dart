@@ -8,6 +8,7 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
+import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -671,7 +672,90 @@ Future<Uint8List> generateQrCode(String data) async {
   return byteData!.buffer.asUint8List();
 }
 
-Future<void> generateAndPrintPdfSalida({
+Future<bool> guardarPDFSalidaBD({
+  required String nombreDocPdf,
+  required String fechaDocPdf,
+  required String dataDocPdf,
+  required int idUser,
+}) async {
+  final pdfController = DocsPdfController();
+  return await pdfController.savePdf(
+    nombreDocPdf: nombreDocPdf,
+    fechaDocPdf: fechaDocPdf,
+    dataDocPdf: dataDocPdf,
+    idUser: idUser,
+  );
+}
+
+Future<void> generarPdfSalida({
+  required String movimiento,
+  required String fecha,
+  required String folio,
+  required String referencia,
+  required String userName,
+  required String idUser,
+  required Almacenes alamcenA,
+  required Users userAsignado,
+  required String tipoTrabajo,
+  required Padron padron,
+  required Colonias colonia,
+  required Calles calle,
+  required List<Map<String, dynamic>> productos,
+}) async {
+  try {
+    // 1. Generar PDF como bytes
+    final pdfBytes = await generateAndPrintPdfSalidaBytes(
+      movimiento: movimiento,
+      fecha: fecha,
+      folio: folio,
+      referencia: referencia,
+      userName: userName,
+      idUser: idUser,
+      alamcenA: alamcenA,
+      userAsignado: userAsignado,
+      tipoTrabajo: tipoTrabajo,
+      padron: padron,
+      colonia: colonia,
+      calle: calle,
+      productos: productos,
+    );
+
+    // 2. Convertir a base64
+    final base64Pdf = base64Encode(pdfBytes);
+
+    // 3. Guardar en base de datos
+    final dbSuccess = await guardarPDFSalidaBD(
+      nombreDocPdf: 'Salida_Reporte_$folio.pdf',
+      fechaDocPdf: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
+      dataDocPdf: base64Pdf,
+      idUser: int.parse(idUser),
+    );
+
+    if (!dbSuccess) {
+      print('PDF se descargó pero no se guardó en la BD');
+    }
+
+    // 4. Descargar localmente
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
+    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
+    final String fileName = 'Salida_Reporte_${currentDate}_$currentTime.pdf';
+
+    // ignore: unused_local_variable
+    final anchor = html.AnchorElement(href: url)
+      ..target = '_blank'
+      ..download = fileName
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  } catch (e) {
+    print('Error al generar PDF de salida: $e');
+    throw Exception('Error al generar el PDF');
+  }
+}
+
+Future<Uint8List> generateAndPrintPdfSalidaBytes({
   required String movimiento,
   required String fecha,
   required String folio,
@@ -1074,29 +1158,7 @@ Future<void> generateAndPrintPdfSalida({
     ),
   );
 
-  try {
-    // Generar nombre del archivo con la fecha actual
-    final String currentDate = DateFormat('ddMMyyyy').format(DateTime.now());
-    final String currentTime = DateFormat('HHmmss').format(DateTime.now());
-    final String fileName = 'Salida_Reporte_${currentDate}_$currentTime.pdf';
-
-    final bytes = await pdf.save();
-
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    // ignore: unused_local_variable
-    final anchor = html.AnchorElement(href: url)
-      ..target = '_blank'
-      ..download = fileName
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
-
-    print('PDF Reporte entrada descargado exitosamente.');
-  } catch (e) {
-    print('Error al guardar el PDF: $e');
-  }
+  return await pdf.save();
 }
 
 String _convertirNumeroALetras(int numero) {
