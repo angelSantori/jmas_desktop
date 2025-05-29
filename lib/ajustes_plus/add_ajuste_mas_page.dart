@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/ajuste_mas_controller.dart';
+import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
@@ -177,17 +180,25 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
 
   Future<void> _pdfAjusteMas() async {
     try {
+      setState(() {
+        _isGeneratingPDF = true;
+        _isLoadingGaurdando = true;
+      });
+
       // Obtener el usuario actual
       final decodeToken = await _authService.decodeToken();
-      final userId = decodeToken?['Id_User'] ?? '0';
+      final userIdStr = decodeToken?['Id_User'] ?? '0';
+      final userId = int.tryParse(userIdStr) ?? 0;
       final userName = decodeToken?['User_Name'] ?? 'Usuario no identificado';
 
       // Crear objeto User con los datos mínimos necesarios
       final user = Users(
-        id_User: int.tryParse(userId) ?? 0,
+        id_User: userId,
         user_Name: userName,
       );
-      await generarPdfAjusteMas(
+
+      // 1. Generar PDF como archivo
+      final pdfBytes = await generarPdfAjusteMasBytes(
         fecha: _fecha,
         motivo: _descripctionController.text,
         folio: codFolio ?? 'Sin folio',
@@ -195,9 +206,45 @@ class _AddAjusteMasPageState extends State<AddAjusteMasPage> {
         almacen: 'JMAS MEOQUI',
         productos: _productosAgregados,
       );
+
+      // 2. Leer el archivo generado como bytes
+      final base64Pdf = base64Encode(pdfBytes);
+
+      // 3. Guardar en base de datos
+      final pdfController = DocsPdfController();
+      final dbSuccess = await pdfController.savePdf(
+        nombreDocPdf: 'AjusteMas_${codFolio ?? 'SinFolio'}.pdf',
+        fechaDocPdf: _fecha,
+        dataDocPdf: base64Pdf,
+        idUser: userId,
+      );
+
+      if (!dbSuccess) {
+        showAdvertence(context, 'PDF se descargó pero no se guardó en la BD');
+      }
+
+      // 4. Descargar localmente
+      final blob = html.Blob([pdfBytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final fileName = 'AjusteMas_${codFolio ?? 'SinFolio'}.pdf';
+
+      final anchor = html.AnchorElement(href: url)
+        ..target = '_blank'
+        ..download = fileName
+        ..click();
+
+      html.Url.revokeObjectUrl(url);
+
+      // 5. Mostrar confirmación
+      showOk(context, 'PDF generado y guardado correctamente');
     } catch (e) {
       print('Errro al generar PDF | pdfAjusteMas | Try: $e');
       showAdvertence(context, 'Error al generar el PDF');
+    } finally {
+      setState(() {
+        _isGeneratingPDF = false;
+        _isLoadingGaurdando = false;
+      });
     }
   }
 

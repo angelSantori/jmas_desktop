@@ -210,25 +210,30 @@ class _AddHtaprestPageState extends State<AddHtaprestPage> {
       if (success) {
         showOk(context, 'Préstamo registrado exitosamente');
 
-        //Generar PDF del prestamo
-        await generarPdfPrestamoHerramientas(
-          folio: codFolio ?? 'Sin folio',
-          fechaPrestamo: _fechaPrestamoController.text,
-          fechaDevolucion:
-              _herramientasPrestadas.first['fechaDevolucion'] ?? 'Pendiente',
-          responsable: Users(
-            id_User: int.tryParse(widget.idUser ?? '0'),
-            user_Name: widget.userName,
-          ),
-          empleadoAsignado: _selectedEmpleado,
-          externoNombre: _externoNombreController.text.isNotEmpty
-              ? _externoNombreController.text
-              : null,
-          externoContacto: _externoContactoController.text.isNotEmpty
-              ? _externoContactoController.text
-              : null,
-          herramientas: _herramientasPrestadas,
-        );
+        try {
+          await generarPdfPrestamoHerramientas(
+            folio: codFolio ?? 'Sin folio',
+            fechaPrestamo: _fechaPrestamoController.text,
+            fechaDevolucion:
+                _herramientasPrestadas.first['fechaDevolucion'] ?? 'Pendiente',
+            responsable: Users(
+              id_User: int.tryParse(widget.idUser ?? '0') ?? 0,
+              user_Name: widget.userName,
+            ),
+            empleadoAsignado: _selectedEmpleado,
+            externoNombre: _externoNombreController.text.isNotEmpty
+                ? _externoNombreController.text
+                : null,
+            externoContacto: _externoContactoController.text.isNotEmpty
+                ? _externoContactoController.text
+                : null,
+            herramientas: _herramientasPrestadas,
+          );
+        } catch (e) {
+          showAdvertence(
+              context, 'Préstamo guardado pero error al generar PDF');
+          print('Error al generar PDF: $e');
+        }
 
         _limpiarFormulario();
         await _loadHerramientasDisponibles();

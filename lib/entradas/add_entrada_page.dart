@@ -606,7 +606,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                         }
 
                                         //2. Generar PDF
-                                        await generateAndPrintPdfEntrada(
+                                        await generarPdfEntrada(
                                           movimiento: 'Entrada',
                                           fecha: _fechaController.text,
                                           folio: codFolio!,

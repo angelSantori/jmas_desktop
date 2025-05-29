@@ -704,7 +704,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                         }
 
                                         //2. Generar PDF
-                                        await generateAndPrintPdfSalida(
+                                        await generarPdfSalida(
                                           movimiento: 'Salida',
                                           fecha: _fechaController.text,
                                           folio: codFolio!,
