@@ -9,6 +9,7 @@ import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
+import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -700,6 +701,7 @@ Future<void> generarPdfSalida({
   required Padron padron,
   required Colonias colonia,
   required Calles calle,
+  OrdenTrabajo? ordenTrabajo,
   required List<Map<String, dynamic>> productos,
 }) async {
   try {
@@ -717,6 +719,7 @@ Future<void> generarPdfSalida({
       padron: padron,
       colonia: colonia,
       calle: calle,
+      ordenTrabajo: ordenTrabajo,
       productos: productos,
     );
 
@@ -768,6 +771,7 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
   required Padron padron,
   required Colonias colonia,
   required Calles calle,
+  OrdenTrabajo? ordenTrabajo,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -895,6 +899,12 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
                           pw.SizedBox(height: 3),
                           pw.Text('TT: $tipoTrabajo',
                               style: const pw.TextStyle(fontSize: 9)),
+                          if (ordenTrabajo != null) ...[
+                            pw.SizedBox(height: 3),
+                            pw.Text(
+                                'OT: ${ordenTrabajo.folioOT} - ${ordenTrabajo.tipoProblemaOT}',
+                                style: const pw.TextStyle(fontSize: 9)),
+                          ]
                         ],
                       ),
 

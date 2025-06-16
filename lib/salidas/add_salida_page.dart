@@ -4,9 +4,11 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
+import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
+import 'package:jmas_desktop/contollers/trabajo_realizado_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/buscar_calle_widget.dart';
@@ -36,6 +38,10 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final CallesController _callesController = CallesController();
   final UsersController _usersController = UsersController();
   final PadronController _padronController = PadronController();
+  final OrdenTrabajoController _ordenTrabajoController =
+      OrdenTrabajoController();
+  final TrabajoRealizadoController _trabajoRealizadoController =
+      TrabajoRealizadoController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -51,13 +57,19 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
 
   String? idUserReporte;
-
+  String? folioTR;
   String? codFolio;
 
   //Empleados
   List<Users> _empleadosFiltrados = [];
   bool _buscandoEmpleados = false;
   Users? _selectedEmpleado;
+
+  //Odenes aprobadas
+  List<OrdenTrabajo> _ordenesAprobadas = [];
+  // ignore: unused_field
+  bool _cargandoOrdenes = false;
+  OrdenTrabajo? _selectedOrden;
 
   List<Almacenes> _almacenes = [];
   // ignore: unused_field
@@ -74,6 +86,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   bool _isLoading = false;
   bool _isGeneratingPDF = false;
+  bool _mostrarOrdenTrabajo = false;
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
@@ -87,6 +100,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     super.initState();
     _loadDataSalidas();
     _loadFolioSalida();
+    _loadFolioTR();
+    _cargarOrdenesAprobadas();
   }
 
   Future<void> _seleccionarFecha(BuildContext context) async {
@@ -108,6 +123,13 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
     setState(() {
       codFolio = fetchedCodFolio;
+    });
+  }
+
+  Future<void> _loadFolioTR() async {
+    final fetchedFolioTR = await _trabajoRealizadoController.getNextTRFolio();
+    setState(() {
+      folioTR = fetchedFolioTR;
     });
   }
 
@@ -137,6 +159,24 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _empleadosFiltrados = empleados;
       _buscandoEmpleados = false;
     });
+  }
+
+  Future<void> _cargarOrdenesAprobadas() async {
+    setState(() => _cargandoOrdenes = true);
+    try {
+      final todasOrdenes = await _ordenTrabajoController.listOrdenTrabajo();
+      setState(() {
+        _ordenesAprobadas = todasOrdenes
+            .where((orden) =>
+                orden.estadoOT == 'Aprobada - S/A' ||
+                orden.estadoOT == 'Devuelta')
+            .toList();
+        _cargandoOrdenes = false;
+      });
+    } catch (e) {
+      print('Error _cargarOrdenesAprobadas | AddSalida : $e');
+      setState(() => _cargandoOrdenes = false);
+    }
   }
 
   void actualizarCostoSalida(int index, double nuevoCosto) {
@@ -248,8 +288,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       bool success = true;
       for (var producto in _productosAgregados) {
         await _getUserId();
+
+        //Crear salida
         final nuevaSalida = _crearSalida(producto);
-        print('Cuerpo enviado: $nuevaSalida');
         bool result = await _salidasController.addSalida(nuevaSalida);
 
         if (!result) {
@@ -291,6 +332,22 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         }
       }
 
+      if (success && _selectedOrden != null) {
+        final trabajoCreado = await _crearTrabajo();
+
+        if (!trabajoCreado) {
+          showAdvertence(context, 'Error al crear registro de trabajo');
+        }
+
+        _selectedOrden!.estadoOT = "Aprobada - A";
+        final estadoOrden =
+            await _ordenTrabajoController.editOrdenTrabajo(_selectedOrden!);
+
+        if (!estadoOrden) {
+          showAdvertence(context, 'Error al actualizar estado de la orden');
+        }
+      }
+
       // Mostrar el mensaje correspondiente al finalizar el ciclo
       if (success) {
         // ignore: use_build_context_synchronously
@@ -298,6 +355,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         setState(() {
           _isLoading = false;
           _loadFolioSalida();
+          _loadFolioTR();
         });
       } else {
         // ignore: use_build_context_synchronously
@@ -341,7 +399,26 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       idPadron: _selectedPadron?.idPadron,
       idCalle: _selectedCalle?.idCalle,
       idColonia: _selectedColonia?.idColonia,
+      idOrdenTrabajo:
+          _mostrarOrdenTrabajo ? _selectedOrden?.idOrdenTrabajo : null,
     );
+  }
+
+  Future<bool> _crearTrabajo() async {
+    if (_selectedOrden == null || _selectedEmpleado == null) return false;
+    try {
+      final trabajo = TrabajoRealizado(
+        idTrabajoRealizado: 0,
+        folioTR: folioTR,
+        idUserTR: _selectedEmpleado?.id_User,
+        idOrdenTrabajo: _selectedOrden?.idOrdenTrabajo,
+      );
+
+      return await _trabajoRealizadoController.addTrabajoRealizado(trabajo);
+    } catch (e) {
+      print('Error _crearTrabajo | addSalidaPage: $e');
+      return false;
+    }
   }
 
   void _limpiarFormulario() {
@@ -356,6 +433,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedPadron = null;
       _selectedEmpleado = null;
       _selectedTipoTrabajo = null;
+      _selectedOrden = null;
 
       _referenciaController.clear();
       _idProductoController.clear();
@@ -454,7 +532,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                           ),
                           const SizedBox(width: 20),
                           Expanded(
-                            child: CustomListaDesplegableTipo(
+                            child: CustomListaDesplegableTipo<Almacenes>(
                               value: _selectedAlmacen,
                               labelText: 'Almacen',
                               items: _almacenes,
@@ -488,6 +566,91 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Row(
+                                  children: [
+                                    const Text(
+                                      '¿Agregar orden de trabajo?',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ToggleButtons(
+                                      isSelected: [
+                                        _mostrarOrdenTrabajo,
+                                        !_mostrarOrdenTrabajo
+                                      ],
+                                      onPressed: (index) {
+                                        setState(() {
+                                          _mostrarOrdenTrabajo = index == 0;
+                                          if (!_mostrarOrdenTrabajo) {
+                                            _selectedOrden = null;
+                                          }
+                                        });
+                                      },
+                                      children: const [
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: Text('Sí'),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: Text('No'),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 20),
+                                    if (_mostrarOrdenTrabajo)
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 300,
+                                              child: CustomListaDesplegableTipo<
+                                                  OrdenTrabajo>(
+                                                value: _selectedOrden,
+                                                labelText: 'Orden de Trabajo',
+                                                items: _ordenesAprobadas,
+                                                onChanged: (orden) {
+                                                  setState(() {
+                                                    _selectedOrden = orden;
+                                                  });
+                                                },
+                                                validator: (orden) {
+                                                  if (_mostrarOrdenTrabajo &&
+                                                      orden == null) {
+                                                    return 'Debe seleccionar una orden';
+                                                  }
+                                                  return null;
+                                                },
+                                                itemLabelBuilder: (orden) =>
+                                                    '${orden.folioOT} - ${orden.estadoOT} - ${orden.prioridadOT}',
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  IconButton(
+                                                    onPressed:
+                                                        _cargarOrdenesAprobadas,
+                                                    icon: const Icon(
+                                                        Icons.refresh),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+
+                                //Buscar Empleado
                                 CustomTextFielTexto(
                                   controller: _busquedaUsuarioController,
                                   labelText: 'Buscar Empleado',
@@ -567,6 +730,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                       },
                                     ),
                                   ),
+                                const SizedBox(width: 20),
                               ],
                             ),
                           ),
@@ -718,6 +882,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           padron: _selectedPadron!,
                                           colonia: _selectedColonia!,
                                           calle: _selectedCalle!,
+                                          ordenTrabajo: _selectedOrden!,
                                           productos: _productosAgregados,
                                         );
 
