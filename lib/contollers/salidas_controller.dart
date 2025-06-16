@@ -137,6 +137,7 @@ class Salidas {
   int? idPadron;
   int? idCalle;
   int? idColonia;
+  int? idOrdenTrabajo;
   Salidas({
     this.id_Salida,
     this.salida_CodFolio,
@@ -154,6 +155,7 @@ class Salidas {
     this.idPadron,
     this.idCalle,
     this.idColonia,
+    this.idOrdenTrabajo,
   });
 
   Salidas copyWith({
@@ -173,6 +175,7 @@ class Salidas {
     int? idPadron,
     int? idCalle,
     int? idColonia,
+    int? idOrdenTrabajo,
   }) {
     return Salidas(
       id_Salida: id_Salida ?? this.id_Salida,
@@ -191,6 +194,7 @@ class Salidas {
       idPadron: idPadron ?? this.idPadron,
       idCalle: idCalle ?? this.idCalle,
       idColonia: idColonia ?? this.idColonia,
+      idOrdenTrabajo: idOrdenTrabajo ?? this.idOrdenTrabajo,
     );
   }
 
@@ -212,6 +216,7 @@ class Salidas {
       'idPadron': idPadron,
       'idCalle': idCalle,
       'idColonia': idColonia,
+      'idOrdenTrabajo': idOrdenTrabajo,
     };
   }
 
@@ -251,6 +256,8 @@ class Salidas {
       idPadron: map['idPadron'] != null ? map['idPadron'] as int : null,
       idCalle: map['idCalle'] != null ? map['idCalle'] as int : null,
       idColonia: map['idColonia'] != null ? map['idColonia'] as int : null,
+      idOrdenTrabajo:
+          map['idOrdenTrabajo'] != null ? map['idOrdenTrabajo'] as int : null,
     );
   }
 
@@ -261,7 +268,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenTrabajo: $idOrdenTrabajo)';
   }
 
   @override
@@ -283,7 +290,8 @@ class Salidas {
         other.id_User_Asignado == id_User_Asignado &&
         other.idPadron == idPadron &&
         other.idCalle == idCalle &&
-        other.idColonia == idColonia;
+        other.idColonia == idColonia &&
+        other.idOrdenTrabajo == idOrdenTrabajo;
   }
 
   @override
@@ -303,6 +311,7 @@ class Salidas {
         id_User_Asignado.hashCode ^
         idPadron.hashCode ^
         idCalle.hashCode ^
-        idColonia.hashCode;
+        idColonia.hashCode ^
+        idOrdenTrabajo.hashCode;
   }
 }
