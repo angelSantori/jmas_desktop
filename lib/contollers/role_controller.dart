@@ -92,6 +92,7 @@ class Role {
   bool? canDelete;
   bool? canManageUsers;
   bool? canManageRoles;
+  bool? canEvaluar;
   Role({
     this.idRole,
     this.roleNombre,
@@ -102,6 +103,7 @@ class Role {
     this.canDelete,
     this.canManageUsers,
     this.canManageRoles,
+    this.canEvaluar,
   });
 
   Role copyWith({
@@ -114,6 +116,7 @@ class Role {
     bool? canDelete,
     bool? canManageUsers,
     bool? canManageRoles,
+    bool? canEvaluar,
   }) {
     return Role(
       idRole: idRole ?? this.idRole,
@@ -125,6 +128,7 @@ class Role {
       canDelete: canDelete ?? this.canDelete,
       canManageUsers: canManageUsers ?? this.canManageUsers,
       canManageRoles: canManageRoles ?? this.canManageRoles,
+      canEvaluar: canEvaluar ?? this.canEvaluar,
     );
   }
 
@@ -139,6 +143,7 @@ class Role {
       'canDelete': canDelete,
       'canManageUsers': canManageUsers,
       'canManageRoles': canManageRoles,
+      'canEvaluar': canEvaluar,
     };
   }
 
@@ -156,6 +161,7 @@ class Role {
           map['canManageUsers'] != null ? map['canManageUsers'] as bool : null,
       canManageRoles:
           map['canManageRoles'] != null ? map['canManageRoles'] as bool : null,
+      canEvaluar: map['canEvaluar'] != null ? map['canEvaluar'] as bool : null,
     );
   }
 
@@ -166,7 +172,7 @@ class Role {
 
   @override
   String toString() {
-    return 'Role(idRole: $idRole, roleNombre: $roleNombre, roleDescr: $roleDescr, canView: $canView, canAdd: $canAdd, canEdit: $canEdit, canDelete: $canDelete, canManageUsers: $canManageUsers, canManageRoles: $canManageRoles)';
+    return 'Role(idRole: $idRole, roleNombre: $roleNombre, roleDescr: $roleDescr, canView: $canView, canAdd: $canAdd, canEdit: $canEdit, canDelete: $canDelete, canManageUsers: $canManageUsers, canManageRoles: $canManageRoles, canEvaluar: $canEvaluar)';
   }
 
   @override
@@ -181,7 +187,8 @@ class Role {
         other.canEdit == canEdit &&
         other.canDelete == canDelete &&
         other.canManageUsers == canManageUsers &&
-        other.canManageRoles == canManageRoles;
+        other.canManageRoles == canManageRoles &&
+        other.canEvaluar == canEvaluar;
   }
 
   @override
@@ -194,6 +201,7 @@ class Role {
         canEdit.hashCode ^
         canDelete.hashCode ^
         canManageUsers.hashCode ^
-        canManageRoles.hashCode;
+        canManageRoles.hashCode ^
+        canEvaluar.hashCode;
   }
 }
