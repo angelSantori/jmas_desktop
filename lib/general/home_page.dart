@@ -21,6 +21,8 @@ import 'package:jmas_desktop/htaPrest/add_htaprest_page.dart';
 import 'package:jmas_desktop/htaPrest/list_htaprest_page.dart';
 import 'package:jmas_desktop/juntas/add_junta_page.dart';
 import 'package:jmas_desktop/juntas/list_juntas_page.dart';
+import 'package:jmas_desktop/ordenCompras/add_orden_compra_page.dart';
+import 'package:jmas_desktop/ordenCompras/list_orden_compra_page.dart';
 import 'package:jmas_desktop/padron/list_padron_page.dart';
 import 'package:jmas_desktop/pdfs/pdf_list_page.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
@@ -156,6 +158,11 @@ class _HomePageState extends State<HomePage>
       //Consulta universal
       'ConsultaU': () => const ConsultaUniversalPage(),
       'listPDF': () => const PdfListPage(),
+
+      //Orden de Compra
+      'addOrdenCompra': () =>
+          AddOrdenCompraPage(idUser: idUser, userName: userName),
+      'listOrdenCompra': () => ListOrdenCompraPage(userRole: userRole),
 
       //X
       'home': () => const Center(child: Text('Welcome to home Page!')),
@@ -685,6 +692,33 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
+
+                              //Orden de compra
+                              SubCustomExpansionTile(
+                                  title: 'Compras',
+                                  icon: const Icon(Icons.bedroom_baby_rounded),
+                                  children: [
+                                    CustomListTile(
+                                      title: 'Orden Compra',
+                                      icon: const Icon(
+                                        Icons.stroller_rounded,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () =>
+                                          _navigateTo('addOrdenCompra'),
+                                    ),
+                                    CustomListTile(
+                                      title: 'Lista Compras',
+                                      icon: const Icon(
+                                        Icons.stroller,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo(
+                                        'listOrdenCompra',
+                                      ),
+                                    )
+                                  ]),
+
                               PermissionWidget(
                                 permission: 'add',
                                 child: SubCustomExpansionTile(
