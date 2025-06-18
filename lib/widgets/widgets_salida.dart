@@ -927,7 +927,7 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text(
-                              'UserASignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
+                              'UAsignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
