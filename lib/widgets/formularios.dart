@@ -472,11 +472,8 @@ class _CustomTextFieldNumeroState extends State<CustomTextFieldNumero>
           ),
           child: TextFormField(
             controller: widget.controller,
-<<<<<<< HEAD
             focusNode: widget.focusNode,
-=======
             enabled: widget.enabled,
->>>>>>> e293e71 (Formularios)
             decoration: InputDecoration(
               labelText: widget.labelText,
               labelStyle: TextStyle(
