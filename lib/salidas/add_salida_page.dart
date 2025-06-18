@@ -86,7 +86,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   bool _isLoading = false;
   bool _isGeneratingPDF = false;
-  bool _mostrarOrdenTrabajo = false;
+  //bool _mostrarOrdenTrabajo = false;
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
@@ -104,20 +104,20 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _cargarOrdenesAprobadas();
   }
 
-  Future<void> _seleccionarFecha(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
+  // Future<void> _seleccionarFecha(BuildContext context) async {
+  //   DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime.now(),
+  //   );
 
-    if (picked != null) {
-      setState(() {
-        _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
-      });
-    }
-  }
+  //   if (picked != null) {
+  //     setState(() {
+  //       _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
+  //     });
+  //   }
+  // }
 
   Future<void> _loadFolioSalida() async {
     final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
@@ -399,7 +399,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       idPadron: _selectedPadron?.idPadron,
       idCalle: _selectedCalle?.idCalle,
       idColonia: _selectedColonia?.idColonia,
-      idOrdenTrabajo: null,
+      idOrdenTrabajo: _selectedOrden?.idOrdenTrabajo,
       //_mostrarOrdenTrabajo ? _selectedOrden?.idOrdenTrabajo : null,
     );
   }
@@ -892,7 +892,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           colonia: _selectedColonia!,
                                           calle: _selectedCalle!,
                                           junta: _selectedJunta!,
-                                          ordenTrabajo: _selectedOrden!,
+                                          ordenTrabajo: _selectedOrden,
                                           productos: _productosAgregados,
                                         );
 
