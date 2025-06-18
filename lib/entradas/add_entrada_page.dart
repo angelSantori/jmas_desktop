@@ -37,6 +37,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
   final TextEditingController _referenciaController = TextEditingController();
 
+  final _showFecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
+
   final TextEditingController _busquedaProveedorController =
       TextEditingController();
   List<Proveedores> _proveedoresFiltrados = [];
@@ -289,13 +291,13 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
       entrada_Costo: double.tryParse(producto['precio'].toString()),
       entrada_Referencia: _referenciaController.text,
-      entrada_Fecha: _fechaController.text,
+      entrada_Fecha: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!),
       id_Almacen: _selectedAlmacen!.id_Almacen,
       entrada_Estado: true,
       id_Proveedor: _selectedProveedor!.id_Proveedor,
-      id_Junta: _selectedJunta!.id_Junta,
+      id_Junta: 1,
       entrada_ImgB64Factura:
           _imagenFactura != null ? base64Encode(_imagenFactura!) : null,
     );
@@ -346,6 +348,9 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             child:
                                 buildCabeceraItem('Captura', widget.userName!),
                           ),
+                          Expanded(child: buildCabeceraItem('Junta', 'Meoqui')),
+                          Expanded(
+                              child: buildCabeceraItem('Fecha', _showFecha))
                         ],
                       ),
                       const SizedBox(height: 30),
@@ -363,20 +368,40 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 30),
+                          const SizedBox(width: 20),
                           Expanded(
-                            child: CustomTextFielFecha(
-                              controller: _fechaController,
-                              labelText: 'Fecha',
-                              onTap: () => _seleccionarFecha(context),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Debe seleccionar una fecha';
+                            child: CustomListaDesplegableTipo(
+                              value: _selectedAlmacen,
+                              labelText: 'Almacen',
+                              items: _almacenes,
+                              onChanged: (ent) {
+                                setState(() {
+                                  _selectedAlmacen = ent;
+                                });
+                              },
+                              validator: (ent) {
+                                if (ent == null) {
+                                  return 'Debe seleccionar una almacen.';
                                 }
                                 return null;
                               },
+                              itemLabelBuilder: (ent) =>
+                                  ent.almacen_Nombre ?? 'Sin nombre',
                             ),
                           ),
+                          // Expanded(
+                          //   child: CustomTextFielFecha(
+                          //     controller: _fechaController,
+                          //     labelText: 'Fecha',
+                          //     onTap: () => _seleccionarFecha(context),
+                          //     validator: (value) {
+                          //       if (value == null || value.isEmpty) {
+                          //         return 'Debe seleccionar una fecha';
+                          //       }
+                          //       return null;
+                          //     },
+                          //   ),
+                          // ),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -415,6 +440,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       const SizedBox(height: 30),
 
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Column(
@@ -503,47 +529,47 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                             ),
                           ),
                           const SizedBox(width: 20),
-                          Expanded(
-                            child: CustomListaDesplegableTipo(
-                              value: _selectedJunta,
-                              labelText: 'Junta',
-                              items: _juntas,
-                              onChanged: (jnt) {
-                                setState(() {
-                                  _selectedJunta = jnt;
-                                });
-                              },
-                              validator: (jnt) {
-                                if (jnt == null) {
-                                  return 'Debe seleccionar una junta.';
-                                }
-                                return null;
-                              },
-                              itemLabelBuilder: (jnt) =>
-                                  jnt.junta_Name ?? 'Sin nombre',
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: CustomListaDesplegableTipo(
-                              value: _selectedAlmacen,
-                              labelText: 'Almacen',
-                              items: _almacenes,
-                              onChanged: (ent) {
-                                setState(() {
-                                  _selectedAlmacen = ent;
-                                });
-                              },
-                              validator: (ent) {
-                                if (ent == null) {
-                                  return 'Debe seleccionar una almacen.';
-                                }
-                                return null;
-                              },
-                              itemLabelBuilder: (ent) =>
-                                  ent.almacen_Nombre ?? 'Sin nombre',
-                            ),
-                          ),
+                          // Expanded(
+                          //   child: CustomListaDesplegableTipo(
+                          //     value: _selectedJunta,
+                          //     labelText: 'Junta',
+                          //     items: _juntas,
+                          //     onChanged: (jnt) {
+                          //       setState(() {
+                          //         _selectedJunta = jnt;
+                          //       });
+                          //     },
+                          //     validator: (jnt) {
+                          //       if (jnt == null) {
+                          //         return 'Debe seleccionar una junta.';
+                          //       }
+                          //       return null;
+                          //     },
+                          //     itemLabelBuilder: (jnt) =>
+                          //         jnt.junta_Name ?? 'Sin nombre',
+                          //   ),
+                          // ),
+                          // const SizedBox(width: 20),
+                          // Expanded(
+                          //   child: CustomListaDesplegableTipo(
+                          //     value: _selectedAlmacen,
+                          //     labelText: 'Almacen',
+                          //     items: _almacenes,
+                          //     onChanged: (ent) {
+                          //       setState(() {
+                          //         _selectedAlmacen = ent;
+                          //       });
+                          //     },
+                          //     validator: (ent) {
+                          //       if (ent == null) {
+                          //         return 'Debe seleccionar una almacen.';
+                          //       }
+                          //       return null;
+                          //     },
+                          //     itemLabelBuilder: (ent) =>
+                          //         ent.almacen_Nombre ?? 'Sin nombre',
+                          //   ),
+                          // ),
                         ],
                       ),
 
@@ -597,7 +623,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                               _productosAgregados,
                                           selectedAlmacen: _selectedAlmacen,
                                           proveedor: _selectedProveedor,
-                                          junta: _selectedJunta,
+                                          //junta: _selectedJunta,
                                           factura: _imagenFactura,
                                         );
 
@@ -608,7 +634,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                         //2. Generar PDF
                                         await generarPdfEntrada(
                                           movimiento: 'Entrada',
-                                          fecha: _fechaController.text,
+                                          fecha: _showFecha,
                                           folio: codFolio!,
                                           idUser: widget.idUser!,
                                           alamcenA: _selectedAlmacen!,
@@ -617,7 +643,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                               _referenciaController.text,
                                           productos: _productosAgregados,
                                           proveedorP: _selectedProveedor!,
-                                          juntaJ: _selectedJunta!,
+                                          juntaJ: _selectedJunta,
                                           //factura: _imagenFactura!,
                                         );
 
