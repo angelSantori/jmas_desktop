@@ -1002,6 +1002,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
   //double? _invIniConteo;
   double? _existencia;
   final TextEditingController _nombreProducto = TextEditingController();
+  final FocusNode _cantidadFocusNode = FocusNode();
   List<Productos> _productosSugeridos = [];
   Timer? _debounce;
 
@@ -1009,6 +1010,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
   void dispose() {
     _nombreProducto.dispose();
     _debounce?.cancel();
+    _cantidadFocusNode.dispose();
     super.dispose();
   }
 
@@ -1057,6 +1059,8 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
           });
 
           widget.onProductoSeleccionado(producto);
+
+          FocusScope.of(context).requestFocus(_cantidadFocusNode);
         } else {
           widget.onAdvertencia('Producto con ID: $id, no encontrado');
         }
@@ -1268,6 +1272,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                   width: 140,
                   child: CustomTextFieldNumero(
                     controller: widget.cantidadController,
+                    focusNode: _cantidadFocusNode,
                     prefixIcon: Icons.numbers_outlined,
                     labelText: 'Cantidad',
                     onFieldSubmitted: (value) {
@@ -1296,6 +1301,7 @@ Future<bool> validarCamposAntesDeImprimir(
     required var calle,
     required var colonia,
     required var selectedTrabajo,
+    required var selectedJunta,
     required var selectedUser}) async {
   if (referenciaController.text.isEmpty) {
     showAdvertence(context, 'La referencia es obligatoria.');
@@ -1314,6 +1320,11 @@ Future<bool> validarCamposAntesDeImprimir(
 
   if (selectedUser == null) {
     showAdvertence(context, 'Debe asignar un empleado.');
+    return false;
+  }
+
+  if (selectedJunta == null) {
+    showAdvertence(context, 'Debe seleccionar una junta.');
     return false;
   }
 

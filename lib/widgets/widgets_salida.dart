@@ -9,6 +9,7 @@ import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
+import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -701,6 +702,7 @@ Future<void> generarPdfSalida({
   required Padron padron,
   required Colonias colonia,
   required Calles calle,
+  required Juntas junta,
   OrdenTrabajo? ordenTrabajo,
   required List<Map<String, dynamic>> productos,
 }) async {
@@ -719,6 +721,7 @@ Future<void> generarPdfSalida({
       padron: padron,
       colonia: colonia,
       calle: calle,
+      junta: junta,
       ordenTrabajo: ordenTrabajo,
       productos: productos,
     );
@@ -771,6 +774,7 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
   required Padron padron,
   required Colonias colonia,
   required Calles calle,
+  required Juntas junta,
   OrdenTrabajo? ordenTrabajo,
   required List<Map<String, dynamic>> productos,
 }) async {
@@ -934,6 +938,10 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
                         children: [
                           pw.Text(
                               'Almacen: ${alamcenA.id_Almacen} - ${alamcenA.almacen_Nombre}',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                              'Junta: ${junta.id_Junta} - ${junta.junta_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text(

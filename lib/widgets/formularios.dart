@@ -365,6 +365,7 @@ class CustomTextFieldNumero extends StatefulWidget {
   final String labelText;
   final String? Function(String?)? validator;
   final IconData prefixIcon;
+  final FocusNode? focusNode;
   final void Function(String)? onFieldSubmitted;
 
   const CustomTextFieldNumero({
@@ -373,6 +374,7 @@ class CustomTextFieldNumero extends StatefulWidget {
     required this.labelText,
     required this.prefixIcon,
     this.validator,
+    this.focusNode,
     this.onFieldSubmitted,
   }) : super(key: key);
 
@@ -433,6 +435,7 @@ class _CustomTextFieldNumeroState extends State<CustomTextFieldNumero>
           ),
           child: TextFormField(
             controller: widget.controller,
+            focusNode: widget.focusNode,
             decoration: InputDecoration(
               labelText: widget.labelText,
               labelStyle: TextStyle(
