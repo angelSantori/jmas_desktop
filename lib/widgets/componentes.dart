@@ -290,7 +290,7 @@ Future<void> generarPdfEntrada({
   required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
-  required Juntas juntaJ,
+  required Juntas? juntaJ,
   required List<Map<String, dynamic>> productos,
 }) async {
   try {
@@ -352,7 +352,7 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
   required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
-  required Juntas juntaJ,
+  required Juntas? juntaJ,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -494,8 +494,8 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
                           pw.Text('Capturó: $idUser - $userName',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text(
-                              'Junta: ${juntaJ.id_Junta} - ${juntaJ.junta_Name}',
+                          pw.Text('Junta: 1 - Meoqui',
+                              //'Junta: ${juntaJ.id_Junta} - ${juntaJ.junta_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
@@ -1358,7 +1358,7 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
   required String referencia,
   required var selectedAlmacen,
   required var proveedor,
-  required var junta,
+  //required var junta,
   required Uint8List? factura,
 }) async {
   if (referencia.isEmpty) {
@@ -1376,10 +1376,10 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
     return false;
   }
 
-  if (junta == null) {
-    showAdvertence(context, 'Debe seleccionar una junta.');
-    return false;
-  }
+  // if (junta == null) {
+  //   showAdvertence(context, 'Debe seleccionar una junta.');
+  //   return false;
+  // }
 
   if (productosAgregados.isEmpty) {
     showAdvertence(context, 'Debe agregar productos antes de imprimir.');
