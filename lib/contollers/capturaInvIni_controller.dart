@@ -32,6 +32,32 @@ class CapturainviniController {
     }
   }
 
+  Future<List<Capturainvini>> listCiiXProducto(int productoId) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${_authService.apiURL}/CapturaInvInis/ByProducto/$productoId'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData
+            .map((listCiiXProdcuto) => Capturainvini.fromMap(listCiiXProdcuto))
+            .toList();
+      } else {
+        print(
+            'Error listCiiXProducto | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error listCiiXProducto | Try | Controller: $e');
+      return [];
+    }
+  }
+
   Future<bool> editCapturaI(Capturainvini captura) async {
     try {
       final response = await http.put(
