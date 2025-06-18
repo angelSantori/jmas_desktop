@@ -137,17 +137,19 @@ class CustomTextFielTexto extends StatefulWidget {
   final String? Function(String?)? validator;
   final IconData prefixIcon;
   final List<TextInputFormatter>? inputFormatters;
+  final bool enabled;
   final ValueChanged<String>? onChanged;
 
   const CustomTextFielTexto({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     this.validator,
     this.prefixIcon = Icons.text_fields,
     this.inputFormatters,
+    this.enabled = true,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextFielTexto> createState() => _CustomTextFielTextoState();
@@ -206,22 +208,30 @@ class _CustomTextFielTextoState extends State<CustomTextFielTexto>
           ),
           child: TextFormField(
             controller: widget.controller,
+            enabled: widget.enabled,
             inputFormatters: widget.inputFormatters,
             onChanged: widget.onChanged,
             decoration: InputDecoration(
               labelText: widget.labelText,
               labelStyle: TextStyle(
-                color: Colors.blue.shade900,
+                color: widget.enabled
+                    ? Colors.blue.shade900
+                    : Colors.grey.shade600,
                 fontWeight: FontWeight.bold,
               ),
               prefixIcon: Icon(widget.prefixIcon, color: Colors.blue.shade900),
               filled: true,
-              fillColor: Colors.blue.shade50,
+              fillColor:
+                  widget.enabled ? Colors.blue.shade50 : Colors.grey.shade200,
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                borderSide: BorderSide(
+                    color: widget.enabled
+                        ? Colors.blue.shade200
+                        : Colors.grey.shade400,
+                    width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -229,14 +239,21 @@ class _CustomTextFielTextoState extends State<CustomTextFielTexto>
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                borderSide: BorderSide(
+                    color: widget.enabled
+                        ? Colors.blue.shade900
+                        : Colors.grey.shade600,
+                    width: 1.5),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: Colors.red, width: 2.0),
               ),
             ),
-            style: const TextStyle(fontSize: 18, color: Colors.black),
+            style: TextStyle(
+              fontSize: 18,
+              color: widget.enabled ? Colors.black : Colors.grey.shade600,
+            ),
             validator: widget.validator,
           ),
         ),
@@ -251,17 +268,19 @@ class CustomTextFielFecha extends StatefulWidget {
   final String? Function(String?)? validator;
   final IconData prefixIcon;
   final List<TextInputFormatter>? inputFormatters;
+  final bool enabled;
   final VoidCallback onTap;
 
   const CustomTextFielFecha({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     this.validator,
     this.prefixIcon = Icons.calendar_today,
+    this.enabled = true,
     this.inputFormatters,
     required this.onTap, // Se requiere el callback
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextFielFecha> createState() => _CustomTextFielFechaState();
@@ -320,27 +339,39 @@ class _CustomTextFielFechaState extends State<CustomTextFielFecha>
           ),
           child: TextFormField(
             controller: widget.controller,
+            enabled: widget.enabled,
             inputFormatters: widget.inputFormatters,
             readOnly: true, // Hace que el campo sea de solo lectura
             onTap: widget.onTap, // Llama al callback cuando se toca el campo
             decoration: InputDecoration(
               labelText: widget.labelText,
               labelStyle: TextStyle(
-                color: Colors.blue.shade900,
+                color: widget.enabled
+                    ? Colors.blue.shade900
+                    : Colors.grey.shade600,
                 fontWeight: FontWeight.bold,
               ),
               prefixIcon: Icon(widget.prefixIcon, color: Colors.blue.shade900),
               filled: true,
-              fillColor: Colors.blue.shade50,
+              fillColor:
+                  widget.enabled ? Colors.blue.shade50 : Colors.grey.shade200,
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                borderSide: BorderSide(
+                    color: widget.enabled
+                        ? Colors.blue.shade200
+                        : Colors.grey.shade200,
+                    width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade900, width: 2.0),
+                borderSide: BorderSide(
+                    color: widget.enabled
+                        ? Colors.blue.shade900
+                        : Colors.grey.shade600,
+                    width: 2.0),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -351,7 +382,9 @@ class _CustomTextFielFechaState extends State<CustomTextFielFecha>
                 borderSide: const BorderSide(color: Colors.red, width: 2.0),
               ),
             ),
-            style: const TextStyle(fontSize: 18, color: Colors.black),
+            style: TextStyle(
+                fontSize: 18,
+                color: widget.enabled ? Colors.black : Colors.grey.shade600),
             validator: widget.validator,
           ),
         ),
@@ -367,16 +400,20 @@ class CustomTextFieldNumero extends StatefulWidget {
   final IconData prefixIcon;
   final FocusNode? focusNode;
   final void Function(String)? onFieldSubmitted;
+  final bool enabled;
+  final void Function(String)? onChanged;
 
   const CustomTextFieldNumero({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     required this.prefixIcon,
     this.validator,
     this.focusNode,
     this.onFieldSubmitted,
-  }) : super(key: key);
+    this.enabled = true,
+    this.onChanged,
+  });
 
   @override
   State<CustomTextFieldNumero> createState() => _CustomTextFieldNumeroState();
@@ -435,21 +472,32 @@ class _CustomTextFieldNumeroState extends State<CustomTextFieldNumero>
           ),
           child: TextFormField(
             controller: widget.controller,
+<<<<<<< HEAD
             focusNode: widget.focusNode,
+=======
+            enabled: widget.enabled,
+>>>>>>> e293e71 (Formularios)
             decoration: InputDecoration(
               labelText: widget.labelText,
               labelStyle: TextStyle(
-                color: Colors.blue.shade900,
+                color: widget.enabled
+                    ? Colors.blue.shade900
+                    : Colors.grey.shade600,
                 fontWeight: FontWeight.bold,
               ),
               prefixIcon: Icon(widget.prefixIcon, color: Colors.blue.shade900),
               filled: true,
-              fillColor: Colors.blue.shade50,
+              fillColor:
+                  widget.enabled ? Colors.blue.shade50 : Colors.grey.shade200,
               contentPadding:
                   const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue.shade200, width: 1.5),
+                borderSide: BorderSide(
+                    color: widget.enabled
+                        ? Colors.blue.shade200
+                        : Colors.grey.shade400,
+                    width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -457,20 +505,28 @@ class _CustomTextFieldNumeroState extends State<CustomTextFieldNumero>
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                borderSide: BorderSide(
+                    color: widget.enabled
+                        ? Colors.blue.shade900
+                        : Colors.grey.shade600,
+                    width: 2.0),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: Colors.red, width: 2.0),
               ),
             ),
-            style: const TextStyle(fontSize: 18, color: Colors.black),
+            style: TextStyle(
+              fontSize: 18,
+              color: widget.enabled ? Colors.black : Colors.grey.shade600,
+            ),
             validator: widget.validator,
             keyboardType: TextInputType.number,
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
             ],
             onFieldSubmitted: widget.onFieldSubmitted,
+            onChanged: widget.onChanged,
           ),
         ),
       ),
@@ -484,17 +540,19 @@ class CustomListaDesplegable extends StatefulWidget {
   final List<String> items;
   final void Function(String?) onChanged;
   final String? Function(String?)? validator;
+  final bool enabled;
   final IconData icon;
 
   const CustomListaDesplegable({
-    Key? key,
+    super.key,
     required this.value,
     required this.labelText,
     required this.items,
     required this.onChanged,
     this.validator,
+    this.enabled = true,
     this.icon = Icons.arrow_drop_down,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomListaDesplegable> createState() => _CustomListaDesplegableState();
@@ -508,29 +566,26 @@ class _CustomListaDesplegableState extends State<CustomListaDesplegable>
   @override
   void initState() {
     super.initState();
-    // Inicializa el AnimationController
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 1000), // Duración de la animación
+      duration: Duration(milliseconds: 1000),
     );
 
-    // Define la animación de desplazamiento
     _animation = Tween<Offset>(
-      begin: Offset(0, -1), // Comienza fuera de la pantalla (arriba)
-      end: Offset.zero, // Termina en su posición original
+      begin: Offset(0, -1),
+      end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Curves.easeOutQuart, // Curva suave
+        curve: Curves.easeOutQuart,
       ),
     );
-    // Inicia la animación cuando el widget se construye
     _animationController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose(); // Limpia el AnimationController
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -547,35 +602,56 @@ class _CustomListaDesplegableState extends State<CustomListaDesplegable>
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.shade900, // Color de la sombra
-                  blurRadius: 8, // Difuminado de la sombra
-                  offset: const Offset(0, 4), // Desplazamiento de la sombra
+                  color: widget.enabled
+                      ? Colors.blue.shade900
+                      : Colors.grey.shade600,
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: DropdownButtonFormField<String>(
               isExpanded: true,
               value: widget.value,
+              icon: Icon(
+                widget.icon,
+                color: widget.enabled
+                    ? Colors.blue.shade900
+                    : Colors.grey.shade600,
+              ),
+              style: TextStyle(
+                fontSize: 14,
+                color: widget.enabled ? Colors.black : Colors.grey.shade600,
+              ),
               decoration: InputDecoration(
                 labelText: widget.labelText,
                 labelStyle: TextStyle(
-                  color: Colors.blue.shade900,
+                  color: widget.enabled
+                      ? Colors.blue.shade900
+                      : Colors.grey.shade600,
                   fontWeight: FontWeight.bold,
                   overflow: TextOverflow.ellipsis,
                 ),
                 filled: true,
-                fillColor: Colors.blue.shade50,
+                fillColor:
+                    widget.enabled ? Colors.blue.shade50 : Colors.grey.shade200,
                 contentPadding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      BorderSide(color: Colors.blue.shade200, width: 1.5),
+                  borderSide: BorderSide(
+                      color: widget.enabled
+                          ? Colors.blue.shade200
+                          : Colors.grey.shade400,
+                      width: 1.5),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                      BorderSide(color: Colors.blue.shade900, width: 2.0),
+                  borderSide: BorderSide(
+                      color: widget.enabled
+                          ? Colors.blue.shade900
+                          : Colors.grey.shade600,
+                      width: 2.0),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -596,12 +672,17 @@ class _CustomListaDesplegableState extends State<CustomListaDesplegable>
                       item,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
-                      style: const TextStyle(fontSize: 14),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: widget.enabled
+                            ? Colors.black
+                            : Colors.grey.shade600,
+                      ),
                     ),
                   ),
                 );
               }).toList(),
-              onChanged: widget.onChanged,
+              onChanged: widget.enabled ? widget.onChanged : null,
               validator: widget.validator,
             ),
           ),
