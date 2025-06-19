@@ -31,7 +31,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   final PadronController _padronController = PadronController();
   final ColoniasController _coloniasController = ColoniasController();
   final CallesController _callesController = CallesController();
-  final OrdenTrabajoController _ordenTrabajoController = OrdenTrabajoController();
+  final OrdenTrabajoController _ordenTrabajoController =
+      OrdenTrabajoController();
 
   final TextEditingController _searchController = TextEditingController();
   List<Salidas> _allSalidas = [];
@@ -69,6 +70,21 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     super.initState();
     _loadData();
     _searchController.addListener(_filterSalidas);
+  }
+
+  Future<void> _reloadData() async {
+    setState(() => _isLoading = true);
+    try {
+      final salidas = await _salidasController.listSalidas();
+      setState(() {
+        _allSalidas = salidas;
+        _filterSalidas(); // Esto aplicará los filtros actuales a los nuevos datos
+      });
+    } catch (e) {
+      print('Error al recargar datos: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadData() async {
@@ -484,7 +500,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
-            onTap: () {
+            onTap: () async {
               final almacen = _almacenes.firstWhere(
                 (alm) => alm.id_Almacen == salida.id_Almacen,
                 orElse: () =>
@@ -503,7 +519,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
               final ordenTrabajo = _ordenes.firstWhere(
                 (orden) => orden.idOrdenTrabajo == salida.idOrdenTrabajo,
-                orElse: () => OrdenTrabajo(folioOT: 'S/F', tipoProblemaOT: 'S/P'),
+                orElse: () =>
+                    OrdenTrabajo(folioOT: 'S/F', tipoProblemaOT: 'S/P'),
               );
 
               final colonia = _colonias.firstWhere(
@@ -522,7 +539,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
               );
 
-              Navigator.push(
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => DetailsSalidaPage(
@@ -539,6 +556,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                   ),
                 ),
               );
+
+              if (result == true) {
+                await _reloadData();
+              }
             },
             child: Padding(
               padding: const EdgeInsets.all(16.0),
