@@ -1,8 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class CcontablesController {
@@ -29,6 +27,31 @@ class CcontablesController {
       }
     } catch (e) {
       print('Error lista CC | TryCatch | Controller: $e');
+      return [];
+    }
+  }
+
+  Future<List<CContables>> listCCxProducto(int productoId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/CContables/ByProducto/$productoId'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData
+            .map((listCCxProd) => CContables.fromMap(listCCxProd))
+            .toList();
+      } else {
+        print(
+            'Error listCCxProducto | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error listCCxProducto | Try | Controller: $e');
       return [];
     }
   }
