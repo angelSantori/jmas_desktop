@@ -14,6 +14,7 @@ import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/pdf_cancelacion.dart';
+import 'package:jmas_desktop/widgets/widgets_salida.dart';
 
 import '../widgets/reimpresion_salida_pdf.dart';
 
@@ -297,6 +298,137 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     }
   }
 
+  Future<void> _editarJuntaSalida() async {
+    final juntasController = JuntasController();
+    final todasJuntas = await juntasController.listJuntas();
+
+    Juntas? juntaSeleccionada = widget.junta;
+
+    final confirmacion = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Junta de Salida'),
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Seleccione la nueva junta destino:'),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<Juntas>(
+                  value: juntaSeleccionada,
+                  items: todasJuntas.map((junta) {
+                    return DropdownMenuItem<Juntas>(
+                      value: junta,
+                      child: Text('${junta.junta_Name} (${junta.id_Junta})'),
+                    );
+                  }).toList(),
+                  onChanged: (junta) {
+                    setState(() {
+                      juntaSeleccionada = junta;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Junta Destino',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (juntaSeleccionada != null) {
+                Navigator.pop(context, true);
+              }
+            },
+            style:
+                ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade900),
+            child:
+                const Text('Confirmar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmacion != true || juntaSeleccionada == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Actualizar todas las salidas asociadas al mismo folio
+      bool todasActualizadas = true;
+      for (var salida in widget.salidas) {
+        // Crear una copia de la salida con la nueva junta
+        final salidaActualizada = salida.copyWith(
+          id_Junta: juntaSeleccionada!.id_Junta,
+        );
+
+        // Usar el método editSalida existente
+        final success = await SalidasController().editSalida(salidaActualizada);
+
+        if (!success) {
+          todasActualizadas = false;
+          break;
+        }
+      }
+
+      if (todasActualizadas) {
+        // Generar PDF de modificación (similar al de cancelación)
+        final productosCache = await _productosFuture;
+        final productosParaPDF = <Map<String, dynamic>>[];
+
+        for (var salida in widget.salidas) {
+          final producto = productosCache[salida.idProducto];
+          if (producto != null) {
+            productosParaPDF.add({
+              'id': salida.idProducto,
+              'descripcion': producto.prodDescripcion ?? 'Producto desconocido',
+              'cantidad': salida.salida_Unidades ?? 0,
+              'costo': salida.salida_Costo! / (salida.salida_Unidades ?? 1),
+              'precio': salida.salida_Costo ?? 0,
+            });
+          }
+        }
+
+        await generarPdfSalida(
+          movimiento: 'MODIFICACION SALIDA',
+          fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
+          folio: widget.salidas.first.salida_CodFolio ?? '',
+          referencia: widget.salidas.first.salida_Referencia ?? '',
+          userName: _currentUser?.user_Name ?? '',
+          idUser: _currentUser!.id_User.toString(),
+          alamcenA: widget.almacen,
+          userAsignado: widget.userAsignado,
+          tipoTrabajo: widget.salidas.first.salida_TipoTrabajo ?? '',
+          padron: widget.padron,
+          colonia: widget.colonia,
+          calle: widget.calle,
+          junta: juntaSeleccionada!,
+          productos: productosParaPDF,
+        );
+
+        // Mostrar mensaje de éxito
+        await showOk(context, 'Junta actualizada exitosamente');
+
+        // Cerrar la pantalla actual para forzar recarga
+        Navigator.pop(context, true);
+      } else {
+        showError(context, 'Error al actualizar algunas salidas');
+      }
+    } catch (e) {
+      showError(context, 'Error al actualizar junta: ${e.toString()}');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final Map<int, Map<String, dynamic>> groupProductos = {};
@@ -399,7 +531,47 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                   children: [
                                     Text(
                                         'Almacen: ${widget.almacen.almacen_Nombre}'),
-                                    Text('Junta: ${widget.junta.junta_Name}'),
+                                    Row(
+                                      children: [
+                                        const Text('Junta: '),
+                                        GestureDetector(
+                                          onTap: () {
+                                            if (widget.userRole == "Admin" ||
+                                                widget.userRole == "Gestion") {
+                                              _editarJuntaSalida();
+                                            }
+                                          },
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                widget.junta.junta_Name ?? '',
+                                                style: TextStyle(
+                                                  color: (widget.userRole ==
+                                                              "Admin" ||
+                                                          widget.userRole ==
+                                                              "Gestion")
+                                                      ? Colors.blue.shade800
+                                                      : Colors.black,
+                                                  decoration: (widget
+                                                                  .userRole ==
+                                                              "Admin" ||
+                                                          widget.userRole ==
+                                                              "Gestion")
+                                                      ? TextDecoration.underline
+                                                      : null,
+                                                ),
+                                              ),
+                                              if (widget.userRole == "Admin" ||
+                                                  widget.userRole == "Gestion")
+                                                const Icon(Icons.edit,
+                                                    size: 16,
+                                                    color: Colors.blue),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     Text(
                                         'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
                                     Text(
