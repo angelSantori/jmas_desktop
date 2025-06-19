@@ -8,6 +8,7 @@ import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/calles/add_calles_page.dart';
 import 'package:jmas_desktop/calles/list_calles_page.dart';
 import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
+import 'package:jmas_desktop/ccontables/ccontables_generador_page.dart';
 import 'package:jmas_desktop/ccontables/list_ccontables_page.dart';
 import 'package:jmas_desktop/colonias/add_colonias_page.dart';
 import 'package:jmas_desktop/colonias/list_colonias_page.dart';
@@ -167,7 +168,10 @@ class _HomePageState extends State<HomePage>
       //X
       'home': () => const Center(child: Text('Welcome to home Page!')),
       'listPadron': () => const ListPadronPage(),
+
+      //Cuentas contables
       'listCC': () => const ListCcontablesPage(),
+      'generadorCC': () => const CcontablesGeneradorPage(),
 
       //'mapa': () => const MapaLecturasPage(),
       // 'addAjusteMenos': () => const AddAjusteMenosPage(),
@@ -776,6 +780,14 @@ class _HomePageState extends State<HomePage>
                                     color: Colors.white,
                                   ),
                                   onTap: () => _navigateTo('listCC'),
+                                ),
+                                CustomListTile(
+                                  title: 'Generador',
+                                  icon: const Icon(
+                                    Icons.add_chart,
+                                    color: Colors.white,
+                                  ),
+                                  onTap: () => _navigateTo('generadorCC'),
                                 ),
                                 CustomListTile(
                                   title: 'PDF',

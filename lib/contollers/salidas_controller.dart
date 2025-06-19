@@ -1,10 +1,8 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-// ignore_for_file: non_constant_identifier_names
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/service/auth_service.dart';
+
+//TODO: Crear aquí y en back la busqueda de salida x idproducto
 
 class SalidasController {
   final AuthService _authService = AuthService();
