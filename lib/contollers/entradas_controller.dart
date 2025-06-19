@@ -8,6 +8,8 @@ import 'package:jmas_desktop/service/auth_service.dart';
 class EntradasController {
   final AuthService _authService = AuthService();
 
+  // GET
+  // List
   Future<List<Entradas>> listEntradas() async {
     try {
       final response = await http.get(
@@ -27,6 +29,30 @@ class EntradasController {
       }
     } catch (e) {
       print('Error lista de entradas: $e');
+      return [];
+    }
+  }
+
+  // EntradaXProducto
+  Future<List<Entradas>> listEntradaXProducto(int productoID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Entradas/ByProducto/$productoID'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((listExP) => Entradas.fromMap(listExP)).toList();
+      } else {
+        print(
+            'Error listEntradaXProducto | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error listEntradaXProducto | Try | Controller: $e');
       return [];
     }
   }
