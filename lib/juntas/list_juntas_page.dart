@@ -57,10 +57,12 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
         final name = junta.junta_Name?.toLowerCase() ?? '';
         final contacto = junta.junta_Telefono?.toLowerCase() ?? '';
         final encargado = junta.junta_Encargado?.toLowerCase() ?? '';
+        final cuenta = junta.junta_Cuenta?.toLowerCase() ?? '';
 
         return name.contains(query) ||
             contacto.contains(query) ||
-            encargado.contains(query);
+            encargado.contains(query) ||
+            cuenta.contains(query);
       }).toList();
     });
   }
@@ -80,7 +82,8 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: CustomTextFielTexto(
                 controller: _searchController,
-                labelText: 'Buscar junta por Nombre, Contacto o Encargado',
+                labelText:
+                    'Buscar junta por Nombre, Contacto, Encargado o Cuenta',
                 prefixIcon: Icons.search,
               ),
             ),
@@ -167,7 +170,11 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                                 color: Colors.grey,
                                               ),
                                               Text(
-                                                junta.junta_Telefono ?? '',
+                                                (junta.junta_Telefono == null ||
+                                                        junta.junta_Telefono!
+                                                            .isEmpty)
+                                                    ? 'Sin contacto'
+                                                    : junta.junta_Telefono!,
                                                 style: const TextStyle(
                                                   fontSize: 14,
                                                   color: Colors.grey,
@@ -189,8 +196,12 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                               const SizedBox(width: 4),
                                               Expanded(
                                                 child: Text(
-                                                  junta.junta_Encargado ??
-                                                      'Encargado no diponible',
+                                                  (junta.junta_Encargado ==
+                                                              null ||
+                                                          junta.junta_Encargado!
+                                                              .isEmpty)
+                                                      ? 'Sin encargado'
+                                                      : junta.junta_Encargado!,
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     color: Colors.grey,
@@ -198,7 +209,34 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                                 ),
                                               ),
                                             ],
-                                          )
+                                          ),
+                                          const SizedBox(height: 4),
+                                          //Encargado
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Icon(
+                                                Icons.numbers,
+                                                size: 16,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  (junta.junta_Cuenta == null ||
+                                                          junta.junta_Cuenta!
+                                                              .isEmpty)
+                                                      ? 'Sin cuenta'
+                                                      : junta.junta_Cuenta!,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ],
                                       ),
                                     ),

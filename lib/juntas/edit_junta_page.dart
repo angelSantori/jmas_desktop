@@ -18,6 +18,7 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _encargadoController;
+  late TextEditingController _cuentaController;
 
   bool _isLoading = false;
 
@@ -28,6 +29,7 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
     _phoneController = TextEditingController(text: widget.junta.junta_Telefono);
     _encargadoController =
         TextEditingController(text: widget.junta.junta_Encargado);
+    _cuentaController = TextEditingController(text: widget.junta.junta_Cuenta);
   }
 
   @override
@@ -35,6 +37,7 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
     _nameController.dispose();
     _phoneController.dispose();
     _encargadoController.dispose();
+    _cuentaController.dispose();
     super.dispose();
   }
 
@@ -44,10 +47,10 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
     });
     if (_formKey.currentState!.validate()) {
       final updateJunta = widget.junta.copyWith(
-        junta_Name: _nameController.text,
-        junta_Telefono: _phoneController.text,
-        junta_Encargado: _encargadoController.text,
-      );
+          junta_Name: _nameController.text,
+          junta_Telefono: _phoneController.text,
+          junta_Encargado: _encargadoController.text,
+          junta_Cuenta: _cuentaController.text);
 
       final result = await _juntasController.editJunta(updateJunta);
 
@@ -120,6 +123,14 @@ class _EditJuntaPageState extends State<EditJuntaPage> {
                       }
                       return null;
                     },
+                  ),
+                  const SizedBox(height: 30),
+
+                  //Cuenta
+                  CustomTextFielTexto(
+                    controller: _cuentaController,
+                    prefixIcon: Icons.numbers,
+                    labelText: 'Cuenta',
                   ),
                   const SizedBox(height: 30),
 

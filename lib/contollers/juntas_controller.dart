@@ -85,11 +85,13 @@ class Juntas {
   String? junta_Name;
   String? junta_Telefono;
   String? junta_Encargado;
+  String? junta_Cuenta;
   Juntas({
     this.id_Junta,
     this.junta_Name,
     this.junta_Telefono,
     this.junta_Encargado,
+    this.junta_Cuenta,
   });
 
   Juntas copyWith({
@@ -97,12 +99,14 @@ class Juntas {
     String? junta_Name,
     String? junta_Telefono,
     String? junta_Encargado,
+    String? junta_Cuenta,
   }) {
     return Juntas(
       id_Junta: id_Junta ?? this.id_Junta,
       junta_Name: junta_Name ?? this.junta_Name,
       junta_Telefono: junta_Telefono ?? this.junta_Telefono,
       junta_Encargado: junta_Encargado ?? this.junta_Encargado,
+      junta_Cuenta: junta_Cuenta ?? this.junta_Cuenta,
     );
   }
 
@@ -112,6 +116,7 @@ class Juntas {
       'junta_Name': junta_Name,
       'junta_Telefono': junta_Telefono,
       'junta_Encargado': junta_Encargado,
+      'junta_Cuenta': junta_Cuenta,
     };
   }
 
@@ -126,6 +131,8 @@ class Juntas {
       junta_Encargado: map['junta_Encargado'] != null
           ? map['junta_Encargado'] as String
           : null,
+      junta_Cuenta:
+          map['junta_Cuenta'] != null ? map['junta_Cuenta'] as String : null,
     );
   }
 
@@ -136,7 +143,7 @@ class Juntas {
 
   @override
   String toString() {
-    return 'Juntas(id_Junta: $id_Junta, junta_Name: $junta_Name, junta_Telefono: $junta_Telefono, junta_Encargado: $junta_Encargado)';
+    return 'Juntas(id_Junta: $id_Junta, junta_Name: $junta_Name, junta_Telefono: $junta_Telefono, junta_Encargado: $junta_Encargado, junta_Cuenta: $junta_Cuenta)';
   }
 
   @override
@@ -146,7 +153,8 @@ class Juntas {
     return other.id_Junta == id_Junta &&
         other.junta_Name == junta_Name &&
         other.junta_Telefono == junta_Telefono &&
-        other.junta_Encargado == junta_Encargado;
+        other.junta_Encargado == junta_Encargado &&
+        other.junta_Cuenta == junta_Cuenta;
   }
 
   @override
@@ -154,6 +162,7 @@ class Juntas {
     return id_Junta.hashCode ^
         junta_Name.hashCode ^
         junta_Telefono.hashCode ^
-        junta_Encargado.hashCode;
+        junta_Encargado.hashCode ^
+        junta_Cuenta.hashCode;
   }
 }
