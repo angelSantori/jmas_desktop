@@ -16,6 +16,7 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _encargadoController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _cuentaController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -33,6 +34,7 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
           junta_Name: _nombreController.text,
           junta_Telefono: _phoneController.text,
           junta_Encargado: _encargadoController.text,
+          junta_Cuenta: _cuentaController.text,
         );
 
         final success = await _juntasController.addJunta(junta);
@@ -62,6 +64,7 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
     _nombreController.clear();
     _phoneController.clear();
     _encargadoController.clear();
+    _cuentaController.clear();
   }
 
   @override
@@ -132,6 +135,20 @@ class _AddJuntaPageState extends State<AddJuntaPage> {
                             }
                             return null;
                           },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  //Cuenta
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextFielTexto(
+                          controller: _cuentaController,
+                          prefixIcon: Icons.numbers,
+                          labelText: 'Cuenta',
                         ),
                       ),
                     ],
