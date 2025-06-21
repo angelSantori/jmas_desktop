@@ -31,6 +31,11 @@ class _CcontablesGeneradorPageState extends State<CcontablesGeneradorPage> {
   bool _isGeneratingEntrada = false;
 
   bool _isGeneratingSalida = false;
+  List<int> _juntasEspeciales = [1, 6, 8, 14];
+  bool _isGeneratingEntradasEspeciales = false;
+  bool _isGeneratingSalidasEspeciales = false;
+  bool _isGeneratingEntradasRurales = false;
+  bool _isGeneratingSalidasRurales = false;
 
   int? _selectedMonth;
   final List<String> _monthNames = [
@@ -59,6 +64,892 @@ class _CcontablesGeneradorPageState extends State<CcontablesGeneradorPage> {
     setState(() {
       _juntas = juntas;
     });
+  }
+
+  // Método para generar Excel de entradas de juntas especiales (1,6,8,14)
+  Future<void> _generateExcelEntradasEspeciales() async {
+    if (_selectedMonth == null) {
+      showAdvertence(context, 'Por favor seleccione un mes');
+      return;
+    }
+
+    setState(() => _isGeneratingEntradasEspeciales = true);
+
+    try {
+      // Obtener todas las juntas especiales
+      final juntasEspeciales =
+          _juntas.where((j) => _juntasEspeciales.contains(j.id_Junta)).toList();
+      if (juntasEspeciales.isEmpty) {
+        showAdvertence(context, 'No se encontraron las juntas especiales');
+        return;
+      }
+
+      // Obtener todos los productos
+      final productos = await _productosController.listProductos();
+
+      // Obtener entradas para todas las juntas especiales en el mes seleccionado
+      final currentYear = DateTime.now().year;
+      final lastDay = DateTime(currentYear, _selectedMonth! + 1, 0);
+
+      final allEntradas = await _entradasController.listEntradas();
+
+      // Filtrar entradas para juntas especiales en el periodo seleccionado
+      final entradasInPeriod = allEntradas.where((e) {
+        if (e.entrada_Fecha == null ||
+            e.entrada_Estado != true ||
+            e.id_Junta == null) {
+          return false;
+        }
+
+        if (!_juntasEspeciales.contains(e.id_Junta)) {
+          return false;
+        }
+
+        final entradaDate = parseFecha(e.entrada_Fecha!);
+        return entradaDate.year == currentYear &&
+            entradaDate.month == _selectedMonth;
+      }).toList();
+
+      // Agrupar entradas por producto (sin importar la junta)
+      final Map<int, List<Entradas>> entradasByProduct = {};
+      final Map<int, double> totalCostoByProduct = {};
+
+      for (var entrada in entradasInPeriod) {
+        if (entrada.idProducto == null) continue;
+
+        if (!entradasByProduct.containsKey(entrada.idProducto)) {
+          entradasByProduct[entrada.idProducto!] = [];
+          totalCostoByProduct[entrada.idProducto!] = 0;
+        }
+
+        entradasByProduct[entrada.idProducto!]!.add(entrada);
+        totalCostoByProduct[entrada.idProducto!] =
+            (totalCostoByProduct[entrada.idProducto!] ?? 0) +
+                (entrada.entrada_Costo ?? 0) * (entrada.entrada_Unidades ?? 0);
+      }
+
+      // Obtener detalles contables para cada producto
+      final Map<int, CContables?> ccByProduct = {};
+      for (var productId in entradasByProduct.keys) {
+        final ccList = await _ccontablesController.listCCxProducto(productId);
+        ccByProduct[productId] = ccList.isNotEmpty ? ccList.first : null;
+      }
+
+      double totalAbono = 0;
+      for (var productId in entradasByProduct.keys) {
+        final totalCosto = totalCostoByProduct[productId] ?? 0;
+        totalAbono += totalCosto;
+      }
+
+      // Crear Excel workbook
+      final Workbook workbook = Workbook();
+      final Worksheet sheet = workbook.worksheets[0];
+
+      // Configuración de columnas y estilos (igual que en _generateExcel)
+      sheet.getRangeByName('A1').columnWidth = 20;
+      sheet.getRangeByName('B1').columnWidth = 15;
+      sheet.getRangeByName('C1').columnWidth = 15;
+      sheet.getRangeByName('D1').columnWidth = 50;
+      sheet.getRangeByName('E1').columnWidth = 25;
+      sheet.getRangeByName('F1').columnWidth = 25;
+      sheet.getRangeByName('G1').columnWidth = 25;
+
+      // Estilos (igual que en _generateExcel)
+      final Style headerStyle = workbook.styles.add('headerStyle');
+      headerStyle.backColor = '#000000';
+      headerStyle.fontColor = '#FFFFFF';
+      headerStyle.fontName = 'Arial';
+      headerStyle.fontSize = 12;
+      headerStyle.bold = true;
+      headerStyle.hAlign = HAlignType.center;
+      headerStyle.vAlign = VAlignType.center;
+
+      final Style titleStyle = workbook.styles.add('titleStyle');
+      titleStyle.fontName = 'Arial';
+      titleStyle.fontSize = 14;
+      titleStyle.bold = true;
+      titleStyle.hAlign = HAlignType.center;
+
+      final Style normalStyle = workbook.styles.add('normalStyle');
+      normalStyle.fontName = 'Arial';
+      normalStyle.fontSize = 11;
+
+      final Style grayBgStyle = workbook.styles.add('grayBgStyle');
+      grayBgStyle.backColor = '#D3D3D3';
+      grayBgStyle.fontName = 'Arial';
+      grayBgStyle.fontSize = 11;
+      grayBgStyle.bold = true;
+
+      // Header row
+      sheet.getRangeByName('A1:G1').merge();
+      sheet.getRangeByName('A1').setText(
+          'SISTEMA AUTOMATIZADO DE ADMINISTRACIÓN Y CONTABILIDAD GUBERNAMENTAL SAACG.NET');
+      sheet.getRangeByName('A1').cellStyle = headerStyle;
+
+      // Fecha
+      sheet.getRangeByName('A2').setText('FECHA:');
+      sheet.getRangeByName('A2').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A2').cellStyle.hAlign = HAlignType.right;
+      sheet
+          .getRangeByName('B2')
+          .setText(DateFormat('dd/MM/yyyy').format(DateTime.now()));
+      sheet.getRangeByName('B2').cellStyle.hAlign = HAlignType.right;
+
+      // Tipo de Poliza
+      sheet.getRangeByName('A3').setText('TIPO DE POLIZA:');
+      sheet.getRangeByName('A3').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A3').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B3').setText('D');
+      sheet.getRangeByName('B3').cellStyle.hAlign = HAlignType.left;
+
+      // Concepto (modificado para juntas especiales)
+      sheet.getRangeByName('A4').setText('CONCEPTO:');
+      sheet.getRangeByName('A4').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A4').cellStyle.hAlign = HAlignType.right;
+      final concepto =
+          'ENTRADAS CONSOLIDADAS DE JUNTAS ESPECIALES DEL 01/${_selectedMonth!.toString().padLeft(2, '0')} AL ${lastDay.day.toString().padLeft(2, '0')}/${_selectedMonth!.toString().padLeft(2, '0')} DE ${getMonthName(_selectedMonth!).toUpperCase()} $currentYear';
+      sheet.getRangeByName('B4:D4').merge();
+      sheet.getRangeByName('B4').setText(concepto);
+
+      // SUMAS IGUALES
+      int sumasIgualesRow = 5;
+      sheet.getRangeByName('A$sumasIgualesRow').setText('SUMAS IGUALES');
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.right;
+
+      sheet.getRangeByName('B$sumasIgualesRow').setNumber(totalAbono);
+      sheet.getRangeByName('B$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      sheet.getRangeByName('C$sumasIgualesRow').setNumber(totalAbono);
+      sheet.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      // Espacio
+      sheet.getRangeByName('A6').rowHeight = 10;
+
+      // Encabezados de tabla
+      sheet.getRangeByName('A7').setText('Cuenta');
+      sheet.getRangeByName('A7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('B7').setText('Cargo');
+      sheet.getRangeByName('B7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('B7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('C7').setText('Abono');
+      sheet.getRangeByName('C7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('C7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7').setText('Concepto por Movimiento');
+      sheet.getRangeByName('D7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('D7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7:G7').merge();
+
+      // Datos
+      int currentRow = 8;
+
+      for (var productId in entradasByProduct.keys) {
+        final product = productos.firstWhere((p) => p.id_Producto == productId,
+            orElse: () => Productos());
+        final cc = ccByProduct[productId];
+        final totalCosto = totalCostoByProduct[productId] ?? 0;
+
+        sheet
+            .getRangeByName('A$currentRow')
+            .setText(cc?.cC_Detalle?.toString() ?? '0');
+
+        sheet.getRangeByName('B$currentRow').setNumber(0);
+        sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('C$currentRow').setNumber(totalCosto);
+        sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('D$currentRow:G$currentRow').merge();
+        sheet
+            .getRangeByName('D$currentRow')
+            .setText('${product.prodDescripcion?.toUpperCase()}');
+
+        currentRow++;
+      }
+
+      // Guardar y descargar
+      final List<int> bytes = workbook.saveAsStream();
+      workbook.dispose();
+
+      final String fileName =
+          'Poliza_Entradas_Juntas_Especiales_${_selectedMonth}_${DateTime.now().year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
+
+      final blob = html.Blob([bytes],
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      // ignore: unused_local_variable
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', fileName)
+        ..click();
+
+      html.Url.revokeObjectUrl(url);
+
+      showOk(context, 'Archivo generado: $fileName');
+    } catch (e) {
+      showError(context, 'Error al generar el archivo: $e');
+      print('Error al generar el archivo: $e');
+    } finally {
+      setState(() => _isGeneratingEntradasEspeciales = false);
+    }
+  }
+
+  // Método para generar Excel de salidas de juntas especiales (1,6,8,14)
+  Future<void> _generateExcelSalidasEspeciales() async {
+    if (_selectedMonth == null) {
+      showAdvertence(context, 'Por favor seleccione un mes');
+      return;
+    }
+
+    setState(() => _isGeneratingSalidasEspeciales = true);
+
+    try {
+      // Obtener todas las juntas especiales
+      final juntasEspeciales =
+          _juntas.where((j) => _juntasEspeciales.contains(j.id_Junta)).toList();
+      if (juntasEspeciales.isEmpty) {
+        showAdvertence(context, 'No se encontraron las juntas especiales');
+        return;
+      }
+
+      // Obtener todos los productos
+      final productos = await _productosController.listProductos();
+
+      // Obtener salidas para todas las juntas especiales en el mes seleccionado
+      final currentYear = DateTime.now().year;
+      final lastDay = DateTime(currentYear, _selectedMonth! + 1, 0);
+
+      final allSalidas = await _salidasController.listSalidas();
+
+      // Filtrar salidas para juntas especiales en el periodo seleccionado
+      final salidasInPeriod = allSalidas.where((s) {
+        if (s.salida_Fecha == null ||
+            s.salida_Estado != true ||
+            s.id_Junta == null) {
+          return false;
+        }
+
+        if (!_juntasEspeciales.contains(s.id_Junta)) {
+          return false;
+        }
+
+        final salidaDate = parseFecha(s.salida_Fecha!);
+        return salidaDate.year == currentYear &&
+            salidaDate.month == _selectedMonth;
+      }).toList();
+
+      // Agrupar salidas por producto (sin importar la junta)
+      final Map<int, List<Salidas>> salidasByProduct = {};
+      final Map<int, double> totalCostoByProduct = {};
+
+      for (var salida in salidasInPeriod) {
+        if (salida.idProducto == null) continue;
+
+        if (!salidasByProduct.containsKey(salida.idProducto)) {
+          salidasByProduct[salida.idProducto!] = [];
+          totalCostoByProduct[salida.idProducto!] = 0;
+        }
+
+        salidasByProduct[salida.idProducto!]!.add(salida);
+        totalCostoByProduct[salida.idProducto!] =
+            (totalCostoByProduct[salida.idProducto!] ?? 0) +
+                (salida.salida_Costo ?? 0) * (salida.salida_Unidades ?? 0);
+      }
+
+      // Obtener detalles contables para cada producto
+      final Map<int, CContables?> ccByProduct = {};
+      for (var productId in salidasByProduct.keys) {
+        final ccList = await _ccontablesController.listCCxProducto(productId);
+        ccByProduct[productId] = ccList.isNotEmpty ? ccList.first : null;
+      }
+
+      double totalCargo = 0;
+      for (var productId in salidasByProduct.keys) {
+        final totalCosto = totalCostoByProduct[productId] ?? 0;
+        totalCargo += totalCosto;
+      }
+
+      // Crear Excel workbook
+      final Workbook workbook = Workbook();
+      final Worksheet sheet = workbook.worksheets[0];
+
+      // Configuración de columnas y estilos (igual que en _generateExcelSalidas)
+      sheet.getRangeByName('A1').columnWidth = 20;
+      sheet.getRangeByName('B1').columnWidth = 15;
+      sheet.getRangeByName('C1').columnWidth = 15;
+      sheet.getRangeByName('D1').columnWidth = 50;
+      sheet.getRangeByName('E1').columnWidth = 25;
+      sheet.getRangeByName('F1').columnWidth = 25;
+      sheet.getRangeByName('G1').columnWidth = 25;
+
+      // Estilos (igual que en _generateExcelSalidas)
+      final Style headerStyle = workbook.styles.add('headerStyle');
+      headerStyle.backColor = '#000000';
+      headerStyle.fontColor = '#FFFFFF';
+      headerStyle.fontName = 'Arial';
+      headerStyle.fontSize = 12;
+      headerStyle.bold = true;
+      headerStyle.hAlign = HAlignType.center;
+      headerStyle.vAlign = VAlignType.center;
+
+      final Style grayBgStyle = workbook.styles.add('grayBgStyle');
+      grayBgStyle.backColor = '#D3D3D3';
+      grayBgStyle.fontName = 'Arial';
+      grayBgStyle.fontSize = 11;
+      grayBgStyle.bold = true;
+
+      // Header row
+      sheet.getRangeByName('A1:G1').merge();
+      sheet.getRangeByName('A1').setText(
+          'SISTEMA AUTOMATIZADO DE ADMINISTRACIÓN Y CONTABILIDAD GUBERNAMENTAL SAACG.NET');
+      sheet.getRangeByName('A1').cellStyle = headerStyle;
+
+      // Fecha
+      sheet.getRangeByName('A2').setText('FECHA:');
+      sheet.getRangeByName('A2').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A2').cellStyle.hAlign = HAlignType.right;
+      sheet
+          .getRangeByName('B2')
+          .setText(DateFormat('dd/MM/yyyy').format(DateTime.now()));
+      sheet.getRangeByName('B2').cellStyle.hAlign = HAlignType.right;
+
+      // Tipo de Poliza
+      sheet.getRangeByName('A3').setText('TIPO DE POLIZA:');
+      sheet.getRangeByName('A3').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A3').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B3').setText('D');
+      sheet.getRangeByName('B3').cellStyle.hAlign = HAlignType.left;
+
+      // Concepto (modificado para juntas especiales)
+      sheet.getRangeByName('A4').setText('CONCEPTO:');
+      sheet.getRangeByName('A4').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A4').cellStyle.hAlign = HAlignType.right;
+      final concepto =
+          'SALIDAS CONSOLIDADAS DE JUNTAS ESPECIALES DEL 01/${_selectedMonth!.toString().padLeft(2, '0')} AL ${lastDay.day.toString().padLeft(2, '0')}/${_selectedMonth!.toString().padLeft(2, '0')} DE ${getMonthName(_selectedMonth!).toUpperCase()} $currentYear';
+      sheet.getRangeByName('B4:D4').merge();
+      sheet.getRangeByName('B4').setText(concepto);
+
+      // SUMAS IGUALES
+      int sumasIgualesRow = 5;
+      sheet.getRangeByName('A$sumasIgualesRow').setText('SUMAS IGUALES');
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.right;
+
+      sheet.getRangeByName('B$sumasIgualesRow').setNumber(totalCargo);
+      sheet.getRangeByName('B$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      sheet.getRangeByName('C$sumasIgualesRow').setNumber(totalCargo);
+      sheet.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      // Espacio
+      sheet.getRangeByName('A6').rowHeight = 10;
+
+      // Encabezados de tabla
+      sheet.getRangeByName('A7').setText('Cuenta');
+      sheet.getRangeByName('A7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('B7').setText('Cargo');
+      sheet.getRangeByName('B7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('B7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('C7').setText('Abono');
+      sheet.getRangeByName('C7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('C7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7').setText('Concepto por Movimiento');
+      sheet.getRangeByName('D7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('D7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7:G7').merge();
+
+      // Datos
+      int currentRow = 8;
+
+      for (var productId in salidasByProduct.keys) {
+        final product = productos.firstWhere((p) => p.id_Producto == productId,
+            orElse: () => Productos());
+        final cc = ccByProduct[productId];
+        final totalCosto = totalCostoByProduct[productId] ?? 0;
+
+        sheet
+            .getRangeByName('A$currentRow')
+            .setText(cc?.cC_Detalle?.toString() ?? '0');
+
+        sheet.getRangeByName('B$currentRow').setNumber(totalCosto);
+        sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('C$currentRow').setNumber(0);
+        sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('D$currentRow:G$currentRow').merge();
+        sheet
+            .getRangeByName('D$currentRow')
+            .setText('${product.prodDescripcion?.toUpperCase()}');
+
+        currentRow++;
+      }
+
+      // Guardar y descargar
+      final List<int> bytes = workbook.saveAsStream();
+      workbook.dispose();
+
+      final String fileName =
+          'Poliza_Salidas_Juntas_Especiales_${_selectedMonth}_${DateTime.now().year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
+
+      final blob = html.Blob([bytes],
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      // ignore: unused_local_variable
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', fileName)
+        ..click();
+
+      html.Url.revokeObjectUrl(url);
+
+      showOk(context, 'Archivo generado: $fileName');
+    } catch (e) {
+      showError(context, 'Error al generar el archivo: $e');
+      print('Error al generar el archivo: $e');
+    } finally {
+      setState(() => _isGeneratingSalidasEspeciales = false);
+    }
+  }
+
+  // Método para generar Excel de entradas de juntas rurales (todas excepto 1,6,8,14)
+  Future<void> _generateExcelEntradasRurales() async {
+    if (_selectedMonth == null) {
+      showAdvertence(context, 'Por favor seleccione un mes');
+      return;
+    }
+
+    setState(() => _isGeneratingEntradasRurales = true);
+
+    try {
+      // Obtener todas las juntas rurales (todas excepto las especiales)
+      final juntasRurales = _juntas
+          .where((j) => !_juntasEspeciales.contains(j.id_Junta))
+          .toList();
+      if (juntasRurales.isEmpty) {
+        showAdvertence(context, 'No se encontraron juntas rurales');
+        return;
+      }
+
+      // Obtener entradas para todas las juntas rurales en el mes seleccionado
+      final currentYear = DateTime.now().year;
+      final lastDay = DateTime(currentYear, _selectedMonth! + 1, 0);
+
+      final allEntradas = await _entradasController.listEntradas();
+
+      // Filtrar entradas para juntas rurales en el periodo seleccionado
+      final entradasInPeriod = allEntradas.where((e) {
+        if (e.entrada_Fecha == null ||
+            e.entrada_Estado != true ||
+            e.id_Junta == null) {
+          return false;
+        }
+
+        if (_juntasEspeciales.contains(e.id_Junta)) {
+          return false;
+        }
+
+        final entradaDate = parseFecha(e.entrada_Fecha!);
+        return entradaDate.year == currentYear &&
+            entradaDate.month == _selectedMonth;
+      }).toList();
+
+      // Agrupar entradas por junta (en lugar de por producto)
+      final Map<int, List<Entradas>> entradasByJunta = {};
+      final Map<int, double> totalCostoByJunta = {};
+
+      for (var entrada in entradasInPeriod) {
+        if (entrada.id_Junta == null) continue;
+
+        if (!entradasByJunta.containsKey(entrada.id_Junta)) {
+          entradasByJunta[entrada.id_Junta!] = [];
+          totalCostoByJunta[entrada.id_Junta!] = 0;
+        }
+
+        entradasByJunta[entrada.id_Junta!]!.add(entrada);
+        totalCostoByJunta[entrada.id_Junta!] =
+            (totalCostoByJunta[entrada.id_Junta!] ?? 0) +
+                (entrada.entrada_Costo ?? 0) * (entrada.entrada_Unidades ?? 0);
+      }
+
+      double totalAbono = 0;
+      for (var juntaId in entradasByJunta.keys) {
+        final totalCosto = totalCostoByJunta[juntaId] ?? 0;
+        totalAbono += totalCosto;
+      }
+
+      // Crear Excel workbook
+      final Workbook workbook = Workbook();
+      final Worksheet sheet = workbook.worksheets[0];
+
+      // Configuración de columnas y estilos
+      sheet.getRangeByName('A1').columnWidth = 20;
+      sheet.getRangeByName('B1').columnWidth = 15;
+      sheet.getRangeByName('C1').columnWidth = 15;
+      sheet.getRangeByName('D1').columnWidth = 50;
+      sheet.getRangeByName('E1').columnWidth = 25;
+      sheet.getRangeByName('F1').columnWidth = 25;
+      sheet.getRangeByName('G1').columnWidth = 25;
+
+      // Estilos
+      final Style headerStyle = workbook.styles.add('headerStyle');
+      headerStyle.backColor = '#000000';
+      headerStyle.fontColor = '#FFFFFF';
+      headerStyle.fontName = 'Arial';
+      headerStyle.fontSize = 12;
+      headerStyle.bold = true;
+      headerStyle.hAlign = HAlignType.center;
+      headerStyle.vAlign = VAlignType.center;
+
+      final Style grayBgStyle = workbook.styles.add('grayBgStyle');
+      grayBgStyle.backColor = '#D3D3D3';
+      grayBgStyle.fontName = 'Arial';
+      grayBgStyle.fontSize = 11;
+      grayBgStyle.bold = true;
+
+      // Header row
+      sheet.getRangeByName('A1:G1').merge();
+      sheet.getRangeByName('A1').setText(
+          'SISTEMA AUTOMATIZADO DE ADMINISTRACIÓN Y CONTABILIDAD GUBERNAMENTAL SAACG.NET');
+      sheet.getRangeByName('A1').cellStyle = headerStyle;
+
+      // Fecha
+      sheet.getRangeByName('A2').setText('FECHA:');
+      sheet.getRangeByName('A2').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A2').cellStyle.hAlign = HAlignType.right;
+      sheet
+          .getRangeByName('B2')
+          .setText(DateFormat('dd/MM/yyyy').format(DateTime.now()));
+      sheet.getRangeByName('B2').cellStyle.hAlign = HAlignType.right;
+
+      // Tipo de Poliza
+      sheet.getRangeByName('A3').setText('TIPO DE POLIZA:');
+      sheet.getRangeByName('A3').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A3').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B3').setText('D');
+      sheet.getRangeByName('B3').cellStyle.hAlign = HAlignType.left;
+
+      // Concepto (modificado para juntas rurales)
+      sheet.getRangeByName('A4').setText('CONCEPTO:');
+      sheet.getRangeByName('A4').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A4').cellStyle.hAlign = HAlignType.right;
+      final concepto =
+          'ENTRADAS DE JUNTAS RURALES DEL 01/${_selectedMonth!.toString().padLeft(2, '0')} AL ${lastDay.day.toString().padLeft(2, '0')}/${_selectedMonth!.toString().padLeft(2, '0')} DE ${getMonthName(_selectedMonth!).toUpperCase()} $currentYear';
+      sheet.getRangeByName('B4:D4').merge();
+      sheet.getRangeByName('B4').setText(concepto);
+
+      // SUMAS IGUALES
+      int sumasIgualesRow = 5;
+      sheet.getRangeByName('A$sumasIgualesRow').setText('SUMAS IGUALES');
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.right;
+
+      sheet.getRangeByName('B$sumasIgualesRow').setNumber(totalAbono);
+      sheet.getRangeByName('B$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      sheet.getRangeByName('C$sumasIgualesRow').setNumber(totalAbono);
+      sheet.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      // Espacio
+      sheet.getRangeByName('A6').rowHeight = 10;
+
+      // Encabezados de tabla
+      sheet.getRangeByName('A7').setText('Cuenta');
+      sheet.getRangeByName('A7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('B7').setText('Cargo');
+      sheet.getRangeByName('B7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('B7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('C7').setText('Abono');
+      sheet.getRangeByName('C7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('C7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7').setText('Concepto por Movimiento');
+      sheet.getRangeByName('D7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('D7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7:G7').merge();
+
+      // Datos - ahora agrupados por junta
+      int currentRow = 8;
+
+      for (var juntaId in entradasByJunta.keys) {
+        final junta = juntasRurales.firstWhere((j) => j.id_Junta == juntaId,
+            orElse: () => Juntas());
+        final totalCosto = totalCostoByJunta[juntaId] ?? 0;
+
+        // Usar junta_Cuenta en lugar de cuenta de producto
+        sheet
+            .getRangeByName('A$currentRow')
+            .setText(junta.junta_Cuenta?.toString() ?? '0');
+
+        sheet.getRangeByName('B$currentRow').setNumber(0);
+        sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('C$currentRow').setNumber(totalCosto);
+        sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('D$currentRow:G$currentRow').merge();
+        // Mostrar nombre de la junta en lugar de producto
+        sheet
+            .getRangeByName('D$currentRow')
+            .setText('${junta.junta_Name?.toUpperCase()}');
+
+        currentRow++;
+      }
+
+      // Guardar y descargar
+      final List<int> bytes = workbook.saveAsStream();
+      workbook.dispose();
+
+      final String fileName =
+          'Poliza_Entradas_Juntas_Rurales_${_selectedMonth}_${DateTime.now().year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
+
+      final blob = html.Blob([bytes],
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      // ignore: unused_local_variable
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', fileName)
+        ..click();
+
+      html.Url.revokeObjectUrl(url);
+
+      showOk(context, 'Archivo generado: $fileName');
+    } catch (e) {
+      showError(context, 'Error al generar el archivo: $e');
+      print('Error al generar el archivo: $e');
+    } finally {
+      setState(() => _isGeneratingEntradasRurales = false);
+    }
+  }
+
+  // Método para generar Excel de salidas de juntas rurales (todas excepto 1,6,8,14)
+  Future<void> _generateExcelSalidasRurales() async {
+    if (_selectedMonth == null) {
+      showAdvertence(context, 'Por favor seleccione un mes');
+      return;
+    }
+
+    setState(() => _isGeneratingSalidasRurales = true);
+
+    try {
+      // Obtener todas las juntas rurales (todas excepto las especiales)
+      final juntasRurales = _juntas
+          .where((j) => !_juntasEspeciales.contains(j.id_Junta))
+          .toList();
+      if (juntasRurales.isEmpty) {
+        showAdvertence(context, 'No se encontraron juntas rurales');
+        return;
+      }
+
+      // Obtener salidas para todas las juntas rurales en el mes seleccionado
+      final currentYear = DateTime.now().year;
+      final lastDay = DateTime(currentYear, _selectedMonth! + 1, 0);
+
+      final allSalidas = await _salidasController.listSalidas();
+
+      // Filtrar salidas para juntas rurales en el periodo seleccionado
+      final salidasInPeriod = allSalidas.where((s) {
+        if (s.salida_Fecha == null ||
+            s.salida_Estado != true ||
+            s.id_Junta == null) {
+          return false;
+        }
+
+        if (_juntasEspeciales.contains(s.id_Junta)) {
+          return false;
+        }
+
+        final salidaDate = parseFecha(s.salida_Fecha!);
+        return salidaDate.year == currentYear &&
+            salidaDate.month == _selectedMonth;
+      }).toList();
+
+      // Agrupar salidas por junta (en lugar de por producto)
+      final Map<int, List<Salidas>> salidasByJunta = {};
+      final Map<int, double> totalCostoByJunta = {};
+
+      for (var salida in salidasInPeriod) {
+        if (salida.id_Junta == null) continue;
+
+        if (!salidasByJunta.containsKey(salida.id_Junta)) {
+          salidasByJunta[salida.id_Junta!] = [];
+          totalCostoByJunta[salida.id_Junta!] = 0;
+        }
+
+        salidasByJunta[salida.id_Junta!]!.add(salida);
+        totalCostoByJunta[salida.id_Junta!] =
+            (totalCostoByJunta[salida.id_Junta!] ?? 0) +
+                (salida.salida_Costo ?? 0) * (salida.salida_Unidades ?? 0);
+      }
+
+      double totalCargo = 0;
+      for (var juntaId in salidasByJunta.keys) {
+        final totalCosto = totalCostoByJunta[juntaId] ?? 0;
+        totalCargo += totalCosto;
+      }
+
+      // Crear Excel workbook
+      final Workbook workbook = Workbook();
+      final Worksheet sheet = workbook.worksheets[0];
+
+      // Configuración de columnas y estilos
+      sheet.getRangeByName('A1').columnWidth = 20;
+      sheet.getRangeByName('B1').columnWidth = 15;
+      sheet.getRangeByName('C1').columnWidth = 15;
+      sheet.getRangeByName('D1').columnWidth = 50;
+      sheet.getRangeByName('E1').columnWidth = 25;
+      sheet.getRangeByName('F1').columnWidth = 25;
+      sheet.getRangeByName('G1').columnWidth = 25;
+
+      // Estilos
+      final Style headerStyle = workbook.styles.add('headerStyle');
+      headerStyle.backColor = '#000000';
+      headerStyle.fontColor = '#FFFFFF';
+      headerStyle.fontName = 'Arial';
+      headerStyle.fontSize = 12;
+      headerStyle.bold = true;
+      headerStyle.hAlign = HAlignType.center;
+      headerStyle.vAlign = VAlignType.center;
+
+      final Style grayBgStyle = workbook.styles.add('grayBgStyle');
+      grayBgStyle.backColor = '#D3D3D3';
+      grayBgStyle.fontName = 'Arial';
+      grayBgStyle.fontSize = 11;
+      grayBgStyle.bold = true;
+
+      // Header row
+      sheet.getRangeByName('A1:G1').merge();
+      sheet.getRangeByName('A1').setText(
+          'SISTEMA AUTOMATIZADO DE ADMINISTRACIÓN Y CONTABILIDAD GUBERNAMENTAL SAACG.NET');
+      sheet.getRangeByName('A1').cellStyle = headerStyle;
+
+      // Fecha
+      sheet.getRangeByName('A2').setText('FECHA:');
+      sheet.getRangeByName('A2').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A2').cellStyle.hAlign = HAlignType.right;
+      sheet
+          .getRangeByName('B2')
+          .setText(DateFormat('dd/MM/yyyy').format(DateTime.now()));
+      sheet.getRangeByName('B2').cellStyle.hAlign = HAlignType.right;
+
+      // Tipo de Poliza
+      sheet.getRangeByName('A3').setText('TIPO DE POLIZA:');
+      sheet.getRangeByName('A3').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A3').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B3').setText('D');
+      sheet.getRangeByName('B3').cellStyle.hAlign = HAlignType.left;
+
+      // Concepto (modificado para juntas rurales)
+      sheet.getRangeByName('A4').setText('CONCEPTO:');
+      sheet.getRangeByName('A4').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A4').cellStyle.hAlign = HAlignType.right;
+      final concepto =
+          'SALIDAS DE JUNTAS RURALES DEL 01/${_selectedMonth!.toString().padLeft(2, '0')} AL ${lastDay.day.toString().padLeft(2, '0')}/${_selectedMonth!.toString().padLeft(2, '0')} DE ${getMonthName(_selectedMonth!).toUpperCase()} $currentYear';
+      sheet.getRangeByName('B4:D4').merge();
+      sheet.getRangeByName('B4').setText(concepto);
+
+      // SUMAS IGUALES
+      int sumasIgualesRow = 5;
+      sheet.getRangeByName('A$sumasIgualesRow').setText('SUMAS IGUALES');
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.right;
+
+      sheet.getRangeByName('B$sumasIgualesRow').setNumber(totalCargo);
+      sheet.getRangeByName('B$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      sheet.getRangeByName('C$sumasIgualesRow').setNumber(totalCargo);
+      sheet.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      // Espacio
+      sheet.getRangeByName('A6').rowHeight = 10;
+
+      // Encabezados de tabla
+      sheet.getRangeByName('A7').setText('Cuenta');
+      sheet.getRangeByName('A7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('B7').setText('Cargo');
+      sheet.getRangeByName('B7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('B7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('C7').setText('Abono');
+      sheet.getRangeByName('C7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('C7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7').setText('Concepto por Movimiento');
+      sheet.getRangeByName('D7').cellStyle = grayBgStyle;
+      sheet.getRangeByName('D7').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D7:G7').merge();
+
+      // Datos - ahora agrupados por junta
+      int currentRow = 8;
+
+      for (var juntaId in salidasByJunta.keys) {
+        final junta = juntasRurales.firstWhere((j) => j.id_Junta == juntaId,
+            orElse: () => Juntas());
+        final totalCosto = totalCostoByJunta[juntaId] ?? 0;
+
+        // Usar junta_Cuenta en lugar de cuenta de producto
+        sheet
+            .getRangeByName('A$currentRow')
+            .setText(junta.junta_Cuenta?.toString() ?? '0');
+
+        sheet.getRangeByName('B$currentRow').setNumber(totalCosto);
+        sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('C$currentRow').setNumber(0);
+        sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+
+        sheet.getRangeByName('D$currentRow:G$currentRow').merge();
+        // Mostrar nombre de la junta en lugar de producto
+        sheet
+            .getRangeByName('D$currentRow')
+            .setText('${junta.junta_Name?.toUpperCase()}');
+
+        currentRow++;
+      }
+
+      // Guardar y descargar
+      final List<int> bytes = workbook.saveAsStream();
+      workbook.dispose();
+
+      final String fileName =
+          'Poliza_Salidas_Juntas_Rurales_${_selectedMonth}_${DateTime.now().year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
+
+      final blob = html.Blob([bytes],
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      // ignore: unused_local_variable
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', fileName)
+        ..click();
+
+      html.Url.revokeObjectUrl(url);
+
+      showOk(context, 'Archivo generado: $fileName');
+    } catch (e) {
+      showError(context, 'Error al generar el archivo: $e');
+      print('Error al generar el archivo: $e');
+    } finally {
+      setState(() => _isGeneratingSalidasRurales = false);
+    }
   }
 
   Future<void> _generateExcel() async {
@@ -627,7 +1518,7 @@ class _CcontablesGeneradorPageState extends State<CcontablesGeneradorPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Entradas
+                // Entradas individuales
                 ElevatedButton(
                   onPressed: _isGeneratingEntrada ? null : _generateExcel,
                   style: ElevatedButton.styleFrom(
@@ -645,7 +1536,7 @@ class _CcontablesGeneradorPageState extends State<CcontablesGeneradorPage> {
                 ),
                 const SizedBox(width: 20),
 
-                // Salidas
+                // Salidas individuales
                 ElevatedButton(
                   onPressed: _isGeneratingSalida ? null : _generateExcelSalidas,
                   style: ElevatedButton.styleFrom(
@@ -660,6 +1551,97 @@ class _CcontablesGeneradorPageState extends State<CcontablesGeneradorPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 30),
+            const Text(
+              'Reportes consolidados para juntas especiales (Meoqui, Jaquez, Progreso, Lomas del Consuelo)',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Entradas juntas especiales
+                ElevatedButton(
+                  onPressed: _isGeneratingEntradasEspeciales
+                      ? null
+                      : _generateExcelEntradasEspeciales,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                  ),
+                  child: _isGeneratingEntradasEspeciales
+                      ? const CircularProgressIndicator()
+                      : const Text('Entradas Juntas Especiales',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          )),
+                ),
+                const SizedBox(width: 20),
+
+                // Salidas juntas especiales
+                ElevatedButton(
+                  onPressed: _isGeneratingSalidasEspeciales
+                      ? null
+                      : _generateExcelSalidasEspeciales,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                  ),
+                  child: _isGeneratingSalidasEspeciales
+                      ? const CircularProgressIndicator()
+                      : const Text('Salidas Juntas Especiales',
+                          style: TextStyle(fontSize: 16, color: Colors.white)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              'Reportes consolidados para juntas rurales',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Entradas juntas rurales
+                ElevatedButton(
+                  onPressed: _isGeneratingEntradasRurales
+                      ? null
+                      : _generateExcelEntradasRurales,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade500,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                  ),
+                  child: _isGeneratingEntradasRurales
+                      ? const CircularProgressIndicator()
+                      : const Text('Entradas Juntas Rurales',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          )),
+                ),
+                const SizedBox(width: 20),
+                // Salidas juntas rurales
+                ElevatedButton(
+                  onPressed: _isGeneratingSalidasRurales
+                      ? null
+                      : _generateExcelSalidasRurales,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade500,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                  ),
+                  child: _isGeneratingSalidasRurales
+                      ? const CircularProgressIndicator()
+                      : const Text('Salidas Juntas Rurales',
+                          style: TextStyle(fontSize: 16, color: Colors.white)),
+                ),
+              ],
+            )
           ],
         ),
       ),
