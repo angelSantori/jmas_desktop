@@ -4,7 +4,7 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
+import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -38,8 +38,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final CallesController _callesController = CallesController();
   final UsersController _usersController = UsersController();
   final PadronController _padronController = PadronController();
-  final OrdenTrabajoController _ordenTrabajoController =
-      OrdenTrabajoController();
+  final OrdenServicioController _ordenServicioController =
+      OrdenServicioController();
   final TrabajoRealizadoController _trabajoRealizadoController =
       TrabajoRealizadoController();
 
@@ -68,10 +68,10 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Users? _selectedEmpleado;
 
   //Odenes aprobadas
-  List<OrdenTrabajo> _ordenesAprobadas = [];
+  List<OrdenServicio> _ordenesServicioAprobadas = [];
   // ignore: unused_field
   bool _cargandoOrdenes = false;
-  OrdenTrabajo? _selectedOrden;
+  OrdenServicio? _selectedOrdenServicio;
 
   List<Almacenes> _almacenes = [];
   List<Juntas> _juntas = [];
@@ -86,7 +86,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   bool _isLoading = false;
   bool _isGeneratingPDF = false;
-  //bool _mostrarOrdenTrabajo = false;
+  bool _mostrarOrdenServicio = false;
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
@@ -164,12 +164,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Future<void> _cargarOrdenesAprobadas() async {
     setState(() => _cargandoOrdenes = true);
     try {
-      final todasOrdenes = await _ordenTrabajoController.listOrdenTrabajo();
+      final todasOrdenes = await _ordenServicioController.listOrdenServicio();
       setState(() {
-        _ordenesAprobadas = todasOrdenes
+        _ordenesServicioAprobadas = todasOrdenes
             .where((orden) =>
-                orden.estadoOT == 'Aprobada - S/A' ||
-                orden.estadoOT == 'Devuelta')
+                orden.estadoOS == 'Aprobada - S/A' ||
+                orden.estadoOS == 'Devuelta')
             .toList();
         _cargandoOrdenes = false;
       });
@@ -332,16 +332,16 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         }
       }
 
-      if (success && _selectedOrden != null) {
+      if (success && _selectedOrdenServicio != null) {
         final trabajoCreado = await _crearTrabajo();
 
         if (!trabajoCreado) {
-          showAdvertence(context, 'Error al crear registro de trabajo');
+          showAdvertence(context, 'Error al crear registro de servicio');
         }
 
-        _selectedOrden!.estadoOT = "Aprobada - A";
-        final estadoOrden =
-            await _ordenTrabajoController.editOrdenTrabajo(_selectedOrden!);
+        _selectedOrdenServicio!.estadoOS = "Aprobada - A";
+        final estadoOrden = await _ordenServicioController
+            .editOrdenServicio(_selectedOrdenServicio!);
 
         if (!estadoOrden) {
           showAdvertence(context, 'Error al actualizar estado de la orden');
@@ -399,19 +399,20 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       idPadron: _selectedPadron?.idPadron,
       idCalle: _selectedCalle?.idCalle,
       idColonia: _selectedColonia?.idColonia,
-      idOrdenTrabajo: _selectedOrden?.idOrdenTrabajo,
+      idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
       //_mostrarOrdenTrabajo ? _selectedOrden?.idOrdenTrabajo : null,
     );
   }
 
   Future<bool> _crearTrabajo() async {
-    if (_selectedOrden == null || _selectedEmpleado == null) return false;
+    if (_selectedOrdenServicio == null || _selectedEmpleado == null)
+      return false;
     try {
       final trabajo = TrabajoRealizado(
         idTrabajoRealizado: 0,
         folioTR: folioTR,
         idUserTR: _selectedEmpleado?.id_User,
-        idOrdenTrabajo: _selectedOrden?.idOrdenTrabajo,
+        idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
       );
 
       return await _trabajoRealizadoController.addTrabajoRealizado(trabajo);
@@ -433,7 +434,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedPadron = null;
       _selectedEmpleado = null;
       _selectedTipoTrabajo = null;
-      _selectedOrden = null;
+      _selectedOrdenServicio = null;
 
       _referenciaController.clear();
       _idProductoController.clear();
@@ -574,88 +575,90 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Row(
-                                //   children: [
-                                //     const Text(
-                                //       '¿Agregar orden de trabajo?',
-                                //       style: TextStyle(
-                                //           fontWeight: FontWeight.bold,
-                                //           fontSize: 16),
-                                //     ),
-                                //     const SizedBox(width: 10),
-                                //     ToggleButtons(
-                                //       isSelected: [
-                                //         _mostrarOrdenTrabajo,
-                                //         !_mostrarOrdenTrabajo
-                                //       ],
-                                //       onPressed: (index) {
-                                //         setState(() {
-                                //           _mostrarOrdenTrabajo = index == 0;
-                                //           if (!_mostrarOrdenTrabajo) {
-                                //             _selectedOrden = null;
-                                //           }
-                                //         });
-                                //       },
-                                //       children: const [
-                                //         Padding(
-                                //           padding: EdgeInsets.symmetric(
-                                //               horizontal: 16),
-                                //           child: Text('Sí'),
-                                //         ),
-                                //         Padding(
-                                //           padding: EdgeInsets.symmetric(
-                                //               horizontal: 16),
-                                //           child: Text('No'),
-                                //         ),
-                                //       ],
-                                //     ),
-                                //     const SizedBox(width: 20),
-                                //     if (_mostrarOrdenTrabajo)
-                                //       Expanded(
-                                //         child: Row(
-                                //           children: [
-                                //             SizedBox(
-                                //               width: 300,
-                                //               child: CustomListaDesplegableTipo<
-                                //                   OrdenTrabajo>(
-                                //                 value: _selectedOrden,
-                                //                 labelText: 'Orden de Trabajo',
-                                //                 items: _ordenesAprobadas,
-                                //                 onChanged: (orden) {
-                                //                   setState(() {
-                                //                     _selectedOrden = orden;
-                                //                   });
-                                //                 },
-                                //                 validator: (orden) {
-                                //                   if (_mostrarOrdenTrabajo &&
-                                //                       orden == null) {
-                                //                     return 'Debe seleccionar una orden';
-                                //                   }
-                                //                   return null;
-                                //                 },
-                                //                 itemLabelBuilder: (orden) =>
-                                //                     '${orden.folioOT} - ${orden.estadoOT} - ${orden.prioridadOT}',
-                                //               ),
-                                //             ),
-                                //             Expanded(
-                                //               child: Row(
-                                //                 mainAxisAlignment:
-                                //                     MainAxisAlignment.start,
-                                //                 children: [
-                                //                   IconButton(
-                                //                     onPressed:
-                                //                         _cargarOrdenesAprobadas,
-                                //                     icon: const Icon(
-                                //                         Icons.refresh),
-                                //                   ),
-                                //                 ],
-                                //               ),
-                                //             ),
-                                //           ],
-                                //         ),
-                                //       ),
-                                //   ],
-                                // ),
+                                Row(
+                                  children: [
+                                    const Text(
+                                      '¿Agregar orden de servicio?',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ToggleButtons(
+                                      isSelected: [
+                                        _mostrarOrdenServicio,
+                                        !_mostrarOrdenServicio
+                                      ],
+                                      onPressed: (index) {
+                                        setState(() {
+                                          _mostrarOrdenServicio = index == 0;
+                                          if (!_mostrarOrdenServicio) {
+                                            _selectedOrdenServicio = null;
+                                          }
+                                        });
+                                      },
+                                      children: const [
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: Text('Sí'),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: Text('No'),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 20),
+                                    if (_mostrarOrdenServicio)
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 300,
+                                              child: CustomListaDesplegableTipo<
+                                                  OrdenServicio>(
+                                                value: _selectedOrdenServicio,
+                                                labelText: 'Orden de Servicio',
+                                                items:
+                                                    _ordenesServicioAprobadas,
+                                                onChanged: (orden) {
+                                                  setState(() {
+                                                    _selectedOrdenServicio =
+                                                        orden;
+                                                  });
+                                                },
+                                                validator: (orden) {
+                                                  if (_mostrarOrdenServicio &&
+                                                      orden == null) {
+                                                    return 'Debe seleccionar una orden de servicio';
+                                                  }
+                                                  return null;
+                                                },
+                                                itemLabelBuilder: (orden) =>
+                                                    '${orden.folioOS} - ${orden.estadoOS} - ${orden.prioridadOS}',
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  IconButton(
+                                                    onPressed:
+                                                        _cargarOrdenesAprobadas,
+                                                    icon: const Icon(
+                                                        Icons.refresh),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
                                 const SizedBox(height: 20),
 
                                 //Buscar Empleado
@@ -869,7 +872,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           selectedAlmacen: _selectedAlmacen,
                                           selectedJunta: _selectedJunta,
                                           selectedUser: _selectedEmpleado,
-                                          selectedTrabajo: _selectedTipoTrabajo,
+                                          selectedServicio:
+                                              _selectedOrdenServicio,
                                         );
 
                                         if (!datosCompletos) {
@@ -892,7 +896,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           colonia: _selectedColonia!,
                                           calle: _selectedCalle!,
                                           junta: _selectedJunta!,
-                                          ordenTrabajo: _selectedOrden,
+                                          ordenServicio: _selectedOrdenServicio,
                                           productos: _productosAgregados,
                                         );
 

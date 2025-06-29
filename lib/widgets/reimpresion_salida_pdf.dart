@@ -1,7 +1,7 @@
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
+import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
@@ -26,7 +26,7 @@ class ReimpresionSalidaPdf {
     required Padron padron,
     required Colonias colonia,
     required Calles calle,
-    required OrdenTrabajo ordenTrabajo,
+    required OrdenServicio ordenServicio,
     required List<Map<String, dynamic>> productos,
     required bool
         mostrarEstado, // Nuevo parámetro para controlar si se muestra el estado
@@ -173,7 +173,8 @@ class ReimpresionSalidaPdf {
                             pw.SizedBox(height: 3),
                             pw.Text('TT: $tipoTrabajo',
                                 style: const pw.TextStyle(fontSize: 9)),
-                            pw.Text('OT: ${ordenTrabajo.folioOT} - ${ordenTrabajo.tipoProblemaOT}',
+                            pw.Text(
+                                'OT: ${ordenServicio.folioOS}',
                                 style: const pw.TextStyle(fontSize: 9)),
                           ],
                         ),

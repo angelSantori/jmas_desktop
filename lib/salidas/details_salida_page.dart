@@ -5,7 +5,7 @@ import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/cancelado_salida_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
+import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -27,7 +27,7 @@ class DetailsSalidaPage extends StatefulWidget {
   final Colonias colonia;
   final Calles calle;
   final Users userAsignado;
-  final OrdenTrabajo ordenTrabajo;
+  final OrdenServicio ordenServicio;
   final String user;
 
   const DetailsSalidaPage({
@@ -41,7 +41,7 @@ class DetailsSalidaPage extends StatefulWidget {
     required this.userRole,
     required this.colonia,
     required this.calle,
-    required this.ordenTrabajo,
+    required this.ordenServicio,
   });
 
   @override
@@ -144,7 +144,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         padron: widget.padron,
         colonia: widget.colonia,
         calle: widget.calle,
-        ordenTrabajo: widget.ordenTrabajo,
+        ordenServicio: widget.ordenServicio,
         productos: productosParaPDF,
         mostrarEstado: true, // Mostrar columna de estado
       );
@@ -575,7 +575,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                     Text(
                                         'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
                                     Text(
-                                        'Orden Trabajo: ${widget.ordenTrabajo.folioOT} - ${widget.ordenTrabajo.tipoProblemaOT}'),
+                                        'Orden Trabajo: ${widget.ordenServicio.folioOS}'),
                                   ],
                                 ),
                               ),

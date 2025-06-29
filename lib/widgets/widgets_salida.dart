@@ -10,7 +10,7 @@ import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
+import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
@@ -703,7 +703,7 @@ Future<void> generarPdfSalida({
   required Colonias colonia,
   required Calles calle,
   required Juntas junta,
-  OrdenTrabajo? ordenTrabajo,
+  OrdenServicio? ordenServicio,
   required List<Map<String, dynamic>> productos,
 }) async {
   try {
@@ -722,7 +722,7 @@ Future<void> generarPdfSalida({
       colonia: colonia,
       calle: calle,
       junta: junta,
-      ordenTrabajo: ordenTrabajo,
+      ordenServicio: ordenServicio,
       productos: productos,
     );
 
@@ -775,7 +775,7 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
   required Colonias colonia,
   required Calles calle,
   required Juntas junta,
-  OrdenTrabajo? ordenTrabajo,
+  OrdenServicio? ordenServicio,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -903,10 +903,10 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
                           pw.SizedBox(height: 3),
                           pw.Text('TT: $tipoTrabajo',
                               style: const pw.TextStyle(fontSize: 9)),
-                          if (ordenTrabajo != null) ...[
+                          if (ordenServicio != null) ...[
                             pw.SizedBox(height: 3),
                             pw.Text(
-                                'OT: ${ordenTrabajo.folioOT} - ${ordenTrabajo.tipoProblemaOT}',
+                                'OT: ${ordenServicio.folioOS} - ${ordenServicio.idTipoProblema}',
                                 style: const pw.TextStyle(fontSize: 9)),
                           ]
                         ],
