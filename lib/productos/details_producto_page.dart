@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/widgets/generales.dart';
@@ -9,16 +8,16 @@ void showProductDetailsDialog(
   BuildContext context,
   Productos producto,
   Map<int, Proveedores> proveedoresCache,
-  List<Capturainvini> capturaList,
+  List<Productos> allProductos,
 ) {
   //Buscar el invIniconteo del producto
   // ignore: unused_local_variable
-  double? esInvIniConteo = capturaList
+  double? totalExistencias = allProductos
       .firstWhere(
         (captura) => captura.id_Producto == producto.id_Producto,
-        orElse: () => Capturainvini(invIniConteo: null),
+        orElse: () => Productos(prodExistencia: null),
       )
-      .invIniConteo;
+      .prodExistencia;
 
   showDialog(
     context: context,
