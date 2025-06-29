@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -73,17 +74,24 @@ class _AddProductoPageState extends State<AddProductoPage> {
 
   final ImagePicker _imagePicker = ImagePicker();
 
+  //  Almacenes
+  final AlmacenesController _almacenesController = AlmacenesController();
+  List<Almacenes> _allAlmacenes = [];
+  Almacenes? _selectedAlmacen;
+
   @override
   void initState() {
     super.initState();
-    _loadProveedores();
+    _loadData();
   }
 
-  Future<void> _loadProveedores() async {
+  Future<void> _loadData() async {
     List<Proveedores> proveedores =
         await _proveedoresController.listProveedores();
+    List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
     setState(() {
       _proveedores = proveedores;
+      _allAlmacenes = almacenes;
     });
   }
 
@@ -129,6 +137,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
           prodPrecio: double.parse(_precioController.text),
           prodImgB64: _encodedImage,
           idProveedor: _selectedProveedor?.id_Proveedor ?? 0,
+          id_Almacen: _selectedAlmacen?.id_Almacen,
         );
         final success = await _productosController.addProducto(producto);
 
@@ -401,6 +410,29 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             },
                             itemLabelBuilder: (prov) =>
                                 prov.proveedor_Name ?? 'Sin nombre',
+                          ),
+                        ),
+                        const SizedBox(width: 30),
+
+                        //  Alamcen
+                        Expanded(
+                          child: CustomListaDesplegableTipo<Almacenes>(
+                            value: _selectedAlmacen,
+                            labelText: 'Almacen',
+                            items: _allAlmacenes,
+                            onChanged: (almacen) {
+                              setState(() {
+                                _selectedAlmacen = almacen;
+                              });
+                            },
+                            validator: (almacen) {
+                              if (almacen == null) {
+                                return 'Debe seleccionar un alamcen';
+                              }
+                              return null;
+                            },
+                            itemLabelBuilder: (almacen) =>
+                                '${almacen.almacen_Nombre ?? 'Sin nombre'} - (${almacen.id_Almacen})',
                           ),
                         ),
                       ],

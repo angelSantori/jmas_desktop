@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
@@ -30,6 +31,11 @@ class _EditProductoPageState extends State<EditProductoPage> {
   final ProveedoresController _proveedoresController = ProveedoresController();
   List<Proveedores> _proveedores = [];
   Proveedores? _selectedProveedor;
+
+  //  Almacenes
+  final AlmacenesController _almacenesController = AlmacenesController();
+  List<Almacenes> _allAlmacenes = [];
+  Almacenes? _selectedAlamacen;
 
   String? _selectedUnMedSalida;
   String? _selectedUnMedEntrada;
@@ -109,6 +115,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
     }
 
     _loadProveedores();
+    _loadAlmacen();
     _loadInvIniConteo();
 
     if (widget.producto.prodImgB64 != null &&
@@ -148,6 +155,15 @@ class _EditProductoPageState extends State<EditProductoPage> {
       _selectedProveedor = proveedores.firstWhere(
         (prov) => prov.id_Proveedor == widget.producto.idProveedor,
       );
+    });
+  }
+
+  Future<void> _loadAlmacen() async {
+    List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
+    setState(() {
+      _allAlmacenes = almacenes;
+      _selectedAlamacen = almacenes.firstWhere(
+          (almacen) => almacen.id_Almacen == widget.producto.id_Almacen);
     });
   }
 
@@ -192,6 +208,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
         prodPrecio: double.parse(_precioController.text),
         prodImgB64: _encodedImage,
         idProveedor: _selectedProveedor?.id_Proveedor ?? 0,
+        id_Almacen: _selectedAlamacen?.id_Almacen,
       );
 
       final result = await _productosController.editProducto(updateProducto);
@@ -426,6 +443,29 @@ class _EditProductoPageState extends State<EditProductoPage> {
                           },
                           itemLabelBuilder: (prov) =>
                               prov.proveedor_Name ?? 'Sin nombre',
+                        ),
+                      ),
+                      const SizedBox(width: 30),
+
+                      //  Almacenes
+                      Expanded(
+                        child: CustomListaDesplegableTipo<Almacenes>(
+                          value: _selectedAlamacen,
+                          labelText: 'Almacen',
+                          items: _allAlmacenes,
+                          onChanged: (almacen) {
+                            setState(() {
+                              _selectedAlamacen = almacen;
+                            });
+                          },
+                          validator: (almacen) {
+                            if (almacen == null) {
+                              return 'Almacen obligatorio';
+                            }
+                            return null;
+                          },
+                          itemLabelBuilder: (almacen) =>
+                              '${almacen.almacen_Nombre ?? 'Sin nombre'} - (${almacen.id_Almacen})',
                         ),
                       ),
                     ],

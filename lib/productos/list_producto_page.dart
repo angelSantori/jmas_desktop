@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/productos/details_producto_page.dart';
@@ -27,14 +26,11 @@ class ListProductoPage extends StatefulWidget {
 class _ListProductoPageState extends State<ListProductoPage> {
   final ProductosController _productosController = ProductosController();
   final ProveedoresController _proveedoresController = ProveedoresController();
-  final CapturainviniController _capturainviniController =
-      CapturainviniController();
   final TextEditingController _searchController = TextEditingController();
   Map<int, Proveedores> proveedoresCache = {};
 
   List<Productos> _allProductos = [];
   List<Productos> _filteredProductos = [];
-  List<Capturainvini> capturaList = [];
 
   bool _isLoading = true;
   bool _isLoadingQRRange = false;
@@ -47,7 +43,6 @@ class _ListProductoPageState extends State<ListProductoPage> {
     _loadProductos();
     _searchController.addListener(_filterProductos);
     _loadProveedores();
-    _loadCaoturaList();
   }
 
   @override
@@ -259,15 +254,6 @@ class _ListProductoPageState extends State<ListProductoPage> {
     }
   }
 
-  Future<void> _loadCaoturaList() async {
-    try {
-      capturaList = await _capturainviniController.listCapturaI();
-      setState(() {});
-    } catch (e) {
-      print('Error al cargar capturaList: $e');
-    }
-  }
-
   Future<void> _loadProveedores() async {
     try {
       final proveedores = await _proveedoresController.listProveedores();
@@ -305,22 +291,21 @@ class _ListProductoPageState extends State<ListProductoPage> {
         final descripcion = producto.prodDescripcion?.toLowerCase() ?? '';
         final clave = producto.id_Producto.toString();
 
-        // Buscar el invIniConteo del producto en capturaList
-        double? invIniConteo = capturaList
+        double? totalExistencias = _allProductos
             .firstWhere(
               (captura) => captura.id_Producto == producto.id_Producto,
-              orElse: () => Capturainvini(invIniConteo: null),
+              orElse: () => Productos(prodExistencia: null),
             )
-            .invIniConteo;
+            .prodExistencia;
 
         bool matchesSearch =
             descripcion.contains(query) || clave.contains(query);
 
         bool matchesExcess = _showExcess &&
-            (invIniConteo != null && invIniConteo > producto.prodMax!);
+            (totalExistencias != null && totalExistencias > producto.prodMax!);
 
         bool matchesDeficit = _showDeficit &&
-            (invIniConteo != null && invIniConteo < producto.prodMin!);
+            (totalExistencias != null && totalExistencias < producto.prodMin!);
 
         return matchesSearch &&
             (matchesExcess ||
@@ -636,15 +621,14 @@ class _ListProductoPageState extends State<ListProductoPage> {
                           itemBuilder: (context, index) {
                             final producto = _filteredProductos[index];
 
-                            double? invIniConteo = capturaList
+                            double? invIniConteo = _allProductos
                                 .firstWhere(
                                   (captura) =>
                                       captura.id_Producto ==
                                       producto.id_Producto,
-                                  orElse: () =>
-                                      Capturainvini(invIniConteo: null),
+                                  orElse: () => Productos(prodExistencia: null),
                                 )
-                                .invIniConteo;
+                                .prodExistencia;
 
                             Color cardColor =
                                 const Color.fromARGB(255, 201, 230, 242);
@@ -663,7 +647,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                     context,
                                     producto,
                                     proveedoresCache,
-                                    capturaList,
+                                    _allProductos,
                                   );
                                 },
                                 child: Padding(
