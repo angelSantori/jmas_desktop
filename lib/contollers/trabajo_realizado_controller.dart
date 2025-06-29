@@ -65,8 +65,9 @@ class TrabajoRealizado {
   String? comentarioTR;
   String? fotoAntes64TR;
   String? fotoDespues64TR;
+  int? encuenstaTR;
   int? idUserTR;
-  int? idOrdenTrabajo;
+  int? idOrdenServicio;
   int? idSalida;
   TrabajoRealizado({
     this.idTrabajoRealizado,
@@ -76,8 +77,9 @@ class TrabajoRealizado {
     this.comentarioTR,
     this.fotoAntes64TR,
     this.fotoDespues64TR,
+    this.encuenstaTR,
     this.idUserTR,
-    this.idOrdenTrabajo,
+    this.idOrdenServicio,
     this.idSalida,
   });
 
@@ -89,8 +91,9 @@ class TrabajoRealizado {
     String? comentarioTR,
     String? fotoAntes64TR,
     String? fotoDespues64TR,
+    int? encuenstaTR,
     int? idUserTR,
-    int? idOrdenTrabajo,
+    int? idOrdenServicio,
     int? idSalida,
   }) {
     return TrabajoRealizado(
@@ -101,8 +104,9 @@ class TrabajoRealizado {
       comentarioTR: comentarioTR ?? this.comentarioTR,
       fotoAntes64TR: fotoAntes64TR ?? this.fotoAntes64TR,
       fotoDespues64TR: fotoDespues64TR ?? this.fotoDespues64TR,
+      encuenstaTR: encuenstaTR ?? this.encuenstaTR,
       idUserTR: idUserTR ?? this.idUserTR,
-      idOrdenTrabajo: idOrdenTrabajo ?? this.idOrdenTrabajo,
+      idOrdenServicio: idOrdenServicio ?? this.idOrdenServicio,
       idSalida: idSalida ?? this.idSalida,
     );
   }
@@ -116,8 +120,9 @@ class TrabajoRealizado {
       'comentarioTR': comentarioTR,
       'fotoAntes64TR': fotoAntes64TR,
       'fotoDespues64TR': fotoDespues64TR,
+      'encuenstaTR': encuenstaTR,
       'idUserTR': idUserTR,
-      'idOrdenTrabajo': idOrdenTrabajo,
+      'idOrdenServicio': idOrdenServicio,
       'idSalida': idSalida,
     };
   }
@@ -138,9 +143,11 @@ class TrabajoRealizado {
       fotoDespues64TR: map['fotoDespues64TR'] != null
           ? map['fotoDespues64TR'] as String
           : null,
+      encuenstaTR:
+          map['encuenstaTR'] != null ? map['encuenstaTR'] as int : null,
       idUserTR: map['idUserTR'] != null ? map['idUserTR'] as int : null,
-      idOrdenTrabajo:
-          map['idOrdenTrabajo'] != null ? map['idOrdenTrabajo'] as int : null,
+      idOrdenServicio:
+          map['idOrdenServicio'] != null ? map['idOrdenServicio'] as int : null,
       idSalida: map['idSalida'] != null ? map['idSalida'] as int : null,
     );
   }
@@ -152,7 +159,7 @@ class TrabajoRealizado {
 
   @override
   String toString() {
-    return 'TrabajoRealizado(idTrabajoRealizado: $idTrabajoRealizado, folioTR: $folioTR, fechaTR: $fechaTR, ubicacionTR: $ubicacionTR, comentarioTR: $comentarioTR, fotoAntes64TR: $fotoAntes64TR, fotoDespues64TR: $fotoDespues64TR, idUserTR: $idUserTR, idOrdenTrabajo: $idOrdenTrabajo, idSalida: $idSalida)';
+    return 'TrabajoRealizado(idTrabajoRealizado: $idTrabajoRealizado, folioTR: $folioTR, fechaTR: $fechaTR, ubicacionTR: $ubicacionTR, comentarioTR: $comentarioTR, fotoAntes64TR: $fotoAntes64TR, fotoDespues64TR: $fotoDespues64TR, encuenstaTR: $encuenstaTR, idUserTR: $idUserTR, idOrdenServicio: $idOrdenServicio, idSalida: $idSalida)';
   }
 
   @override
@@ -166,8 +173,9 @@ class TrabajoRealizado {
         other.comentarioTR == comentarioTR &&
         other.fotoAntes64TR == fotoAntes64TR &&
         other.fotoDespues64TR == fotoDespues64TR &&
+        other.encuenstaTR == encuenstaTR &&
         other.idUserTR == idUserTR &&
-        other.idOrdenTrabajo == idOrdenTrabajo &&
+        other.idOrdenServicio == idOrdenServicio &&
         other.idSalida == idSalida;
   }
 
@@ -180,8 +188,9 @@ class TrabajoRealizado {
         comentarioTR.hashCode ^
         fotoAntes64TR.hashCode ^
         fotoDespues64TR.hashCode ^
+        encuenstaTR.hashCode ^
         idUserTR.hashCode ^
-        idOrdenTrabajo.hashCode ^
+        idOrdenServicio.hashCode ^
         idSalida.hashCode;
   }
 }

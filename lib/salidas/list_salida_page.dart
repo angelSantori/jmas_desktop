@@ -4,7 +4,7 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/contollers/orden_trabajo_controller.dart';
+import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -31,8 +31,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   final PadronController _padronController = PadronController();
   final ColoniasController _coloniasController = ColoniasController();
   final CallesController _callesController = CallesController();
-  final OrdenTrabajoController _ordenTrabajoController =
-      OrdenTrabajoController();
+  final OrdenServicioController _ordenServicioController =
+      OrdenServicioController();
 
   final TextEditingController _searchController = TextEditingController();
   List<Salidas> _allSalidas = [];
@@ -53,7 +53,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   List<Juntas> _juntas = [];
   List<Almacenes> _almacenes = [];
   List<Padron> _padrones = [];
-  List<OrdenTrabajo> _ordenes = [];
+  List<OrdenServicio> _ordenesServicios = [];
   List<Colonias> _colonias = [];
   List<Calles> _calles = [];
   List<Users> _userAsignado = [];
@@ -96,7 +96,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final juntas = await _juntasController.listJuntas();
       final almacen = await _almacenesController.listAlmacenes();
       final padrones = await _padronController.listPadron();
-      final ordenes = await _ordenTrabajoController.listOrdenTrabajo();
+      final ordenesServicios =
+          await _ordenServicioController.listOrdenServicio();
       final colonias = await _coloniasController.listColonias();
       final calles = await _callesController.listCalles();
       final userAsignado = await _usersController.listUsers();
@@ -114,7 +115,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _juntas = juntas;
         _almacenes = almacen;
         _padrones = padrones;
-        _ordenes = ordenes;
+        _ordenesServicios = ordenesServicios;
         _colonias = colonias;
         _calles = calles;
         _userAsignado = userAsignado;
@@ -517,10 +518,9 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 orElse: () => Padron(idPadron: 0, padronNombre: 'Desconocido'),
               );
 
-              final ordenTrabajo = _ordenes.firstWhere(
-                (orden) => orden.idOrdenTrabajo == salida.idOrdenTrabajo,
-                orElse: () =>
-                    OrdenTrabajo(folioOT: 'S/F', tipoProblemaOT: 'S/P'),
+              final ordenServicio = _ordenesServicios.firstWhere(
+                (ordenS) => ordenS.idOrdenServicio == salida.idOrdenServicio,
+                orElse: () => OrdenServicio(folioOS: 'S/F'),
               );
 
               final colonia = _colonias.firstWhere(
@@ -551,7 +551,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     colonia: colonia,
                     user: user!.user_Name!,
                     userAsignado: userAsig,
-                    ordenTrabajo: ordenTrabajo,
+                    ordenServicio: ordenServicio,
                     userRole: widget.userRole!,
                   ),
                 ),
