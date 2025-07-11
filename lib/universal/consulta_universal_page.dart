@@ -153,6 +153,8 @@ class _ConsultaUniversalPageState extends State<ConsultaUniversalPage> {
       final capturas = await _capturaController.listCiiXProducto(idProducto);
 
       // Filtrar capturas del mes y año seleccionado
+      int prevMonth = _selectedMonth! - 1;
+
       final capturasFiltradas = capturas.where((c) {
         if (c.invIniFecha == null) return false;
 
@@ -164,7 +166,7 @@ class _ConsultaUniversalPageState extends State<ConsultaUniversalPage> {
         final month = parts[1];
         final year = parts[2];
 
-        return int.parse(month) == _selectedMonth &&
+        return int.parse(month) == prevMonth &&
             int.parse(year) ==
                 _selectedYear! % 100; // Comparar solo los últimos 2 dígitos
       }).toList();
