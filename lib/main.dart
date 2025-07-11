@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:jmas_desktop/general/home_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'ES'), // Español como idioma principal
+        Locale('en', 'US'), // Inglés como respaldo
+      ],
       debugShowCheckedModeBanner: false,
       title: 'App Almacén JMAS',
       theme: ThemeData(
