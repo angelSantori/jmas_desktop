@@ -234,8 +234,6 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = userRole == "Admin";
-
     return Scaffold(
       body: Row(
         children: [
@@ -766,39 +764,38 @@ class _HomePageState extends State<HomePage>
                           ),
 
                           //REportes
-                          if (isAdmin)
-                            CustomExpansionTile(
-                              title: 'Reportes',
-                              icon: const Icon(
-                                Icons.paste_rounded,
-                              ),
-                              children: [
-                                CustomListTile(
-                                  title: 'CContable',
-                                  icon: const Icon(
-                                    Icons.list,
-                                    color: Colors.white,
-                                  ),
-                                  onTap: () => _navigateTo('listCC'),
-                                ),
-                                CustomListTile(
-                                  title: 'Generador',
-                                  icon: const Icon(
-                                    Icons.add_chart,
-                                    color: Colors.white,
-                                  ),
-                                  onTap: () => _navigateTo('generadorCC'),
-                                ),
-                                CustomListTile(
-                                  title: 'PDF',
-                                  icon: const Icon(
-                                    Icons.picture_as_pdf,
-                                    color: Colors.white,
-                                  ),
-                                  onTap: () => _navigateTo('listPDF'),
-                                )
-                              ],
+                          CustomExpansionTile(
+                            title: 'Reportes',
+                            icon: const Icon(
+                              Icons.paste_rounded,
                             ),
+                            children: [
+                              CustomListTile(
+                                title: 'CContable',
+                                icon: const Icon(
+                                  Icons.list,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listCC'),
+                              ),
+                              CustomListTile(
+                                title: 'Generador',
+                                icon: const Icon(
+                                  Icons.add_chart,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('generadorCC'),
+                              ),
+                              CustomListTile(
+                                title: 'PDF',
+                                icon: const Icon(
+                                  Icons.picture_as_pdf,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listPDF'),
+                              )
+                            ],
+                          ),
 
                           PermissionWidget(
                             permission: 'manage_users',
