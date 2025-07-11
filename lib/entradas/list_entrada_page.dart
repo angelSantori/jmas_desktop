@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
-//import 'package:jmas_desktop/contollers/cancelado_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-//import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/entradas/details_entrada_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
-import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
-//import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListEntradaPage extends StatefulWidget {
   final String? userRole;
@@ -24,7 +20,6 @@ class ListEntradaPage extends StatefulWidget {
 class _ListEntradaPageState extends State<ListEntradaPage> {
   final AuthService _authService = AuthService();
   final EntradasController _entradasController = EntradasController();
-  //final ProductosController _productosController = ProductosController();
   final UsersController _usersController = UsersController();
   final AlmacenesController _almacenesController = AlmacenesController();
   final ProveedoresController _proveedoresController = ProveedoresController();
@@ -158,11 +153,41 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   Future<void> _selectDateRange(BuildContext context) async {
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       initialDateRange: _startDate != null && _endDate != null
           ? DateTimeRange(start: _startDate!, end: _endDate!)
           : null,
+      builder: (context, child) {
+        return Localizations.override(
+          context: context,
+          locale: const Locale('es', 'ES'), // Fuerza el formato dd/mm/yyyy
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: Theme.of(context).textTheme.copyWith(
+                    titleLarge: const TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+            ),
+            child: child!,
+          ),
+        );
+      },
+      helpText: 'Seleccionar rango', // Personaliza el texto principal
+      cancelText: 'Cancelar', // Personaliza el texto del botón Cancelar
+      confirmText: 'Confirmar', // Personaliza el texto del botón Confirmar
+      saveText: 'Guardar', // Personaliza el texto del botón Guardar
+      fieldStartLabelText:
+          'Fecha inicial', // Personaliza la etiqueta de fecha inicial
+      fieldEndLabelText:
+          'Fecha final', // Personaliza la etiqueta de fecha final
+      errorFormatText:
+          'Formato inválido (dd/mm/yyyy)', // Mensaje de error para formato
+      errorInvalidText:
+          'Rango inválido', // Mensaje de error para rango inválido
+      errorInvalidRangeText:
+          'Rango no válido', // Mensaje de error para rango no válido
     );
 
     if (picked != null) {
