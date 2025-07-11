@@ -206,11 +206,41 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   Future<void> _selectDateRange(BuildContext context) async {
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       initialDateRange: _startDate != null && _endDate != null
           ? DateTimeRange(start: _startDate!, end: _endDate!)
           : null,
+      builder: (context, child) {
+        return Localizations.override(
+          context: context,
+          locale: const Locale('es', 'ES'), // Fuerza el formato dd/mm/yyyy
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              textTheme: Theme.of(context).textTheme.copyWith(
+                    titleLarge: const TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+            ),
+            child: child!,
+          ),
+        );
+      },
+      helpText: 'Seleccionar rango', // Personaliza el texto principal
+      cancelText: 'Cancelar', // Personaliza el texto del botón Cancelar
+      confirmText: 'Confirmar', // Personaliza el texto del botón Confirmar
+      saveText: 'Guardar', // Personaliza el texto del botón Guardar
+      fieldStartLabelText:
+          'Fecha inicial', // Personaliza la etiqueta de fecha inicial
+      fieldEndLabelText:
+          'Fecha final', // Personaliza la etiqueta de fecha final
+      errorFormatText:
+          'Formato inválido (dd/mm/yyyy)', // Mensaje de error para formato
+      errorInvalidText:
+          'Rango inválido', // Mensaje de error para rango inválido
+      errorInvalidRangeText:
+          'Rango no válido', // Mensaje de error para rango no válido
     );
     if (picked != null) {
       setState(() {
