@@ -10,8 +10,10 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/salidas/details_salida_page.dart';
+import 'package:jmas_desktop/salidas/excel/excel_salidas.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListSalidaPage extends StatefulWidget {
   final String? userRole;
@@ -64,6 +66,9 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   String? _selectedAlmacen;
 
   bool _isLoading = true;
+
+  DateTime? _selectedMonth;
+  bool _isGeneratingExcel = false;
 
   @override
   void initState() {
@@ -279,6 +284,150 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     });
   }
 
+  Future<void> _selectMonth(BuildContext context) async {
+    DateTime? tempSelectedMonth;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Seleccionar Mes'),
+              content: SizedBox(
+                width: 300,
+                height: 350,
+                child: Column(
+                  children: [
+                    // Selector de año
+                    DropdownButton<int>(
+                      value: tempSelectedMonth?.year ?? DateTime.now().year,
+                      items: List.generate(
+                        5,
+                        (index) => DateTime.now().year - 2 + index,
+                      ).map((year) {
+                        return DropdownMenuItem<int>(
+                          value: year,
+                          child: Text(year.toString()),
+                        );
+                      }).toList(),
+                      onChanged: (year) {
+                        if (year != null) {
+                          setState(() {
+                            tempSelectedMonth = DateTime(
+                              year,
+                              tempSelectedMonth?.month ?? DateTime.now().month,
+                              1,
+                            );
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    // Selector de mes
+                    Expanded(
+                      child: GridView.count(
+                        crossAxisCount: 4,
+                        children: List.generate(12, (index) {
+                          final month = index + 1;
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                tempSelectedMonth = DateTime(
+                                  tempSelectedMonth?.year ??
+                                      DateTime.now().year,
+                                  month,
+                                  1,
+                                );
+                              });
+                            },
+                            child: Card(
+                              color: tempSelectedMonth?.month == month
+                                  ? Colors.blue[100]
+                                  : null,
+                              child: Center(
+                                child: Text(
+                                  DateFormat('MMM', 'es_ES')
+                                      .format(DateTime(2020, month)),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancelar'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    if (tempSelectedMonth != null) {
+                      setState(() {
+                        _selectedMonth = DateTime(
+                          tempSelectedMonth!.year,
+                          tempSelectedMonth!.month,
+                          1, // Siempre día 1
+                        );
+                      });
+                      Navigator.pop(context);
+                      _filterByMonth();
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _filterByMonth() {
+    if (_selectedMonth == null) return;
+
+    setState(() {
+      _filteredSalidas = _allSalidas.where(
+        (salidas) {
+          if (salidas.salida_Fecha == null) return false;
+
+          try {
+            final fecha =
+                DateFormat('dd/MM/yyyy HH:mm:ss').parse(salidas.salida_Fecha!);
+            return fecha.month == _selectedMonth!.month &&
+                fecha.year == _selectedMonth!.year;
+          } catch (e) {
+            return false;
+          }
+        },
+      ).toList();
+    });
+  }
+
+  Future<void> _generateExcel() async {
+    if (_selectedMonth == null || _filteredSalidas.isEmpty) {
+      showAdvertence(context, 'No hay datos para exportar');
+      return;
+    }
+    setState(() => _isGeneratingExcel = true);
+    try {
+      await ExcelSalidasMes.generateExcelSalidasMes(
+        selectedMonth: _selectedMonth,
+        filteredSalidas: _filteredSalidas,
+        context: context,
+      );
+    } catch (e) {
+      print('_generateExcel | ListSalidaPage: $e');
+    } finally {
+      setState(() => _isGeneratingExcel = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -336,16 +485,101 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                           ),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _startDate = null;
-                            _endDate = null;
-                            _filterSalidas();
-                          });
-                        },
-                      ),
+                      if (_startDate != null || _endDate != null) ...[
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _startDate = null;
+                              _endDate = null;
+                              _filterSalidas();
+                            });
+                          },
+                        ),
+                      ],
+                      const SizedBox(width: 10),
+
+                      //  Excel
+                      Expanded(
+                          child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.shade900,
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            )
+                          ],
+                        ),
+                        child: ElevatedButton.icon(
+                          onPressed: () => _selectMonth(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 27, 94, 32),
+                          ),
+                          icon: const Icon(
+                            Icons.calendar_month,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            _selectedMonth != null
+                                ? 'Mes seleccionado: ${DateFormat('MMMM yyyy', 'es_ES').format(_selectedMonth!)}'
+                                : 'Excel Salidas por Mes',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      )),
+                      if (_selectedMonth != null) ...[
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _selectedMonth = null;
+                              _filteredSalidas = List.from(_allSalidas);
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.green.shade700,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed:
+                                _isGeneratingExcel ? null : _generateExcel,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 200, 242, 201),
+                            ),
+                            icon: _isGeneratingExcel
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : const Icon(Icons.download,
+                                    color: Colors.black),
+                            label: const Text(
+                              'Exportar a Excel',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ]
                     ],
                   ),
                 ),
