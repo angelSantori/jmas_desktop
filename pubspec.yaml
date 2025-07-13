@@ -28,6 +28,7 @@ dependencies:
   open_file: ^3.5.10
   syncfusion_flutter_xlsio: ^29.2.11
   flutter_localization: ^0.3.3
+  syncfusion_flutter_datepicker: ^29.2.11
 
 dev_dependencies:
   flutter_test:
