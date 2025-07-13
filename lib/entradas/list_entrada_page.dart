@@ -6,8 +6,10 @@ import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/entradas/details_entrada_page.dart';
+import 'package:jmas_desktop/entradas/excel/excel_entradas.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListEntradaPage extends StatefulWidget {
   final String? userRole;
@@ -48,9 +50,12 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   String? _selectedProveedor;
 
   bool _isLoading = true;
-  bool _isLoadingCancel = false;
+  final bool _isLoadingCancel = false;
 
   String? idUserDelete;
+
+  DateTime? _selectedMonth;
+  bool _isGeneratingExcel = false;
 
   @override
   void initState() {
@@ -150,6 +155,150 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     });
   }
 
+  Future<void> _selectMonth(BuildContext context) async {
+    DateTime? tempSelectedMonth;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Seleccionar Mes'),
+              content: SizedBox(
+                width: 300,
+                height: 350,
+                child: Column(
+                  children: [
+                    // Selector de año
+                    DropdownButton<int>(
+                      value: tempSelectedMonth?.year ?? DateTime.now().year,
+                      items: List.generate(
+                        5,
+                        (index) => DateTime.now().year - 2 + index,
+                      ).map((year) {
+                        return DropdownMenuItem<int>(
+                          value: year,
+                          child: Text(year.toString()),
+                        );
+                      }).toList(),
+                      onChanged: (year) {
+                        if (year != null) {
+                          setState(() {
+                            tempSelectedMonth = DateTime(
+                              year,
+                              tempSelectedMonth?.month ?? DateTime.now().month,
+                              1,
+                            );
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    // Selector de mes
+                    Expanded(
+                      child: GridView.count(
+                        crossAxisCount: 4,
+                        children: List.generate(12, (index) {
+                          final month = index + 1;
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                tempSelectedMonth = DateTime(
+                                  tempSelectedMonth?.year ??
+                                      DateTime.now().year,
+                                  month,
+                                  1,
+                                );
+                              });
+                            },
+                            child: Card(
+                              color: tempSelectedMonth?.month == month
+                                  ? Colors.blue[100]
+                                  : null,
+                              child: Center(
+                                child: Text(
+                                  DateFormat('MMM', 'es_ES')
+                                      .format(DateTime(2020, month)),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancelar'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    if (tempSelectedMonth != null) {
+                      setState(() {
+                        _selectedMonth = DateTime(
+                          tempSelectedMonth!.year,
+                          tempSelectedMonth!.month,
+                          1, // Siempre día 1
+                        );
+                      });
+                      Navigator.pop(context);
+                      _filterByMonth();
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _filterByMonth() {
+    if (_selectedMonth == null) return;
+
+    setState(() {
+      _filteredEntradas = _allEntradas.where(
+        (entradas) {
+          if (entradas.entrada_Fecha == null) return false;
+
+          try {
+            final fecha = DateFormat('dd/MM/yyyy HH:mm:ss')
+                .parse(entradas.entrada_Fecha!);
+            return fecha.month == _selectedMonth!.month &&
+                fecha.year == _selectedMonth!.year;
+          } catch (e) {
+            return false;
+          }
+        },
+      ).toList();
+    });
+  }
+
+  Future<void> _generateExcel() async {
+    if (_selectedMonth == null || _filteredEntradas.isEmpty) {
+      showAdvertence(context, 'No hay datos para exportar');
+      return;
+    }
+    setState(() => _isGeneratingExcel = true);
+    try {
+      await ExcelEntradasMes.generateExcelEntradasMes(
+        selectedMonth: _selectedMonth,
+        filteredEntradas: _filteredEntradas,
+        context: context,
+      );
+    } catch (e) {
+      print('_generateExcel | ListEntradaPage: $e');
+    } finally {
+      setState(() => _isGeneratingExcel = false);
+    }
+  }
+
   Future<void> _selectDateRange(BuildContext context) async {
     final picked = await showDateRangePicker(
       context: context,
@@ -243,7 +392,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                           prefixIcon: Icons.search,
                         ),
                       ),
-                      const SizedBox(width: 30),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
@@ -280,23 +429,25 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                           ),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.clear,
-                          color: Colors.black,
+                      if (_startDate != null || _endDate != null) ...[
+                        IconButton(
+                          icon: const Icon(
+                            Icons.clear,
+                            color: Colors.black,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _startDate = null;
+                              _endDate = null;
+                              _filterEntradas();
+                            });
+                          },
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _startDate = null;
-                            _endDate = null;
-                            _filterEntradas();
-                          });
-                        },
-                      ),
+                      ]
                     ],
                   ),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: Row(
@@ -326,7 +477,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                           icon: const Icon(Icons.clear, color: Colors.red),
                           onPressed: _clearAlamacenFilter,
                         ),
-                      const SizedBox(width: 30),
+                      const SizedBox(width: 20),
 
                       //Proveedores
                       Expanded(
@@ -349,15 +500,101 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                               proveedor.proveedor_Name ?? 'N/A',
                         ),
                       ),
-                      if (_selectedProveedor != null)
+                      if (_selectedProveedor != null) ...[
                         IconButton(
                           icon: const Icon(Icons.clear, color: Colors.red),
                           onPressed: _clearProveedorFilter,
                         ),
+                      ],
+                      const SizedBox(width: 20),
+
+                      //Excel
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.green.shade900,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () => _selectMonth(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 27, 94, 32),
+                            ),
+                            icon: const Icon(
+                              Icons.calendar_month,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              _selectedMonth != null
+                                  ? 'Mes seleccionado: ${DateFormat('MMMM yyyy', 'es_ES').format(_selectedMonth!)}'
+                                  : 'Excel Entradas por Mes',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (_selectedMonth != null) ...[
+                        const SizedBox(width: 10),
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _selectedMonth = null;
+                              _filteredEntradas = List.from(_allEntradas);
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.green.shade700,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed:
+                                _isGeneratingExcel ? null : _generateExcel,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 200, 242, 201),
+                            ),
+                            icon: _isGeneratingExcel
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : const Icon(Icons.download,
+                                    color: Colors.black),
+                            label: const Text(
+                              'Exportar a Excel',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
                 Expanded(
                   child: _isLoadingCancel
                       ? Center(
