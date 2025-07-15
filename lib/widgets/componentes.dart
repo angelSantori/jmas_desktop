@@ -1300,7 +1300,7 @@ Future<bool> validarCamposAntesDeImprimir(
     required var padron,
     required var calle,
     required var colonia,
-    required var selectedServicio,
+    var selectedServicio,
     required var selectedJunta,
     required var selectedUser}) async {
   if (referenciaController.text.isEmpty) {
@@ -1308,10 +1308,10 @@ Future<bool> validarCamposAntesDeImprimir(
     return false;
   }
 
-  if (selectedServicio == null) {
-    showAdvertence(context, 'Debe seleccionar una orden de servicio.');
-    return false;
-  }
+  // if (selectedServicio == null) {
+  //   showAdvertence(context, 'Debe seleccionar una orden de servicio.');
+  //   return false;
+  // }
 
   if (selectedAlmacen == null) {
     showAdvertence(context, 'Debe seleccionar un almacen.');
