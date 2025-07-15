@@ -129,7 +129,7 @@ class ExcelSalidasMes {
       workbook.dispose();
 
       final String fileName =
-          'Entradas_${selectedMonth.month}_${selectedMonth.year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
+          'Salidas_${selectedMonth.month}_${selectedMonth.year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
 
       final blob = html.Blob([bytes],
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
