@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
@@ -11,7 +13,6 @@ import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/pdf_cancelacion.dart';
-
 import '../widgets/reimpresion_entraada_pdf.dart' show ReimpresionEntradaPdf;
 
 class DetailsEntradaPage extends StatefulWidget {
@@ -70,6 +71,47 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
         _currentUserId = userId;
         _currentUser = user;
       });
+    }
+  }
+
+  Future<void> _descargarFactura() async {
+    try {
+      // Buscar la primera entrada con imagen
+      final entradaConImagen = widget.entradas.firstWhere(
+        (e) =>
+            e.entrada_ImgB64Factura != null &&
+            e.entrada_ImgB64Factura!.isNotEmpty,
+        orElse: () => Entradas(),
+      );
+
+      if (entradaConImagen.id_Entradas == null) {
+        showError(context, 'No hay factura disponible para descargar');
+        return;
+      }
+
+      setState(() => _isLoading = true);
+
+      // Decodificar base64
+      final bytes = base64.decode(entradaConImagen.entrada_ImgB64Factura!);
+
+      // Crear un blob y descargar
+      final blob = html.Blob([bytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      // ignore: unused_local_variable
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute(
+            'download', 'Factura_${entradaConImagen.entrada_CodFolio}.pdf')
+        ..click();
+
+      // Liberar el objeto URL
+      html.Url.revokeObjectUrl(url);
+
+      showOk(context, 'Descarga de factura iniciada');
+    } catch (e) {
+      showError(context, 'Error al descargar la factura: $e');
+      debugPrint('Error al descargar factura: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -357,6 +399,22 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                                 tooltip: 'Cancelar toda la entrada',
                               ),
                             ],
+                            IconButton(
+                              icon: Icon(Icons.print,
+                                  color: Colors.blue.shade900),
+                              onPressed: _imprimirEntrada,
+                              tooltip: 'Reimprimir entrada',
+                            ),
+                            // Add this new button for downloading factura
+                            if (widget.entradas.any((e) =>
+                                e.entrada_ImgB64Factura != null &&
+                                e.entrada_ImgB64Factura!.isNotEmpty))
+                              IconButton(
+                                icon: const Icon(Icons.picture_as_pdf,
+                                    color: Colors.red),
+                                onPressed: _descargarFactura,
+                                tooltip: 'Descargar factura PDF',
+                              ),
                             IconButton(
                               icon: Icon(Icons.print,
                                   color: Colors.blue.shade900),
