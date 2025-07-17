@@ -693,6 +693,98 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     ],
                   ),
                 ),
+                // En el build method, después de los botones existentes
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      // Botón para exportar juntas especiales
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.purple.shade900,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: _isGeneratingExcel
+                                ? null
+                                : () => _selectMonthForEspeciales(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 225, 190, 231),
+                            ),
+                            icon: _isGeneratingExcel
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : const Icon(Icons.download,
+                                    color: Colors.black),
+                            label: Text(
+                              _selectedMonth != null
+                                  ? 'Juntas Especiales (${DateFormat('MMM yyyy', 'es_ES').format(_selectedMonth!)})'
+                                  : 'Exportar Juntas Especiales',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Botón para exportar juntas regulares
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.orange.shade900,
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: _isGeneratingExcel
+                                ? null
+                                : () => _selectMonthForRegulares(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 255, 224, 178),
+                            ),
+                            icon: _isGeneratingExcel
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : const Icon(Icons.download,
+                                    color: Colors.black),
+                            label: Text(
+                              _selectedMonth != null
+                                  ? 'Juntas Regulares (${DateFormat('MMM yyyy', 'es_ES').format(_selectedMonth!)})'
+                                  : 'Exportar Juntas Regulares',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: _isLoading
                       ? Center(
@@ -900,4 +992,250 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   }
 
   String? idUserDelete;
+
+  // Método para seleccionar mes para juntas especiales
+  Future<void> _selectMonthForEspeciales(BuildContext context) async {
+    DateTime? tempSelectedMonth;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Seleccionar Mes para Juntas Especiales'),
+              content: SizedBox(
+                width: 300,
+                height: 350,
+                child: Column(
+                  children: [
+                    // Selector de año
+                    DropdownButton<int>(
+                      value: tempSelectedMonth?.year ?? DateTime.now().year,
+                      items: List.generate(
+                        5,
+                        (index) => DateTime.now().year - 2 + index,
+                      ).map((year) {
+                        return DropdownMenuItem<int>(
+                          value: year,
+                          child: Text(year.toString()),
+                        );
+                      }).toList(),
+                      onChanged: (year) {
+                        if (year != null) {
+                          setState(() {
+                            tempSelectedMonth = DateTime(
+                              year,
+                              tempSelectedMonth?.month ?? DateTime.now().month,
+                              1,
+                            );
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    // Selector de mes
+                    Expanded(
+                      child: GridView.count(
+                        crossAxisCount: 4,
+                        children: List.generate(12, (index) {
+                          final month = index + 1;
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                tempSelectedMonth = DateTime(
+                                  tempSelectedMonth?.year ??
+                                      DateTime.now().year,
+                                  month,
+                                  1,
+                                );
+                              });
+                            },
+                            child: Card(
+                              color: tempSelectedMonth?.month == month
+                                  ? Colors.purple[100]
+                                  : null,
+                              child: Center(
+                                child: Text(
+                                  DateFormat('MMM', 'es_ES')
+                                      .format(DateTime(2020, month)),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancelar'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    if (tempSelectedMonth != null) {
+                      setState(() {
+                        _selectedMonth = DateTime(
+                          tempSelectedMonth!.year,
+                          tempSelectedMonth!.month,
+                          1,
+                        );
+                      });
+                      Navigator.pop(context);
+                      _generateExcelJuntasEspeciales();
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Método para seleccionar mes para juntas regulares
+  Future<void> _selectMonthForRegulares(BuildContext context) async {
+    DateTime? tempSelectedMonth;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Seleccionar Mes para Juntas Regulares'),
+              content: SizedBox(
+                width: 300,
+                height: 350,
+                child: Column(
+                  children: [
+                    // Selector de año
+                    DropdownButton<int>(
+                      value: tempSelectedMonth?.year ?? DateTime.now().year,
+                      items: List.generate(
+                        5,
+                        (index) => DateTime.now().year - 2 + index,
+                      ).map((year) {
+                        return DropdownMenuItem<int>(
+                          value: year,
+                          child: Text(year.toString()),
+                        );
+                      }).toList(),
+                      onChanged: (year) {
+                        if (year != null) {
+                          setState(() {
+                            tempSelectedMonth = DateTime(
+                              year,
+                              tempSelectedMonth?.month ?? DateTime.now().month,
+                              1,
+                            );
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    // Selector de mes
+                    Expanded(
+                      child: GridView.count(
+                        crossAxisCount: 4,
+                        children: List.generate(12, (index) {
+                          final month = index + 1;
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                tempSelectedMonth = DateTime(
+                                  tempSelectedMonth?.year ??
+                                      DateTime.now().year,
+                                  month,
+                                  1,
+                                );
+                              });
+                            },
+                            child: Card(
+                              color: tempSelectedMonth?.month == month
+                                  ? Colors.orange[100]
+                                  : null,
+                              child: Center(
+                                child: Text(
+                                  DateFormat('MMM', 'es_ES')
+                                      .format(DateTime(2020, month)),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancelar'),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                TextButton(
+                  child: const Text('Aceptar'),
+                  onPressed: () {
+                    if (tempSelectedMonth != null) {
+                      setState(() {
+                        _selectedMonth = DateTime(
+                          tempSelectedMonth!.year,
+                          tempSelectedMonth!.month,
+                          1,
+                        );
+                      });
+                      Navigator.pop(context);
+                      _generateExcelJuntasRegulares();
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Método para generar Excel de juntas especiales
+  Future<void> _generateExcelJuntasEspeciales() async {
+    if (_selectedMonth == null) return;
+
+    setState(() => _isGeneratingExcel = true);
+    try {
+      await ExcelSalidasMes.generateExcelJuntasEspeciales(
+        selectedMonth: _selectedMonth,
+        allSalidas: _allSalidas,
+        context: context,
+      );
+    } catch (e) {
+      print('Error al generar Excel Juntas Especiales: $e');
+    } finally {
+      setState(() => _isGeneratingExcel = false);
+    }
+  }
+
+// Método para generar Excel de juntas regulares
+  Future<void> _generateExcelJuntasRegulares() async {
+    if (_selectedMonth == null) return;
+
+    setState(() => _isGeneratingExcel = true);
+    try {
+      await ExcelSalidasMes.generateExcelJuntasRegulares(
+        selectedMonth: _selectedMonth,
+        allSalidas: _allSalidas,
+        context: context,
+      );
+    } catch (e) {
+      print('Error al generar Excel Juntas Regulares: $e');
+    } finally {
+      setState(() => _isGeneratingExcel = false);
+    }
+  }
 }
