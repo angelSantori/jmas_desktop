@@ -56,7 +56,7 @@ class ExcelSalidasMes {
   }
 
   // Método para generar Excel de juntas regulares con filtrado por mes
-  static Future<void> generateExcelJuntasRegulares({
+  static Future<void> generateExcelJuntasRurales({
     DateTime? selectedMonth,
     required List<Salidas> allSalidas,
     required BuildContext context,
@@ -91,13 +91,12 @@ class ExcelSalidasMes {
       await _generateExcelReport(
         context: context,
         filteredSalidas: filteredSalidas,
-        reportType: 'JUNTAS_REGULARES',
+        reportType: 'JUNTAS_RURALES',
         selectedMonth: selectedMonth,
       );
     } catch (e) {
-      showError(
-          context, 'Error al generar el archivo Excel de juntas regulares');
-      print('Error al generar Excel Juntas Regulares: $e');
+      showError(context, 'Error al generar el archivo Excel de juntas rurales');
+      print('Error al generar Excel Juntas Rurales: $e');
     }
   }
 
@@ -140,7 +139,7 @@ class ExcelSalidasMes {
     // Título según el tipo de reporte
     final title = reportType == 'JUNTAS_ESPECIALES'
         ? 'REPORTE DE SALIDAS - JUNTAS ESPECIALES'
-        : 'REPORTE DE SALIDAS - JUNTAS REGULARES';
+        : 'REPORTE DE SALIDAS - JUNTAS RURALES';
 
     sheet.getRangeByName('A1:J1').merge();
     sheet.getRangeByName('A1').setText(title);
@@ -227,7 +226,7 @@ class ExcelSalidasMes {
     workbook.dispose();
 
     final String fileName =
-        '${reportType == 'JUNTAS_ESPECIALES' ? 'Salidas_Juntas_Especiales' : 'Salidas_Juntas_Regulares'}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
+        '${reportType == 'JUNTAS_ESPECIALES' ? 'Salidas_Juntas_Especiales' : 'Salidas_Juntas_Rurales'}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
 
     final blob = html.Blob([bytes],
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
