@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
@@ -68,7 +69,9 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   bool _isLoading = true;
 
   DateTime? _selectedMonth;
+  // ignore: unused_field
   bool _isGeneratingExcel = false;
+  bool _showExportOptions = false;
 
   @override
   void initState() {
@@ -293,10 +296,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Seleccionar Mes'),
+              title: const Text('Seleccionar Mes para Todas las Salidas'),
               content: SizedBox(
                 width: 300,
-                height: 350,
+                height: 400,
                 child: Column(
                   children: [
                     // Selector de año
@@ -343,7 +346,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             },
                             child: Card(
                               color: tempSelectedMonth?.month == month
-                                  ? Colors.blue[100]
+                                  ? Colors.green[100]
                                   : null,
                               child: Center(
                                 child: Text(
@@ -376,7 +379,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         );
                       });
                       Navigator.pop(context);
-                      _filterByMonth();
+                      _generateExcel();
+                      //_filterByMonth();
                     }
                   },
                 ),
@@ -386,27 +390,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         );
       },
     );
-  }
-
-  void _filterByMonth() {
-    if (_selectedMonth == null) return;
-
-    setState(() {
-      _filteredSalidas = _allSalidas.where(
-        (salidas) {
-          if (salidas.salida_Fecha == null) return false;
-
-          try {
-            final fecha =
-                DateFormat('dd/MM/yyyy HH:mm:ss').parse(salidas.salida_Fecha!);
-            return fecha.month == _selectedMonth!.month &&
-                fecha.year == _selectedMonth!.year;
-          } catch (e) {
-            return false;
-          }
-        },
-      ).toList();
-    });
   }
 
   Future<void> _generateExcel() async {
@@ -498,88 +481,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         ),
                       ],
                       const SizedBox(width: 10),
-
-                      //  Excel
-                      Expanded(
-                          child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.shade900,
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        child: ElevatedButton.icon(
-                          onPressed: () => _selectMonth(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(255, 27, 94, 32),
-                          ),
-                          icon: const Icon(
-                            Icons.calendar_month,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            _selectedMonth != null
-                                ? 'Mes seleccionado: ${DateFormat('MMMM yyyy', 'es_ES').format(_selectedMonth!)}'
-                                : 'Excel Salidas por Mes',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                      )),
-                      if (_selectedMonth != null) ...[
-                        IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: () {
-                            setState(() {
-                              _selectedMonth = null;
-                              _filteredSalidas = List.from(_allSalidas);
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.shade700,
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed:
-                                _isGeneratingExcel ? null : _generateExcel,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 200, 242, 201),
-                            ),
-                            icon: _isGeneratingExcel
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                : const Icon(Icons.download,
-                                    color: Colors.black),
-                            label: const Text(
-                              'Exportar a Excel',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ]
                     ],
                   ),
                 ),
@@ -693,98 +594,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     ],
                   ),
                 ),
-                // En el build method, después de los botones existentes
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      // Botón para exportar juntas especiales
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.purple.shade900,
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              )
-                            ],
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed: _isGeneratingExcel
-                                ? null
-                                : () => _selectMonthForEspeciales(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 225, 190, 231),
-                            ),
-                            icon: _isGeneratingExcel
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                : const Icon(Icons.download,
-                                    color: Colors.black),
-                            label: Text(
-                              _selectedMonth != null
-                                  ? 'Juntas Especiales (${DateFormat('MMM yyyy', 'es_ES').format(_selectedMonth!)})'
-                                  : 'Exportar Juntas Especiales',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-
-                      // Botón para exportar juntas regulares
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.orange.shade900,
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              )
-                            ],
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed: _isGeneratingExcel
-                                ? null
-                                : () => _selectMonthForRegulares(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 255, 224, 178),
-                            ),
-                            icon: _isGeneratingExcel
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                : const Icon(Icons.download,
-                                    color: Colors.black),
-                            label: Text(
-                              _selectedMonth != null
-                                  ? 'Juntas Regulares (${DateFormat('MMM yyyy', 'es_ES').format(_selectedMonth!)})'
-                                  : 'Exportar Juntas Regulares',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: _isLoading
                       ? Center(
@@ -796,6 +605,101 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 const SizedBox(height: 30),
               ],
             ),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (_showExportOptions) ...[
+                  _buildExportOption(
+                    icon: Icons.download,
+                    color: Colors.green.shade900,
+                    label: 'Todas las Salidas',
+                    onTap: () => _selectMonth(context),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildExportOption(
+                    icon: Icons.download,
+                    color: Colors.purple.shade900,
+                    label: 'Juntas Especiales',
+                    onTap: () => _selectMonthForEspeciales(context),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildExportOption(
+                    icon: Icons.download,
+                    color: Colors.orange.shade900,
+                    label: 'Juntas Rurales',
+                    onTap: () => _selectMonthForRurales(context),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                FloatingActionButton(
+                  backgroundColor: Colors.green.shade900,
+                  onPressed: () {
+                    setState(() {
+                      _showExportOptions = !_showExportOptions;
+                    });
+                  },
+                  child: _showExportOptions
+                      ? const Icon(Icons.close, color: Colors.white)
+                      : SvgPicture.asset(
+                          'assets/icons/excel.svg',
+                          width: 30,
+                          height: 30,
+                          color: Colors.white,
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExportOption({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _showExportOptions = false);
+        onTap();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: 200,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1006,7 +910,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
               title: const Text('Seleccionar Mes para Juntas Especiales'),
               content: SizedBox(
                 width: 300,
-                height: 350,
+                height: 400,
                 child: Column(
                   children: [
                     // Selector de año
@@ -1098,8 +1002,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     );
   }
 
-  // Método para seleccionar mes para juntas regulares
-  Future<void> _selectMonthForRegulares(BuildContext context) async {
+  Future<void> _selectMonthForRurales(BuildContext context) async {
     DateTime? tempSelectedMonth;
 
     await showDialog(
@@ -1108,10 +1011,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Seleccionar Mes para Juntas Regulares'),
+              title: const Text('Seleccionar Mes para Juntas Rurales'),
               content: SizedBox(
                 width: 300,
-                height: 350,
+                height: 400,
                 child: Column(
                   children: [
                     // Selector de año
@@ -1191,7 +1094,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         );
                       });
                       Navigator.pop(context);
-                      _generateExcelJuntasRegulares();
+                      _generateExcelJuntasRurales();
                     }
                   },
                 ),
@@ -1222,12 +1125,12 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   }
 
 // Método para generar Excel de juntas regulares
-  Future<void> _generateExcelJuntasRegulares() async {
+  Future<void> _generateExcelJuntasRurales() async {
     if (_selectedMonth == null) return;
 
     setState(() => _isGeneratingExcel = true);
     try {
-      await ExcelSalidasMes.generateExcelJuntasRegulares(
+      await ExcelSalidasMes.generateExcelJuntasRurales(
         selectedMonth: _selectedMonth,
         allSalidas: _allSalidas,
         context: context,
