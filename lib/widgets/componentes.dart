@@ -1037,23 +1037,13 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
         final producto =
             await widget.productosController.getProductoById(int.parse(id));
         if (producto != null) {
-          // Buscar el valor de invIniConteo para el producto
-          //final capturaList = await widget.capturainviniController.listCapturaI();
           final existenciaList =
               await widget.productosController.listProductos();
 
-          // final captura = capturaList.firstWhere(
-          //   (captura) => captura.id_Producto == producto.id_Producto,
-          //   orElse: () => Capturainvini(invIniConteo: null),
-          // );
           final existencia = existenciaList.firstWhere(
             (element) => element.id_Producto == producto.id_Producto,
             orElse: () => Productos(prodExistencia: null),
           );
-
-          // setState(() {
-          //   _invIniConteo = captura.invIniConteo; // Almacenar el valor
-          // });
           setState(() {
             _existencia = existencia.prodExistencia;
           });
@@ -1150,7 +1140,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                       return ListTile(
                         title: Text(producto.prodDescripcion ?? 'Sin nombre'),
                         subtitle: Text(
-                          'ID: ${producto.id_Producto} - Precio: \$${producto.prodPrecio?.toStringAsFixed(2) ?? 'No disponible'}',
+                          'ID: ${producto.id_Producto} - Costo: \$${producto.prodCosto?.toStringAsFixed(2) ?? 'No disponible'}',
                         ),
                         onTap: () => _seleccionarProducto(producto),
                       );
@@ -1213,7 +1203,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            'Precio: \$${widget.selectedProducto!.prodPrecio?.toStringAsFixed(2) ?? 'No disponible'}',
+                            'Costo: \$${widget.selectedProducto!.prodCosto?.toStringAsFixed(2) ?? 'No disponible'}',
                             style: const TextStyle(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),

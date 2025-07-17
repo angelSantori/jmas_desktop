@@ -255,7 +255,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       }
 
       setState(() {
-        final double precioUnitario = _selectedProducto!.prodPrecio ?? 0.0;
+        final double precioUnitario = _selectedProducto!.prodCosto ?? 0.0;
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
