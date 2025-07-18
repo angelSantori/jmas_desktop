@@ -247,6 +247,25 @@ class ExcelSalidasMes {
     required BuildContext context,
   }) async {
     try {
+      // Filtrar salidas por mes si está seleccionado
+      final salidasFiltradas = selectedMonth != null
+          ? filteredSalidas.where((salida) {
+              if (salida.salida_Fecha == null) return false;
+              try {
+                final fecha = DateFormat('dd/MM/yyyy HH:mm:ss')
+                    .parse(salida.salida_Fecha!);
+                return fecha.month == selectedMonth.month &&
+                    fecha.year == selectedMonth.year;
+              } catch (e) {
+                return false;
+              }
+            }).toList()
+          : filteredSalidas;
+
+      if (salidasFiltradas.isEmpty) {
+        showAdvertence(context, 'No hay salidas para el periodo seleccionado');
+        return;
+      }
       final Workbook workbook = Workbook();
       final Worksheet sheet = workbook.worksheets[0];
 
@@ -315,7 +334,7 @@ class ExcelSalidasMes {
 
       // Datos
       int rowIndex = 6;
-      for (var salida in filteredSalidas) {
+      for (var salida in salidasFiltradas) {
         sheet
             .getRangeByIndex(rowIndex, 1)
             .setText(salida.salida_CodFolio ?? '');
@@ -349,9 +368,9 @@ class ExcelSalidasMes {
       }
 
       // Totales
-      final double totalUnidades = filteredSalidas.fold(
+      final double totalUnidades = salidasFiltradas.fold(
           0, (sum, item) => sum + (item.salida_Unidades ?? 0));
-      final double totalCosto = filteredSalidas.fold(
+      final double totalCosto = salidasFiltradas.fold(
           0, (sum, item) => sum + (item.salida_Costo ?? 0));
 
       sheet.getRangeByIndex(rowIndex, 3).setText('TOTALES:');
