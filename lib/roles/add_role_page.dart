@@ -33,6 +33,7 @@ class _AddRolePageState extends State<AddRolePage> {
           canDelete: false,
           canManageUsers: false,
           canManageRoles: false,
+          canEvaluar: false,
         );
 
         final success = await _roleController.addRol(newRol);
