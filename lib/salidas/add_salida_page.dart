@@ -387,8 +387,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Referencia: _referenciaController.text,
       salida_Estado: true,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
-      salida_Costo: double.tryParse(
-          (producto['precio'] * producto['cantidad']).toString()),
+      salida_Costo: double.tryParse(producto['precio'].toString()),
       salida_Fecha: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
       salida_TipoTrabajo: _selectedTipoTrabajo,
       idProducto: producto['id'] ?? 0,
