@@ -129,10 +129,12 @@ class ExcelEntradasRurales {
       final Style styleSuma = workbook.styles.add('styleSuma');
       styleSuma.fontName = 'Courier';
       styleSuma.fontSize = 10;
+      styleSuma.numberFormat = '0.00';
 
       final Style styleInfoData = workbook.styles.add('styleInfoData');
       styleInfoData.fontName = 'Arial';
       styleInfoData.fontSize = 10;
+      styleSuma.numberFormat = '0.00';
 
       // Header row
       sheet.getRangeByName('A1:E1').merge();
@@ -258,7 +260,7 @@ class ExcelEntradasRurales {
       // Fila final con el resumen
       sheet.getRangeByName('A$currentRow').setText('');
       sheet.getRangeByName('B$currentRow').setNumber(totalAbono);
-      sheet.getRangeByName('B$currentRow').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B$currentRow').cellStyle = styleInfoData;
       sheet.getRangeByName('C$currentRow').setText('');
       sheet.getRangeByName('D$currentRow').setText(
           'ENTRADAS DE ALMACÉN RURALES DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear');

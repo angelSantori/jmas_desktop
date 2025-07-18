@@ -120,10 +120,12 @@ class ExcelEntradasIndividual {
 
       final Style styleSuma = workbook.styles.add('styleSuma');
       styleSuma.fontName = 'Courier';
+      styleSuma.numberFormat = '0.00';
       styleSuma.fontSize = 10;
 
       final Style styleInfoData = workbook.styles.add('styleInfoData');
       styleInfoData.fontName = 'Arial';
+      styleSuma.numberFormat = '0.00';
       styleInfoData.fontSize = 10;
 
       // Header row
@@ -250,7 +252,7 @@ class ExcelEntradasIndividual {
       // Fila final con el resumen
       sheet.getRangeByName('A$currentRow').setText('1151-8-004');
       sheet.getRangeByName('B$currentRow').setNumber(totalAbono);
-      sheet.getRangeByName('B$currentRow').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B$currentRow').cellStyle = styleInfoData;
       sheet.getRangeByName('C$currentRow').setText('');
       sheet.getRangeByName('D$currentRow').setText(
           'ENTRADAS DE ${selectedJunta.junta_Name?.toUpperCase()} DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear');
