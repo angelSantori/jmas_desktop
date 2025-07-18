@@ -415,12 +415,6 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                                 onPressed: _descargarFactura,
                                 tooltip: 'Descargar factura PDF',
                               ),
-                            IconButton(
-                              icon: Icon(Icons.print,
-                                  color: Colors.blue.shade900),
-                              onPressed: _imprimirEntrada,
-                              tooltip: 'Reimprimir entrada',
-                            ),
                           ],
                         ),
                         const SizedBox(height: 15),
