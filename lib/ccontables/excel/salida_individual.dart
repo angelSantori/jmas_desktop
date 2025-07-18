@@ -80,62 +80,50 @@ class ExcelSalidasIndividual {
       sheet.getRangeByName('E1').columnWidth = 25;
       sheet.getRangeByName('F1').columnWidth = 25;
       sheet.getRangeByName('G1').columnWidth = 25;
+      sheet.getRangeByName('H1').columnWidth = 25;
 
-      // Header style
+      // Estilos
       final Style headerStyle = workbook.styles.add('headerStyle');
-      headerStyle.backColor = '#000000';
+      headerStyle.backColor = '#244062';
       headerStyle.fontColor = '#FFFFFF';
-      headerStyle.fontName = 'Arial';
-      headerStyle.fontSize = 12;
+      headerStyle.fontName = 'Arial Black';
+      headerStyle.fontSize = 11;
       headerStyle.bold = true;
       headerStyle.hAlign = HAlignType.center;
       headerStyle.vAlign = VAlignType.center;
 
-      // Title style
       final Style titleStyle = workbook.styles.add('titleStyle');
       titleStyle.fontName = 'Arial';
       titleStyle.fontSize = 14;
       titleStyle.bold = true;
       titleStyle.hAlign = HAlignType.center;
 
-      // Normal style
       final Style normalStyle = workbook.styles.add('normalStyle');
       normalStyle.fontName = 'Arial';
       normalStyle.fontSize = 11;
 
-      // Bold style
-      final Style boldStyle = workbook.styles.add('boldStyle');
-      boldStyle.fontName = 'Arial';
-      boldStyle.fontSize = 11;
-      boldStyle.bold = true;
-
-      // Right align style
-      final Style rightAlignStyle = workbook.styles.add('rightAlignStyle');
-      rightAlignStyle.fontName = 'Arial';
-      rightAlignStyle.fontSize = 11;
-      rightAlignStyle.hAlign = HAlignType.right;
-
-      // Gray background style
       final Style grayBgStyle = workbook.styles.add('grayBgStyle');
-      grayBgStyle.backColor = '#D3D3D3';
+      grayBgStyle.backColor = '#8DB4E2';
       grayBgStyle.fontName = 'Arial';
-      grayBgStyle.fontSize = 11;
+      grayBgStyle.fontSize = 9;
       grayBgStyle.bold = true;
+      grayBgStyle.borders.all.lineStyle = LineStyle.thin;
 
-      // Gray background normal style (for cells)
-      final Style grayBgNormalStyle = workbook.styles.add('grayBgNormalStyle');
-      grayBgNormalStyle.backColor = '#D3D3D3';
-      grayBgNormalStyle.fontName = 'Arial';
-      grayBgNormalStyle.fontSize = 11;
+      final Style dataStyle = workbook.styles.add('dataStyle');
+      dataStyle.fontName = 'Courier';
+      dataStyle.fontSize = 10;
+      dataStyle.bold = true;
 
-      // Center align style for sumas iguales
-      final Style centerAlignStyle = workbook.styles.add('centerAlignStyle');
-      centerAlignStyle.fontName = 'Arial';
-      centerAlignStyle.fontSize = 11;
-      centerAlignStyle.hAlign = HAlignType.center;
+      final Style styleSuma = workbook.styles.add('styleSuma');
+      styleSuma.fontName = 'Courier';
+      styleSuma.fontSize = 10;
+
+      final Style styleInfoData = workbook.styles.add('styleInfoData');
+      styleInfoData.fontName = 'Arial';
+      styleInfoData.fontSize = 10;
 
       // Header row
-      sheet.getRangeByName('A1:G1').merge();
+      sheet.getRangeByName('A1:E1').merge();
       sheet.getRangeByName('A1').setText(
           'SISTEMA AUTOMATIZADO DE ADMINISTRACIÓN Y CONTABILIDAD GUBERNAMENTAL SAACG.NET');
       sheet.getRangeByName('A1').cellStyle = headerStyle;
@@ -144,9 +132,9 @@ class ExcelSalidasIndividual {
       sheet.getRangeByName('A2').setText('FECHA:');
       sheet.getRangeByName('A2').cellStyle = grayBgStyle;
       sheet.getRangeByName('A2').cellStyle.hAlign = HAlignType.right;
-      sheet
-          .getRangeByName('B2')
-          .setText(DateFormat('dd/MM/yyyy').format(DateTime.now()));
+      sheet.getRangeByName('B2').setText(
+          '${lastDay.day.toString().padLeft(2, '0')}/${selectedMonth.toString().padLeft(2, '0')}/$currentYear');
+      sheet.getRangeByName('B2').cellStyle = dataStyle;
       sheet.getRangeByName('B2').cellStyle.hAlign = HAlignType.right;
 
       // Tipo de Póliza
@@ -154,52 +142,71 @@ class ExcelSalidasIndividual {
       sheet.getRangeByName('A3').cellStyle = grayBgStyle;
       sheet.getRangeByName('A3').cellStyle.hAlign = HAlignType.right;
       sheet.getRangeByName('B3').setText('D');
+      sheet.getRangeByName('B3').cellStyle = dataStyle;
       sheet.getRangeByName('B3').cellStyle.hAlign = HAlignType.left;
 
-      // Concepto (ahora para salidas)
-      sheet.getRangeByName('A4').setText('CONCEPTO:');
+      // No. Cheque
+      sheet.getRangeByName('A4').setText('NO. CHEQUE:');
       sheet.getRangeByName('A4').cellStyle = grayBgStyle;
       sheet.getRangeByName('A4').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B4').setText(''); // Queda en blanco
+      sheet.getRangeByName('B4').cellStyle = dataStyle;
+      sheet.getRangeByName('B4').cellStyle.hAlign = HAlignType.left;
+
+      // Concepto (ahora para salidas)
+      sheet.getRangeByName('A5').setText('CONCEPTO:');
+      sheet.getRangeByName('A5').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A5').cellStyle.hAlign = HAlignType.right;
       final concepto =
-          'SALIDAS DE ${selectedJunta.junta_Name?.toUpperCase()} DEL 01/${selectedMonth.toString().padLeft(2, '0')} AL ${lastDay.day.toString().padLeft(2, '0')}/${selectedMonth.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear';
-      sheet.getRangeByName('B4:D4').merge();
-      sheet.getRangeByName('B4').setText(concepto);
+          'SALIDAS DE ${selectedJunta.junta_Name?.toUpperCase()} DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear';
+      sheet.getRangeByName('B5:D5').merge();
+      sheet.getRangeByName('B5').setText(concepto);
+      sheet.getRangeByName('B5').cellStyle = dataStyle;
+
+      // Beneficiario (nuevo campo)
+      sheet.getRangeByName('A6').setText('BENEFICIARIO:');
+      sheet.getRangeByName('A6').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A6').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('B6:D6').merge();
+      sheet.getRangeByName('B6').setText(''); // Queda en blanco
+      sheet.getRangeByName('B6').cellStyle = dataStyle;
 
       // SUMAS IGUALES
-      int sumasIgualesRow = 5;
+      int sumasIgualesRow = 7;
       sheet.getRangeByName('A$sumasIgualesRow').setText('SUMAS IGUALES');
       sheet.getRangeByName('A$sumasIgualesRow').cellStyle = grayBgStyle;
       sheet.getRangeByName('A$sumasIgualesRow').cellStyle.hAlign =
           HAlignType.right;
 
       sheet.getRangeByName('B$sumasIgualesRow').setNumber(totalCargo);
+      sheet.getRangeByName('B$sumasIgualesRow').cellStyle = styleSuma;
       sheet.getRangeByName('B$sumasIgualesRow').cellStyle.hAlign =
           HAlignType.center;
 
       sheet.getRangeByName('C$sumasIgualesRow').setNumber(totalCargo);
+      sheet.getRangeByName('C$sumasIgualesRow').cellStyle = styleSuma;
       sheet.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
           HAlignType.center;
 
-      // Espacio
-      sheet.getRangeByName('A6').rowHeight = 10;
-
       // Encabezados de tabla
-      sheet.getRangeByName('A7').setText('Cuenta');
-      sheet.getRangeByName('A7').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A7').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('B7').setText('Cargo');
-      sheet.getRangeByName('B7').cellStyle = grayBgStyle;
-      sheet.getRangeByName('B7').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('C7').setText('Abono');
-      sheet.getRangeByName('C7').cellStyle = grayBgStyle;
-      sheet.getRangeByName('C7').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('D7').setText('Concepto por Movimiento');
-      sheet.getRangeByName('D7').cellStyle = grayBgStyle;
-      sheet.getRangeByName('D7').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('D7:G7').merge();
+      sheet.getRangeByName('A8').setText('Cuenta');
+      sheet.getRangeByName('A8').cellStyle = grayBgStyle;
+      sheet.getRangeByName('A8').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('B8').setText('Cargo');
+      sheet.getRangeByName('B8').cellStyle = grayBgStyle;
+      sheet.getRangeByName('B8').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('C8').setText('Abono');
+      sheet.getRangeByName('C8').cellStyle = grayBgStyle;
+      sheet.getRangeByName('C8').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('D8').setText('Concepto por Movimiento');
+      sheet.getRangeByName('D8').cellStyle = grayBgStyle;
+      sheet.getRangeByName('D8').cellStyle.hAlign = HAlignType.center;
+      sheet.getRangeByName('E8').setText('Fuente Financiamiento');
+      sheet.getRangeByName('E8').cellStyle = grayBgStyle;
+      sheet.getRangeByName('E8').cellStyle.hAlign = HAlignType.center;
 
       // Datos de salidas
-      int currentRow = 8;
+      int currentRow = 9;
       final productos = await productosController.listProductos();
 
       for (var productId in salidasByProduct.keys) {
@@ -211,30 +218,47 @@ class ExcelSalidasIndividual {
         sheet
             .getRangeByName('A$currentRow')
             .setText(cc?.cC_Detalle?.toString() ?? '0');
+        sheet.getRangeByName('A$currentRow').cellStyle = styleInfoData;
 
-        // SALIDAS VAN EN CARGO (inverso de entradas)
         sheet.getRangeByName('B$currentRow').setNumber(totalCosto);
         sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
             HAlignType.right;
+        sheet.getRangeByName('B$currentRow').cellStyle = styleInfoData;
 
         sheet.getRangeByName('C$currentRow').setNumber(0);
         sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
             HAlignType.right;
+        sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
 
-        sheet.getRangeByName('D$currentRow:G$currentRow').merge();
         sheet
             .getRangeByName('D$currentRow')
             .setText('${product.prodDescripcion?.toUpperCase()}');
+        sheet.getRangeByName('D$currentRow').cellStyle = styleInfoData;
+
+        sheet.getRangeByName('E$currentRow').setText('149825');
+        sheet.getRangeByName('E$currentRow').cellStyle = styleSuma;
+        sheet.getRangeByName('E$currentRow').cellStyle.hAlign =
+            HAlignType.center;
 
         currentRow++;
       }
+
+      // Fila final con el resumen
+      sheet.getRangeByName('A$currentRow').setText('1151-8-004');
+      sheet.getRangeByName('B$currentRow').setText('');
+      sheet.getRangeByName('B$currentRow').cellStyle.hAlign = HAlignType.right;
+      sheet.getRangeByName('C$currentRow').setNumber(totalCargo);
+      sheet.getRangeByName('D$currentRow').setText(
+          'SALIDAS DE ${selectedJunta.junta_Name?.toUpperCase()} DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear');
+      sheet.getRangeByName('E$currentRow').setText('149825');
+      sheet.getRangeByName('E$currentRow').cellStyle.hAlign = HAlignType.center;
 
       // Guardar y descargar
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
 
       final String fileName =
-          'Poliza_Salidas_${selectedJunta.junta_Name}_${selectedMonth}_${DateTime.now().year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
+          'Salidas_Almacen_${selectedJunta.junta_Name}_${selectedMonth}_${DateTime.now().year}_${DateFormat('ddMMyyyy_HHmmss').format(DateTime.now())}.xlsx';
 
       final blob = html.Blob([bytes],
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
