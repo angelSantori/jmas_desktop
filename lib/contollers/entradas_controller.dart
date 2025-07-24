@@ -179,6 +179,8 @@ class Entradas {
   String? entrada_Fecha;
   String? entrada_ImgB64Factura;
   String? entrada_Referencia;
+  String? entrada_Comentario;
+  int? entrada_NumeroFactura;
   int? idProducto;
   int? id_User;
   bool? entrada_Estado;
@@ -194,6 +196,8 @@ class Entradas {
     this.entrada_Fecha,
     this.entrada_ImgB64Factura,
     this.entrada_Referencia,
+    this.entrada_Comentario,
+    this.entrada_NumeroFactura,
     this.idProducto,
     this.id_User,
     this.entrada_Estado,
@@ -211,6 +215,8 @@ class Entradas {
     String? entrada_Fecha,
     String? entrada_ImgB64Factura,
     String? entrada_Referencia,
+    String? entrada_Comentario,
+    int? entrada_NumeroFactura,
     int? idProducto,
     int? id_User,
     bool? entrada_Estado,
@@ -228,6 +234,9 @@ class Entradas {
       entrada_ImgB64Factura:
           entrada_ImgB64Factura ?? this.entrada_ImgB64Factura,
       entrada_Referencia: entrada_Referencia ?? this.entrada_Referencia,
+      entrada_Comentario: entrada_Comentario ?? this.entrada_Comentario,
+      entrada_NumeroFactura:
+          entrada_NumeroFactura ?? this.entrada_NumeroFactura,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
       entrada_Estado: entrada_Estado ?? this.entrada_Estado,
@@ -247,6 +256,8 @@ class Entradas {
       'entrada_Fecha': entrada_Fecha,
       'entrada_ImgB64Factura': entrada_ImgB64Factura,
       'entrada_Referencia': entrada_Referencia,
+      'entrada_Comentario': entrada_Comentario,
+      'entrada_NumeroFactura': entrada_NumeroFactura,
       'idProducto': idProducto,
       'id_User': id_User,
       'entrada_Estado': entrada_Estado,
@@ -282,6 +293,12 @@ class Entradas {
       entrada_Referencia: map['entrada_Referencia'] != null
           ? map['entrada_Referencia'] as String
           : null,
+      entrada_Comentario: map['entrada_Comentario'] != null
+          ? map['entrada_Comentario'] as String
+          : null,
+      entrada_NumeroFactura: map['entrada_NumeroFactura'] != null
+          ? map['entrada_NumeroFactura'] as int
+          : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       entrada_Estado:
@@ -301,7 +318,7 @@ class Entradas {
 
   @override
   String toString() {
-    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, entrada_Referencia: $entrada_Referencia, idProducto: $idProducto, id_User: $id_User, entrada_Estado: $entrada_Estado, id_Almacen: $id_Almacen, id_Proveedor: $id_Proveedor, id_Junta: $id_Junta, idEntidad: $idEntidad)';
+    return 'Entradas(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_ImgB64Factura: $entrada_ImgB64Factura, entrada_Referencia: $entrada_Referencia, entrada_Comentario: $entrada_Comentario, entrada_NumeroFactura: $entrada_NumeroFactura, idProducto: $idProducto, id_User: $id_User, entrada_Estado: $entrada_Estado, id_Almacen: $id_Almacen, id_Proveedor: $id_Proveedor, id_Junta: $id_Junta, idEntidad: $idEntidad)';
   }
 
   @override
@@ -315,6 +332,8 @@ class Entradas {
         other.entrada_Fecha == entrada_Fecha &&
         other.entrada_ImgB64Factura == entrada_ImgB64Factura &&
         other.entrada_Referencia == entrada_Referencia &&
+        other.entrada_Comentario == entrada_Comentario &&
+        other.entrada_NumeroFactura == entrada_NumeroFactura &&
         other.idProducto == idProducto &&
         other.id_User == id_User &&
         other.entrada_Estado == entrada_Estado &&
@@ -333,6 +352,8 @@ class Entradas {
         entrada_Fecha.hashCode ^
         entrada_ImgB64Factura.hashCode ^
         entrada_Referencia.hashCode ^
+        entrada_Comentario.hashCode ^
+        entrada_NumeroFactura.hashCode ^
         idProducto.hashCode ^
         id_User.hashCode ^
         entrada_Estado.hashCode ^
