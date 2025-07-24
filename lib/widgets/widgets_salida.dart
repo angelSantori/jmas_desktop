@@ -704,6 +704,7 @@ Future<void> generarPdfSalida({
   required Calles calle,
   required Juntas junta,
   OrdenServicio? ordenServicio,
+  String? comentario,
   required List<Map<String, dynamic>> productos,
 }) async {
   try {
@@ -723,6 +724,7 @@ Future<void> generarPdfSalida({
       calle: calle,
       junta: junta,
       ordenServicio: ordenServicio,
+      comentario: comentario,
       productos: productos,
     );
 
@@ -776,6 +778,7 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
   required Calles calle,
   required Juntas junta,
   OrdenServicio? ordenServicio,
+  String? comentario,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -1106,8 +1109,31 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
                     ),
                   ],
                 ),
-
                 pw.SizedBox(height: 30),
+
+                if (comentario != null && comentario.isNotEmpty) ...[
+                  pw.Container(
+                      width: double.infinity,
+                      margin: const pw.EdgeInsets.only(top: 10),
+                      padding: const pw.EdgeInsets.all(5),
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border.all(width: 0.5),
+                        borderRadius: pw.BorderRadius.circular(5),
+                      ),
+                      child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text('COMENTARIOS: ',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                )),
+                            pw.SizedBox(height: 3),
+                            pw.Text(comentario,
+                                style: const pw.TextStyle(fontSize: 8))
+                          ])),
+                  pw.SizedBox(height: 30),
+                ],
               ],
             ),
 
