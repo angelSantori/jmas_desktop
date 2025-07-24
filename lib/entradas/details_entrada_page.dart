@@ -370,160 +370,243 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
           : Center(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Card(
-                  elevation: 4,
-                  color: const Color.fromARGB(255, 201, 230, 242),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  margin: const EdgeInsets.all(100),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Referencia: ${widget.entradas.first.entrada_Referencia}',
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            if ((isAdmin || isGestion) && tieneActivos) ...[
-                              IconButton(
-                                icon: Icon(Icons.delete,
-                                    color: Colors.red.shade800),
-                                onPressed: _cancelarTodaLaEntrada,
-                                tooltip: 'Cancelar toda la entrada',
-                              ),
-                            ],
-                            IconButton(
-                              icon: Icon(Icons.print,
-                                  color: Colors.blue.shade900),
-                              onPressed: _imprimirEntrada,
-                              tooltip: 'Reimprimir entrada',
-                            ),
-                            // Add this new button for downloading factura
-                            if (widget.entradas.any((e) =>
-                                e.entrada_ImgB64Factura != null &&
-                                e.entrada_ImgB64Factura!.isNotEmpty))
-                              IconButton(
-                                icon: const Icon(Icons.picture_as_pdf,
-                                    color: Colors.red),
-                                onPressed: _descargarFactura,
-                                tooltip: 'Descargar factura PDF',
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        const Divider(),
-
-                        //Columna 1
-                        Row(
+                child: LayoutBuilder(builder: (context, constraints) {
+                  return SizedBox(
+                    width: constraints.maxWidth > 800
+                        ? 1500
+                        : constraints.maxWidth,
+                    child: Card(
+                      elevation: 4,
+                      color: const Color.fromARGB(255, 201, 230, 242),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.all(100),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Expanded(
-                                child: Container(
-                              alignment: Alignment.center,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                      'Proveedor: ${widget.proveedor.proveedor_Name}'),
-                                  Text(
-                                      'Almacén: ${widget.almacen.almacen_Nombre}'),
-                                  Text('Junta: ${widget.junta.junta_Name}'),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Referencia: ${widget.entradas.first.entrada_Referencia}',
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                if ((isAdmin || isGestion) && tieneActivos) ...[
+                                  IconButton(
+                                    icon: Icon(Icons.delete,
+                                        color: Colors.red.shade800),
+                                    onPressed: _cancelarTodaLaEntrada,
+                                    tooltip: 'Cancelar toda la entrada',
+                                  ),
                                 ],
-                              ),
-                            )),
+                                IconButton(
+                                  icon: Icon(Icons.print,
+                                      color: Colors.blue.shade900),
+                                  onPressed: _imprimirEntrada,
+                                  tooltip: 'Reimprimir entrada',
+                                ),
+                                // Add this new button for downloading factura
+                                if (widget.entradas.any((e) =>
+                                    e.entrada_ImgB64Factura != null &&
+                                    e.entrada_ImgB64Factura!.isNotEmpty))
+                                  IconButton(
+                                    icon: const Icon(Icons.picture_as_pdf,
+                                        color: Colors.red),
+                                    onPressed: _descargarFactura,
+                                    tooltip: 'Descargar factura PDF',
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 15),
+                            const Divider(),
+
+                            //Columna 1
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                    child: Container(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'Proveedor: ${widget.proveedor.proveedor_Name}'),
+                                      Text(
+                                          'Almacén: ${widget.almacen.almacen_Nombre}'),
+                                      Text('Junta: ${widget.junta.junta_Name}'),
+                                    ],
+                                  ),
+                                )),
+                                Expanded(
+                                    child: Container(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'Número de Factura: ${widget.entradas.first.entrada_NumeroFactura ?? 'Sin número de factura'}'),
+                                      Text('Realizado por: ${widget.user}'),
+                                      Text(
+                                          'Fecha: ${widget.entradas.first.entrada_Fecha}'),
+                                    ],
+                                  ),
+                                ))
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            const Divider(),
+                            const SizedBox(height: 20),
                             Expanded(
-                                child: Container(
-                              alignment: Alignment.center,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Realizado por: ${widget.user}'),
-                                  Text(
-                                      'Fecha: ${widget.entradas.first.entrada_Fecha}'),
-                                ],
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    FutureBuilder<Map<int, Productos>>(
+                                      future: _productosFuture,
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                              child: CircularProgressIndicator(
+                                            color: Colors.blue.shade900,
+                                          ));
+                                        } else if (snapshot.hasError) {
+                                          return Center(
+                                            child: Text(
+                                              'Error al cargar productos: ${snapshot.error}',
+                                              style: const TextStyle(
+                                                  color: Colors.red),
+                                            ),
+                                          );
+                                        }
+
+                                        final productosCache =
+                                            snapshot.data ?? {};
+
+                                        return SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: DataTable(
+                                            columns: const [
+                                              DataColumn(
+                                                  label: Text('ID Producto')),
+                                              DataColumn(label: Text('Nombre')),
+                                              DataColumn(
+                                                  label: Text('Cantidad')),
+                                              DataColumn(
+                                                  label:
+                                                      Text('Precio unitario')),
+                                              DataColumn(
+                                                  label: Text('Total (\$)')),
+                                              DataColumn(label: Text('Estado')),
+                                            ],
+                                            rows: groupProductos.entries
+                                                .map((entry) {
+                                              final idProducto = entry.key;
+                                              final cantidad =
+                                                  entry.value['cantidad'];
+                                              final total =
+                                                  entry.value['total'];
+                                              final nombreProducto =
+                                                  productosCache[idProducto]
+                                                          ?.prodDescripcion ??
+                                                      'Desconocido';
+                                              final entradasProducto =
+                                                  entradasPorProducto[
+                                                          idProducto] ??
+                                                      [];
+                                              final tieneActivos =
+                                                  entradasProducto.any((e) =>
+                                                      e.entrada_Estado == true);
+
+                                              return DataRow(cells: [
+                                                DataCell(Text(
+                                                    idProducto.toString())),
+                                                DataCell(Text(nombreProducto)),
+                                                DataCell(
+                                                    Text(cantidad.toString())),
+                                                DataCell(Text(
+                                                    '\$${(total / cantidad).toStringAsFixed(2)}')),
+                                                DataCell(Text(
+                                                    '\$${total.toStringAsFixed(2)}')),
+                                                DataCell(Text(
+                                                    tieneActivos
+                                                        ? 'Activo'
+                                                        : 'Cancelado',
+                                                    style: TextStyle(
+                                                        color: tieneActivos
+                                                            ? Colors.green
+                                                            : Colors.red))),
+                                              ]);
+                                            }).toList(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ))
+                            ),
+
+                            if (widget.entradas.first.entrada_Comentario !=
+                                    null &&
+                                widget.entradas.first.entrada_Comentario!
+                                    .isNotEmpty) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                margin: const EdgeInsets.only(bottom: 20),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.1),
+                                      spreadRadius: 1,
+                                      blurRadius: 3,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.comment,
+                                            size: 18, color: Colors.blueGrey),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Comentarios:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.blueGrey[800],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      widget.entradas.first.entrada_Comentario!,
+                                      style: const TextStyle(fontSize: 14),
+                                    )
+                                  ],
+                                ),
+                              )
+                            ]
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        const Divider(),
-                        const SizedBox(height: 20),
-                        Expanded(
-                          child: FutureBuilder<Map<int, Productos>>(
-                            future: _productosFuture,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              } else if (snapshot.hasError) {
-                                return Center(
-                                  child: Text(
-                                    'Error al cargar productos: ${snapshot.error}',
-                                    style: const TextStyle(color: Colors.red),
-                                  ),
-                                );
-                              }
-
-                              final productosCache = snapshot.data ?? {};
-
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  border: TableBorder.all(),
-                                  columns: const [
-                                    DataColumn(label: Text('ID Producto')),
-                                    DataColumn(label: Text('Nombre')),
-                                    DataColumn(label: Text('Cantidad')),
-                                    DataColumn(label: Text('Precio unitario')),
-                                    DataColumn(label: Text('Total (\$)')),
-                                    DataColumn(label: Text('Estado')),
-                                  ],
-                                  rows: groupProductos.entries.map((entry) {
-                                    final idProducto = entry.key;
-                                    final cantidad = entry.value['cantidad'];
-                                    final total = entry.value['total'];
-                                    final nombreProducto =
-                                        productosCache[idProducto]
-                                                ?.prodDescripcion ??
-                                            'Desconocido';
-                                    final entradasProducto =
-                                        entradasPorProducto[idProducto] ?? [];
-                                    final tieneActivos = entradasProducto
-                                        .any((e) => e.entrada_Estado == true);
-
-                                    return DataRow(cells: [
-                                      DataCell(Text(idProducto.toString())),
-                                      DataCell(Text(nombreProducto)),
-                                      DataCell(Text(cantidad.toString())),
-                                      DataCell(Text(
-                                          '\$${(total / cantidad).toStringAsFixed(2)}')),
-                                      DataCell(Text(
-                                          '\$${total.toStringAsFixed(2)}')),
-                                      DataCell(Text(
-                                          tieneActivos ? 'Activo' : 'Cancelado',
-                                          style: TextStyle(
-                                              color: tieneActivos
-                                                  ? Colors.green
-                                                  : Colors.red))),
-                                    ]);
-                                  }).toList(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ),
             ),
     );
