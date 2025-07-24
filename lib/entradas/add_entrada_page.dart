@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
-import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
@@ -33,8 +32,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
-  final TextEditingController _fechaController = TextEditingController(
-      text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
   final TextEditingController _referenciaController = TextEditingController();
 
   final _showFecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
@@ -64,11 +61,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   List<Almacenes> _almacenes = [];
   Almacenes? _selectedAlmacen;
 
-  //Juntas
-  final JuntasController _juntasController = JuntasController();
-  List<Juntas> _juntas = [];
-  Juntas? _selectedJunta;
-
   //Factura / Imagen
   Uint8List? _imagenFactura;
 
@@ -92,21 +84,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     }
   }
 
-  Future<void> _seleccionarFecha(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-
-    if (picked != null) {
-      setState(() {
-        _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
-      });
-    }
-  }
-
   Future<void> _loadCodFolio() async {
     final fetchedCodFolio = await _entradasController.getNextCodFolio();
     setState(() {
@@ -116,11 +93,9 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   Future<void> _loadDataEntrada() async {
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
-    List<Juntas> juntas = await _juntasController.listJuntas();
 
     setState(() {
       _almacenes = almacenes;
-      _juntas = juntas;
     });
   }
 
@@ -311,7 +286,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       _selectedProducto = null;
       _selectedAlmacen = null;
       _selectedProveedor = null;
-      _selectedJunta = null;
       _imagenFactura = null;
       _idProductoController.clear();
       _busquedaProveedorController.clear();
@@ -643,7 +617,6 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                               _referenciaController.text,
                                           productos: _productosAgregados,
                                           proveedorP: _selectedProveedor!,
-                                          juntaJ: _selectedJunta,
                                           //factura: _imagenFactura!,
                                         );
 

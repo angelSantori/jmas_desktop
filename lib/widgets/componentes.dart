@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
-import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -290,7 +289,6 @@ Future<void> generarPdfEntrada({
   required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
-  required Juntas? juntaJ,
   required List<Map<String, dynamic>> productos,
 }) async {
   try {
@@ -304,7 +302,6 @@ Future<void> generarPdfEntrada({
       referencia: referencia,
       alamcenA: alamcenA,
       proveedorP: proveedorP,
-      juntaJ: juntaJ,
       productos: productos,
     );
 
@@ -352,7 +349,6 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
   required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
-  required Juntas? juntaJ,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -495,7 +491,6 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text('Junta: 1 - Meoqui',
-                              //'Junta: ${juntaJ.id_Junta} - ${juntaJ.junta_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
