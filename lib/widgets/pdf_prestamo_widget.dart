@@ -72,6 +72,7 @@ Future<void> generarPdfPrestamoHerramientas({
     final String currentTime = DateFormat('HHmmss').format(DateTime.now());
     final fileName = 'Prestamo_Herramientas_${currentDate}_$currentTime.pdf';
 
+    // ignore: unused_local_variable
     final anchor = html.AnchorElement(href: url)
       ..target = '_blank'
       ..download = fileName

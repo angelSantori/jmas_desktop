@@ -36,7 +36,9 @@ class _ConsultaUniversalPageState extends State<ConsultaUniversalPage> {
   // Variables para filtros de fecha
   int? _selectedMonth;
   int? _selectedYear;
+  // ignore: unused_field
   final List<int> _months = List.generate(12, (index) => index + 1);
+  // ignore: unused_field
   final List<int> _years =
       List.generate(10, (index) => DateTime.now().year - index);
 
@@ -162,6 +164,7 @@ class _ConsultaUniversalPageState extends State<ConsultaUniversalPage> {
         final parts = fechaLimpia.split('/');
         if (parts.length != 3) return false;
 
+        // ignore: unused_local_variable
         final day = parts[0];
         final month = parts[1];
         final year = parts[2];
@@ -555,24 +558,6 @@ class _ConsultaUniversalPageState extends State<ConsultaUniversalPage> {
         ),
       ),
     );
-  }
-
-  String _getMonthName(int month) {
-    const monthNames = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre'
-    ];
-    return monthNames[month - 1];
   }
 
   Widget _buildTotalItem(String label, String value) {
