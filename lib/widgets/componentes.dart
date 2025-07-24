@@ -289,6 +289,8 @@ Future<void> generarPdfEntrada({
   required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
+  required String numFactura,
+  String? comentario,
   required List<Map<String, dynamic>> productos,
 }) async {
   try {
@@ -302,6 +304,8 @@ Future<void> generarPdfEntrada({
       referencia: referencia,
       alamcenA: alamcenA,
       proveedorP: proveedorP,
+      numFactura: numFactura,
+      comentario: comentario,
       productos: productos,
     );
 
@@ -349,6 +353,8 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
   required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
+  required String? numFactura,
+  String? comentario,
   required List<Map<String, dynamic>> productos,
 }) async {
   final pdf = pw.Document();
@@ -503,7 +509,7 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
                               'Almacen: ${alamcenA.id_Almacen} - ${alamcenA.almacen_Nombre}',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('Estatus: ACUM',
+                          pw.Text('Número Factura: $numFactura',
                               style: const pw.TextStyle(fontSize: 9)),
                         ],
                       ),
@@ -660,8 +666,32 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
                     ),
                   ],
                 ),
-
                 pw.SizedBox(height: 30),
+
+                //  Comentario
+                if (comentario != null && comentario.isNotEmpty) ...[
+                  pw.Container(
+                      width: double.infinity,
+                      margin: const pw.EdgeInsets.only(top: 10),
+                      padding: const pw.EdgeInsets.all(5),
+                      decoration: pw.BoxDecoration(
+                        border: pw.Border.all(width: 0.5),
+                        borderRadius: pw.BorderRadius.circular(5),
+                      ),
+                      child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text('COMENTARIOS: ',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                )),
+                            pw.SizedBox(height: 3),
+                            pw.Text(comentario,
+                                style: const pw.TextStyle(fontSize: 8))
+                          ])),
+                  pw.SizedBox(height: 30),
+                ],
               ],
             ),
 
@@ -1341,6 +1371,7 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
   required BuildContext context,
   required List productosAgregados,
   required String referencia,
+  required String numFactura,
   required var selectedAlmacen,
   required var proveedor,
   //required var junta,
@@ -1348,6 +1379,11 @@ Future<bool> validarCamposAntesDeImprimirEntrada({
 }) async {
   if (referencia.isEmpty) {
     showAdvertence(context, 'Referencia es obligatoria.');
+    return false;
+  }
+
+  if (numFactura.isEmpty) {
+    showAdvertence(context, 'Número de factura es obligatoria.');
     return false;
   }
 
