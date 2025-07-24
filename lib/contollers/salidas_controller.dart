@@ -130,6 +130,7 @@ class Salidas {
   double? salida_Costo;
   String? salida_Fecha;
   String? salida_TipoTrabajo;
+  String? salida_Comentario;
   int? idProducto;
   int? id_User;
   int? id_Junta;
@@ -148,6 +149,7 @@ class Salidas {
     this.salida_Costo,
     this.salida_Fecha,
     this.salida_TipoTrabajo,
+    this.salida_Comentario,
     this.idProducto,
     this.id_User,
     this.id_Junta,
@@ -168,6 +170,7 @@ class Salidas {
     double? salida_Costo,
     String? salida_Fecha,
     String? salida_TipoTrabajo,
+    String? salida_Comentario,
     int? idProducto,
     int? id_User,
     int? id_Junta,
@@ -187,6 +190,7 @@ class Salidas {
       salida_Costo: salida_Costo ?? this.salida_Costo,
       salida_Fecha: salida_Fecha ?? this.salida_Fecha,
       salida_TipoTrabajo: salida_TipoTrabajo ?? this.salida_TipoTrabajo,
+      salida_Comentario: salida_Comentario ?? this.salida_Comentario,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
@@ -209,6 +213,7 @@ class Salidas {
       'salida_Costo': salida_Costo,
       'salida_Fecha': salida_Fecha,
       'salida_TipoTrabajo': salida_TipoTrabajo,
+      'salida_Comentario': salida_Comentario,
       'idProducto': idProducto,
       'id_User': id_User,
       'id_Junta': id_Junta,
@@ -231,6 +236,7 @@ class Salidas {
       salida_Costo: map['salida_Costo'] != null ? map['salida_Costo'] as double : null,
       salida_Fecha: map['salida_Fecha'] != null ? map['salida_Fecha'] as String : null,
       salida_TipoTrabajo: map['salida_TipoTrabajo'] != null ? map['salida_TipoTrabajo'] as String : null,
+      salida_Comentario: map['salida_Comentario'] != null ? map['salida_Comentario'] as String : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
@@ -250,7 +256,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio)';
   }
 
   @override
@@ -266,6 +272,7 @@ class Salidas {
       other.salida_Costo == salida_Costo &&
       other.salida_Fecha == salida_Fecha &&
       other.salida_TipoTrabajo == salida_TipoTrabajo &&
+      other.salida_Comentario == salida_Comentario &&
       other.idProducto == idProducto &&
       other.id_User == id_User &&
       other.id_Junta == id_Junta &&
@@ -287,6 +294,7 @@ class Salidas {
       salida_Costo.hashCode ^
       salida_Fecha.hashCode ^
       salida_TipoTrabajo.hashCode ^
+      salida_Comentario.hashCode ^
       idProducto.hashCode ^
       id_User.hashCode ^
       id_Junta.hashCode ^
