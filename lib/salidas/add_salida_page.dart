@@ -55,6 +55,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final TextEditingController _cantidadController = TextEditingController();
   final TextEditingController _fechaController = TextEditingController(
       text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
+  final TextEditingController _comentarioController = TextEditingController();
 
   final _showDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
@@ -68,7 +69,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Users? _selectedEmpleado;
 
   //Odenes aprobadas
-  List<OrdenServicio> _ordenesServicioAprobadas = [];
+  //List<OrdenServicio> _ordenesServicioAprobadas = [];
   // ignore: unused_field
   bool _cargandoOrdenes = false;
   OrdenServicio? _selectedOrdenServicio;
@@ -86,7 +87,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   bool _isLoading = false;
   bool _isGeneratingPDF = false;
-  bool _mostrarOrdenServicio = false;
+  //bool _mostrarOrdenServicio = false;
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
@@ -101,7 +102,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _loadDataSalidas();
     _loadFolioSalida();
     _loadFolioTR();
-    _cargarOrdenesAprobadas();
+    //_cargarOrdenesAprobadas();
   }
 
   // Future<void> _seleccionarFecha(BuildContext context) async {
@@ -161,23 +162,23 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     });
   }
 
-  Future<void> _cargarOrdenesAprobadas() async {
-    setState(() => _cargandoOrdenes = true);
-    try {
-      final todasOrdenes = await _ordenServicioController.listOrdenServicio();
-      setState(() {
-        _ordenesServicioAprobadas = todasOrdenes
-            .where((orden) =>
-                orden.estadoOS == 'Aprobada - S/A' ||
-                orden.estadoOS == 'Devuelta')
-            .toList();
-        _cargandoOrdenes = false;
-      });
-    } catch (e) {
-      print('Error _cargarOrdenesAprobadas | AddSalida : $e');
-      setState(() => _cargandoOrdenes = false);
-    }
-  }
+  // Future<void> _cargarOrdenesAprobadas() async {
+  //   setState(() => _cargandoOrdenes = true);
+  //   try {
+  //     final todasOrdenes = await _ordenServicioController.listOrdenServicio();
+  //     setState(() {
+  //       _ordenesServicioAprobadas = todasOrdenes
+  //           .where((orden) =>
+  //               orden.estadoOS == 'Aprobada - S/A' ||
+  //               orden.estadoOS == 'Devuelta')
+  //           .toList();
+  //       _cargandoOrdenes = false;
+  //     });
+  //   } catch (e) {
+  //     print('Error _cargarOrdenesAprobadas | AddSalida : $e');
+  //     setState(() => _cargandoOrdenes = false);
+  //   }
+  // }
 
   void actualizarCostoSalida(int index, double nuevoCosto) {
     setState(() {
@@ -390,6 +391,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Costo: double.tryParse(producto['precio'].toString()),
       salida_Fecha: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
       salida_TipoTrabajo: _selectedTipoTrabajo,
+      salida_Comentario: _comentarioController.text,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta,
@@ -435,6 +437,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedOrdenServicio = null;
 
       _referenciaController.clear();
+      _comentarioController.clear();
       _idProductoController.clear();
       _idColoniaController.clear();
       _idCalleController.clear();
@@ -739,11 +742,22 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                       },
                                     ),
                                   ),
-                                const SizedBox(width: 20),
+                                const SizedBox(height: 30),
+
+                                //  Comentario
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: CustomTextFielTexto(
+                                      controller: _comentarioController,
+                                      labelText: 'Comentario*',
+                                      prefixIcon: Icons.remove_red_eye,
+                                    )),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 10),
                         ],
                       ),
                       const SizedBox(height: 30),
@@ -893,6 +907,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           calle: _selectedCalle!,
                                           junta: _selectedJunta!,
                                           ordenServicio: _selectedOrdenServicio,
+                                          comentario:
+                                              _comentarioController.text,
                                           productos: _productosAgregados,
                                         );
 
