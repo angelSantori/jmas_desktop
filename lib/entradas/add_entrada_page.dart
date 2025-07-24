@@ -33,6 +33,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
   final TextEditingController _referenciaController = TextEditingController();
+  final TextEditingController _comentarioController = TextEditingController();
+  final TextEditingController _numFacturaController = TextEditingController();
 
   final _showFecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
@@ -267,6 +269,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       entrada_Costo: double.tryParse(producto['precio'].toString()),
       entrada_Referencia: _referenciaController.text,
       entrada_Fecha: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
+      entrada_Comentario: _comentarioController.text,
+      entrada_NumeroFactura: int.tryParse(_numFacturaController.text),
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!),
       id_Almacen: _selectedAlmacen!.id_Almacen,
@@ -282,6 +286,8 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
     _formKey.currentState!.reset();
     _productosAgregados.clear();
     _referenciaController.clear();
+    _comentarioController.clear();
+    _numFacturaController.clear();
     setState(() {
       _selectedProducto = null;
       _selectedAlmacen = null;
@@ -337,6 +343,20 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                               validator: (referencia) {
                                 if (referencia == null || referencia.isEmpty) {
                                   return 'Referencia es obligatoria';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: CustomTextFieldNumero(
+                              prefixIcon: Icons.numbers,
+                              controller: _numFacturaController,
+                              labelText: 'Número de Factura',
+                              validator: (factura) {
+                                if (factura == null || factura.isEmpty) {
+                                  return 'Número de factura es obligatoria';
                                 }
                                 return null;
                               },
@@ -546,6 +566,18 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                           // ),
                         ],
                       ),
+                      const SizedBox(height: 30),
+
+                      Row(
+                        children: [
+                          Expanded(
+                              child: CustomTextFielTexto(
+                            controller: _comentarioController,
+                            labelText: 'Comentario*',
+                            prefixIcon: Icons.remove_red_eye,
+                          )),
+                        ],
+                      ),
 
                       const SizedBox(height: 30),
                       BuscarProductoWidget(
@@ -593,11 +625,12 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                           context: context,
                                           referencia:
                                               _referenciaController.text,
+                                          numFactura:
+                                              _numFacturaController.text,
                                           productosAgregados:
                                               _productosAgregados,
                                           selectedAlmacen: _selectedAlmacen,
                                           proveedor: _selectedProveedor,
-                                          //junta: _selectedJunta,
                                           factura: _imagenFactura,
                                         );
 
@@ -617,7 +650,10 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                               _referenciaController.text,
                                           productos: _productosAgregados,
                                           proveedorP: _selectedProveedor!,
-                                          //factura: _imagenFactura!,
+                                          numFactura:
+                                              _numFacturaController.text,
+                                          comentario:
+                                              _comentarioController.text,
                                         );
 
                                         //3. Guardar registro
