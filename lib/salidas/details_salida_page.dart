@@ -496,7 +496,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Row(
-                              //crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
