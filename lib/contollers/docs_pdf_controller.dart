@@ -110,6 +110,44 @@ class DocsPdfController {
       return false;
     }
   }
+
+  // Agregar este nuevo método a la clase DocsPdfController
+  Future<List<Map<String, dynamic>>> searchPdfDocuments({
+    String? name,
+    String? docType,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      // Construir la URL con los parámetros de búsqueda
+      final uri =
+          Uri.parse('${_authService.apiURL}/DocumentPdfs/search').replace(
+        queryParameters: {
+          if (name != null && name.isNotEmpty) 'name': name,
+          if (docType != null) 'docType': docType,
+          if (startDate != null) 'startDate': startDate,
+          if (endDate != null) 'endDate': endDate,
+        },
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.cast<Map<String, dynamic>>();
+      }
+      throw Exception(
+          'Error al buscar documentos: ${response.statusCode} - ${response.body}');
+    } catch (e) {
+      print('Error searchPdfDocuments | Try | Controller: $e');
+      rethrow;
+    }
+  }
 }
 
 class DocsPdfs {
