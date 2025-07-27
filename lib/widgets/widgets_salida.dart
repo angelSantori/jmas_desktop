@@ -909,7 +909,7 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
                           if (ordenServicio != null) ...[
                             pw.SizedBox(height: 3),
                             pw.Text(
-                                'OT: ${ordenServicio.folioOS} - ${ordenServicio.idTipoProblema}',
+                                'OS: ${ordenServicio.folioOS} - ${ordenServicio.prioridadOS}',
                                 style: const pw.TextStyle(fontSize: 9)),
                           ]
                         ],
