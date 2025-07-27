@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
@@ -17,30 +16,24 @@ class PdfListPage extends StatefulWidget {
 class _PdfListPageState extends State<PdfListPage> {
   final DocsPdfController _pdfController = DocsPdfController();
   List<Map<String, dynamic>> _pdfDocuments = [];
-  List<Map<String, dynamic>> _filteredDocuments = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
+  bool _hasSearched =
+      false; // Nuevo estado para controlar si se ha realizado una búsqueda
 
   // Filter controllers
   final TextEditingController _searchController = TextEditingController();
-  String _selectedDocType = 'Todos';
+  String? _selectedDocType;
   DateTime? _startDate;
   DateTime? _endDate;
 
   // Document types extracted from names
   final List<String> _docTypes = [
-    'Todos',
     'AjusteMas',
     'Prestamo_Herramientas',
     'Salida_Reporte',
-    'Entrada_Reporte'
+    'Entrada_Reporte',
+    'Orden_Servicio',
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPdfDocuments();
-    _searchController.addListener(_applyFilters);
-  }
 
   @override
   void dispose() {
@@ -48,64 +41,36 @@ class _PdfListPageState extends State<PdfListPage> {
     super.dispose();
   }
 
-  Future<void> _loadPdfDocuments() async {
-    setState(() => _isLoading = true);
+  Future<void> _searchDocuments() async {
+    setState(() {
+      _isLoading = true;
+      _hasSearched = true; // Marcar que se ha realizado una búsqueda
+    });
     try {
-      final documents = await _pdfController.listPdfDocuments();
+      // Convertir fechas a formato string si existen
+      final startDateStr = _startDate != null
+          ? DateFormat('dd/MM/yyyy').format(_startDate!)
+          : null;
+      final endDateStr =
+          _endDate != null ? DateFormat('dd/MM/yyyy').format(_endDate!) : null;
+
+      // Llamar al nuevo método de búsqueda en el controlador
+      final documents = await _pdfController.searchPdfDocuments(
+        name: _searchController.text,
+        docType: _selectedDocType,
+        startDate: startDateStr,
+        endDate: endDateStr,
+      );
+
       setState(() {
         _pdfDocuments = documents;
-        _filteredDocuments = documents;
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      showError(context, 'Error al cargar documentos');
-      print('Error al cargar documentos: $e');
+      showError(context, 'Error al buscar documentos');
+      print('Error al buscar documentos: $e');
     }
-  }
-
-  void _applyFilters() {
-    final searchTerm = _searchController.text.toLowerCase();
-    final docType = _selectedDocType;
-
-    setState(() {
-      _filteredDocuments = _pdfDocuments.where((doc) {
-        final name = doc['nombreDocPdf']?.toString().toLowerCase() ?? '';
-        final date = doc['fechaDocPdf']?.toString() ?? '';
-
-        // Apply search filter
-        final matchesSearch = name.contains(searchTerm);
-
-        // Apply document type filter
-        final matchesDocType =
-            docType == 'Todos' || name.startsWith(docType.toLowerCase());
-
-        // Apply date filter if selected
-        bool matchesDate = true;
-        if (_startDate != null || _endDate != null) {
-          try {
-            final dateParts = date.split(' ');
-            final dayMonthYear = dateParts[0].split('/');
-            final docDate = DateTime(
-              int.parse(dayMonthYear[2]),
-              int.parse(dayMonthYear[1]),
-              int.parse(dayMonthYear[0]),
-            );
-
-            if (_startDate != null && docDate.isBefore(_startDate!)) {
-              matchesDate = false;
-            }
-            if (_endDate != null && docDate.isAfter(_endDate!)) {
-              matchesDate = false;
-            }
-          } catch (e) {
-            matchesDate = false;
-          }
-        }
-
-        return matchesSearch && matchesDocType && matchesDate;
-      }).toList();
-    });
   }
 
   Future<void> _selectDateRange(BuildContext context) async {
@@ -122,7 +87,6 @@ class _PdfListPageState extends State<PdfListPage> {
       setState(() {
         _startDate = picked.start;
         _endDate = picked.end;
-        _applyFilters();
       });
     }
   }
@@ -130,10 +94,11 @@ class _PdfListPageState extends State<PdfListPage> {
   void _clearFilters() {
     setState(() {
       _searchController.clear();
-      _selectedDocType = 'Todos';
+      _selectedDocType = null;
       _startDate = null;
       _endDate = null;
-      _filteredDocuments = _pdfDocuments;
+      _pdfDocuments = [];
+      _hasSearched = false; // Resetear el estado de búsqueda
     });
   }
 
@@ -157,13 +122,7 @@ class _PdfListPageState extends State<PdfListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Documentos PDF Guardados'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadPdfDocuments,
-          ),
-        ],
+        title: const Text('Búsqueda de Documentos PDF'),
         centerTitle: true,
       ),
       body: Column(
@@ -183,7 +142,7 @@ class _PdfListPageState extends State<PdfListPage> {
                         prefixIcon: Icons.search,
                       ),
                     ),
-                    const SizedBox(width: 30),
+                    const SizedBox(width: 20),
 
                     //Tipo
                     Expanded(
@@ -193,13 +152,12 @@ class _PdfListPageState extends State<PdfListPage> {
                         items: _docTypes,
                         onChanged: (String? newValue) {
                           setState(() {
-                            _selectedDocType = newValue!;
-                            _applyFilters();
+                            _selectedDocType = newValue;
                           });
                         },
                       ),
                     ),
-                    const SizedBox(width: 30),
+                    const SizedBox(width: 20),
 
                     //Fecha
                     Expanded(
@@ -224,43 +182,52 @@ class _PdfListPageState extends State<PdfListPage> {
                         ),
                       ),
                     ),
-                    if (_startDate != null || _endDate != null)
-                      IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.red),
-                        onPressed: () {
-                          setState(() {
-                            _startDate = null;
-                            _endDate = null;
-                            _applyFilters();
-                          });
-                        },
-                      ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //  Botón de busqueda
+                    ElevatedButton(
+                      onPressed: _searchDocuments,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade900,
+                        elevation: 8,
+                        shadowColor: Colors.blue.shade900,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 15),
+                      ),
+                      child: const Text(
+                        'Buscar',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                    const SizedBox(width: 100),
 
-                const SizedBox(height: 10),
-
-                // Clear filters button
-
-                ElevatedButton(
-                  onPressed: _clearFilters,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade900,
-                    elevation: 8,
-                    shadowColor: Colors.blue.shade900,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 15),
-                  ),
-                  child: const Text(
-                    'Limpiar todos los filtros',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
+                    //  Limpiar filtros
+                    ElevatedButton(
+                      onPressed: _clearFilters,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade900,
+                        elevation: 8,
+                        shadowColor: Colors.blue.shade900,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 15),
+                      ),
+                      child: const Text(
+                        'Limpiar todos los filtros',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 30),
 
           // Documents list
           Expanded(
@@ -268,22 +235,19 @@ class _PdfListPageState extends State<PdfListPage> {
                 ? Center(
                     child:
                         CircularProgressIndicator(color: Colors.blue.shade900))
-                : _filteredDocuments.isEmpty
+                : _pdfDocuments.isEmpty
                     ? Center(
                         child: Text(
-                          _searchController.text.isNotEmpty
-                              ? 'No hay documentos que coincidan con la búsqueda'
-                              : (_startDate != null || _endDate != null)
-                                  ? 'No hay documentos en el rango de fechas seleccionado'
-                                  : (_selectedDocType != 'Todos')
-                                      ? 'No hay documentos del tipo seleccionado'
-                                      : 'No hay documentos disponibles',
+                          _hasSearched
+                              ? 'No se encontraron resultados'
+                              : 'Ingrese los criterios de búsqueda y presione "Buscar"',
+                          style: TextStyle(color: Colors.grey),
                         ),
                       )
                     : ListView.builder(
-                        itemCount: _filteredDocuments.length,
+                        itemCount: _pdfDocuments.length,
                         itemBuilder: (context, index) {
-                          final doc = _filteredDocuments[index];
+                          final doc = _pdfDocuments[index];
                           return Card(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
