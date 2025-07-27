@@ -69,7 +69,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Users? _selectedEmpleado;
 
   //Odenes aprobadas
-  //List<OrdenServicio> _ordenesServicioAprobadas = [];
+  List<OrdenServicio> _ordenesServicioAprobadas = [];
   // ignore: unused_field
   bool _cargandoOrdenes = false;
   OrdenServicio? _selectedOrdenServicio;
@@ -87,7 +87,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   bool _isLoading = false;
   bool _isGeneratingPDF = false;
-  //bool _mostrarOrdenServicio = false;
+  bool _mostrarOrdenServicio = false;
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
@@ -104,21 +104,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _loadFolioTR();
     //_cargarOrdenesAprobadas();
   }
-
-  // Future<void> _seleccionarFecha(BuildContext context) async {
-  //   DateTime? picked = await showDatePicker(
-  //     context: context,
-  //     initialDate: DateTime.now(),
-  //     firstDate: DateTime(2000),
-  //     lastDate: DateTime.now(),
-  //   );
-
-  //   if (picked != null) {
-  //     setState(() {
-  //       _fechaController.text = DateFormat('dd/MM/yyyy').format(picked);
-  //     });
-  //   }
-  // }
 
   Future<void> _loadFolioSalida() async {
     final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
@@ -162,23 +147,23 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     });
   }
 
-  // Future<void> _cargarOrdenesAprobadas() async {
-  //   setState(() => _cargandoOrdenes = true);
-  //   try {
-  //     final todasOrdenes = await _ordenServicioController.listOrdenServicio();
-  //     setState(() {
-  //       _ordenesServicioAprobadas = todasOrdenes
-  //           .where((orden) =>
-  //               orden.estadoOS == 'Aprobada - S/A' ||
-  //               orden.estadoOS == 'Devuelta')
-  //           .toList();
-  //       _cargandoOrdenes = false;
-  //     });
-  //   } catch (e) {
-  //     print('Error _cargarOrdenesAprobadas | AddSalida : $e');
-  //     setState(() => _cargandoOrdenes = false);
-  //   }
-  // }
+  Future<void> _cargarOrdenesAprobadas() async {
+    setState(() => _cargandoOrdenes = true);
+    try {
+      final todasOrdenes = await _ordenServicioController.listOrdenServicio();
+      setState(() {
+        _ordenesServicioAprobadas = todasOrdenes
+            .where((orden) =>
+                orden.estadoOS == 'Aprobada - S/A' ||
+                orden.estadoOS == 'Devuelta')
+            .toList();
+        _cargandoOrdenes = false;
+      });
+    } catch (e) {
+      print('Error _cargarOrdenesAprobadas | AddSalida : $e');
+      setState(() => _cargandoOrdenes = false);
+    }
+  }
 
   void actualizarCostoSalida(int index, double nuevoCosto) {
     setState(() {
@@ -340,7 +325,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           showAdvertence(context, 'Error al crear registro de servicio');
         }
 
-        _selectedOrdenServicio!.estadoOS = "Aprobada - A";
+        _selectedOrdenServicio!.estadoOS = 'Aprobada - A';
         final estadoOrden = await _ordenServicioController
             .editOrdenServicio(_selectedOrdenServicio!);
 
@@ -576,90 +561,90 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Row(
-                                //   children: [
-                                //     const Text(
-                                //       '¿Agregar orden de servicio?',
-                                //       style: TextStyle(
-                                //           fontWeight: FontWeight.bold,
-                                //           fontSize: 16),
-                                //     ),
-                                //     const SizedBox(width: 10),
-                                //     ToggleButtons(
-                                //       isSelected: [
-                                //         _mostrarOrdenServicio,
-                                //         !_mostrarOrdenServicio
-                                //       ],
-                                //       onPressed: (index) {
-                                //         setState(() {
-                                //           _mostrarOrdenServicio = index == 0;
-                                //           if (!_mostrarOrdenServicio) {
-                                //             _selectedOrdenServicio = null;
-                                //           }
-                                //         });
-                                //       },
-                                //       children: const [
-                                //         Padding(
-                                //           padding: EdgeInsets.symmetric(
-                                //               horizontal: 16),
-                                //           child: Text('Sí'),
-                                //         ),
-                                //         Padding(
-                                //           padding: EdgeInsets.symmetric(
-                                //               horizontal: 16),
-                                //           child: Text('No'),
-                                //         ),
-                                //       ],
-                                //     ),
-                                //     const SizedBox(width: 20),
-                                //     if (_mostrarOrdenServicio)
-                                //       Expanded(
-                                //         child: Row(
-                                //           children: [
-                                //             SizedBox(
-                                //               width: 300,
-                                //               child: CustomListaDesplegableTipo<
-                                //                   OrdenServicio>(
-                                //                 value: _selectedOrdenServicio,
-                                //                 labelText: 'Orden de Servicio',
-                                //                 items:
-                                //                     _ordenesServicioAprobadas,
-                                //                 onChanged: (orden) {
-                                //                   setState(() {
-                                //                     _selectedOrdenServicio =
-                                //                         orden;
-                                //                   });
-                                //                 },
-                                //                 validator: (orden) {
-                                //                   if (_mostrarOrdenServicio &&
-                                //                       orden == null) {
-                                //                     return 'Debe seleccionar una orden de servicio';
-                                //                   }
-                                //                   return null;
-                                //                 },
-                                //                 itemLabelBuilder: (orden) =>
-                                //                     '${orden.folioOS} - ${orden.estadoOS} - ${orden.prioridadOS}',
-                                //               ),
-                                //             ),
-                                //             Expanded(
-                                //               child: Row(
-                                //                 mainAxisAlignment:
-                                //                     MainAxisAlignment.start,
-                                //                 children: [
-                                //                   IconButton(
-                                //                     onPressed:
-                                //                         _cargarOrdenesAprobadas,
-                                //                     icon: const Icon(
-                                //                         Icons.refresh),
-                                //                   ),
-                                //                 ],
-                                //               ),
-                                //             ),
-                                //           ],
-                                //         ),
-                                //       ),
-                                //   ],
-                                // ),
+                                Row(
+                                  children: [
+                                    const Text(
+                                      '¿Agregar orden de servicio?',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ToggleButtons(
+                                      isSelected: [
+                                        _mostrarOrdenServicio,
+                                        !_mostrarOrdenServicio
+                                      ],
+                                      onPressed: (index) {
+                                        setState(() {
+                                          _mostrarOrdenServicio = index == 0;
+                                          if (!_mostrarOrdenServicio) {
+                                            _selectedOrdenServicio = null;
+                                          }
+                                        });
+                                      },
+                                      children: const [
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: Text('Sí'),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: Text('No'),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 20),
+                                    if (_mostrarOrdenServicio)
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 300,
+                                              child: CustomListaDesplegableTipo<
+                                                  OrdenServicio>(
+                                                value: _selectedOrdenServicio,
+                                                labelText: 'Orden de Servicio',
+                                                items:
+                                                    _ordenesServicioAprobadas,
+                                                onChanged: (orden) {
+                                                  setState(() {
+                                                    _selectedOrdenServicio =
+                                                        orden;
+                                                  });
+                                                },
+                                                validator: (orden) {
+                                                  if (_mostrarOrdenServicio &&
+                                                      orden == null) {
+                                                    return 'Debe seleccionar una orden de servicio';
+                                                  }
+                                                  return null;
+                                                },
+                                                itemLabelBuilder: (orden) =>
+                                                    '${orden.folioOS} - ${orden.estadoOS} - ${orden.prioridadOS}',
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  IconButton(
+                                                    onPressed:
+                                                        _cargarOrdenesAprobadas,
+                                                    icon: const Icon(
+                                                        Icons.refresh),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
                                 const SizedBox(height: 20),
 
                                 //Buscar Empleado
