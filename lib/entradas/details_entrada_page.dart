@@ -236,7 +236,7 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
           fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
           motivo: _motivoController.text,
           folio: widget.entradas.first.entrada_CodFolio ?? '',
-          referencia: widget.entradas.first.entrada_Referencia ?? '',
+          //referencia: widget.entradas.first.entrada_Referencia ?? '',
           user: _currentUser!,
           almacen: widget.almacen.almacen_Nombre ?? '',
           proveedor: widget.proveedor.proveedor_Name ?? '',
@@ -303,7 +303,7 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
         movimiento: 'ENTRADA',
         fecha: widget.entradas.first.entrada_Fecha ?? '',
         folio: widget.entradas.first.entrada_CodFolio ?? '',
-        referencia: widget.entradas.first.entrada_Referencia ?? '',
+        //referencia: widget.entradas.first.entrada_Referencia ?? '',
         userName: widget.user,
         idUser: _currentUserId ?? '0',
         almacen: widget.almacen,
@@ -377,7 +377,9 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                         : constraints.maxWidth,
                     child: Card(
                       elevation: 4,
-                      color: const Color.fromARGB(255, 201, 230, 242),
+                      color: widget.entradas.first.entrada_Estado == false
+                          ? const Color.fromARGB(188, 255, 205, 210)
+                          : Colors.blue.shade100,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                       margin: const EdgeInsets.all(100),
@@ -389,12 +391,12 @@ class _DetailsEntradaPageState extends State<DetailsEntradaPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(
-                                  'Referencia: ${widget.entradas.first.entrada_Referencia}',
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
+                                // Text(
+                                //   'Referencia: ${widget.entradas.first.entrada_Referencia}',
+                                //   style: const TextStyle(
+                                //       fontSize: 18,
+                                //       fontWeight: FontWeight.bold),
+                                // ),
                                 if ((isAdmin || isGestion) && tieneActivos) ...[
                                   IconButton(
                                     icon: Icon(Icons.delete,

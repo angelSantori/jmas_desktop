@@ -286,7 +286,7 @@ Future<void> generarPdfEntrada({
   required String folio,
   required String userName,
   required String idUser,
-  required String referencia,
+  //required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
   required String numFactura,
@@ -301,7 +301,7 @@ Future<void> generarPdfEntrada({
       folio: folio,
       userName: userName,
       idUser: idUser,
-      referencia: referencia,
+      //referencia: referencia,
       alamcenA: alamcenA,
       proveedorP: proveedorP,
       numFactura: numFactura,
@@ -350,7 +350,7 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
   required String folio,
   required String userName,
   required String idUser,
-  required String referencia,
+  //required String referencia,
   required Almacenes alamcenA,
   required Proveedores proveedorP,
   required String? numFactura,
@@ -477,9 +477,9 @@ Future<Uint8List> generateAndPrintPdfEntradaByte({
                           pw.Text('Mov: $folio',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
-                          pw.Text('Ref: $referencia',
-                              style: const pw.TextStyle(fontSize: 9)),
-                          pw.SizedBox(height: 3),
+                          // pw.Text('Ref: $referencia',
+                          //     style: const pw.TextStyle(fontSize: 9)),
+                          // pw.SizedBox(height: 3),
                           pw.Text(
                               'Prov: ${proveedorP.id_Proveedor} - ${proveedorP.proveedor_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
@@ -1310,7 +1310,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
 Future<bool> validarCamposAntesDeImprimir(
     {required BuildContext context,
     required List productosAgregados,
-    required TextEditingController referenciaController,
+    TextEditingController? referenciaController,
     required var selectedAlmacen,
     required var padron,
     required var calle,
@@ -1318,10 +1318,10 @@ Future<bool> validarCamposAntesDeImprimir(
     var selectedServicio,
     required var selectedJunta,
     required var selectedUser}) async {
-  if (referenciaController.text.isEmpty) {
-    showAdvertence(context, 'La referencia es obligatoria.');
-    return false;
-  }
+  // if (referenciaController.text.isEmpty) {
+  //   showAdvertence(context, 'La referencia es obligatoria.');
+  //   return false;
+  // }
 
   // if (selectedServicio == null) {
   //   showAdvertence(context, 'Debe seleccionar una orden de servicio.');
@@ -1370,17 +1370,17 @@ Future<bool> validarCamposAntesDeImprimir(
 Future<bool> validarCamposAntesDeImprimirEntrada({
   required BuildContext context,
   required List productosAgregados,
-  required String referencia,
+  String? referencia,
   required String numFactura,
   required var selectedAlmacen,
   required var proveedor,
   //required var junta,
   required Uint8List? factura,
 }) async {
-  if (referencia.isEmpty) {
-    showAdvertence(context, 'Referencia es obligatoria.');
-    return false;
-  }
+  // if (referencia.isEmpty) {
+  //   showAdvertence(context, 'Referencia es obligatoria.');
+  //   return false;
+  // }
 
   if (numFactura.isEmpty) {
     showAdvertence(context, 'Número de factura es obligatoria.');

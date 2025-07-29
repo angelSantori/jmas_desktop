@@ -665,8 +665,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           color: entradaPrincipal.entrada_Estado == false
-              ? const Color.fromARGB(255, 201, 230, 242)
-              : const Color.fromARGB(255, 201, 230, 242),
+              ? Colors.red.shade100
+              : Colors.blue.shade100,
           elevation: 4,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -747,14 +747,14 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Referencia: ${entrada.entrada_Referencia}',
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        // const SizedBox(height: 10),
+                        // Text(
+                        //   'Referencia: ${entrada.entrada_Referencia}',
+                        //   style: const TextStyle(
+                        //     fontSize: 15,
+                        //   ),
+                        //   overflow: TextOverflow.ellipsis,
+                        // ),
                       ],
                     ),
                   ),

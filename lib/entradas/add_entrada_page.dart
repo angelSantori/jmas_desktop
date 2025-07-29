@@ -32,7 +32,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
 
   final TextEditingController _idProductoController = TextEditingController();
   final TextEditingController _cantidadController = TextEditingController();
-  final TextEditingController _referenciaController = TextEditingController();
+  //final TextEditingController _referenciaController = TextEditingController();
   final TextEditingController _comentarioController = TextEditingController();
   final TextEditingController _numFacturaController = TextEditingController();
 
@@ -267,7 +267,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
       entrada_CodFolio: codFolio,
       entrada_Unidades: double.tryParse(producto['cantidad'].toString()),
       entrada_Costo: double.tryParse(producto['precio'].toString()),
-      entrada_Referencia: _referenciaController.text,
+      //entrada_Referencia: _referenciaController.text,
       entrada_Fecha: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
       entrada_Comentario: _comentarioController.text,
       entrada_NumeroFactura: int.tryParse(_numFacturaController.text),
@@ -285,7 +285,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
   void _limpiarFormulario() {
     _formKey.currentState!.reset();
     _productosAgregados.clear();
-    _referenciaController.clear();
+    //_referenciaController.clear();
     _comentarioController.clear();
     _numFacturaController.clear();
     setState(() {
@@ -336,19 +336,19 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                       const SizedBox(height: 30),
                       Row(
                         children: [
-                          Expanded(
-                            child: CustomTextFielTexto(
-                              controller: _referenciaController,
-                              labelText: 'Referencia',
-                              validator: (referencia) {
-                                if (referencia == null || referencia.isEmpty) {
-                                  return 'Referencia es obligatoria';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 20),
+                          // Expanded(
+                          //   child: CustomTextFielTexto(
+                          //     controller: _referenciaController,
+                          //     labelText: 'Referencia',
+                          //     validator: (referencia) {
+                          //       if (referencia == null || referencia.isEmpty) {
+                          //         return 'Referencia es obligatoria';
+                          //       }
+                          //       return null;
+                          //     },
+                          //   ),
+                          // ),
+                          // const SizedBox(width: 20),
                           Expanded(
                             child: CustomTextFieldNumero(
                               prefixIcon: Icons.numbers,
@@ -623,8 +623,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                         bool datosCompletos =
                                             await validarCamposAntesDeImprimirEntrada(
                                           context: context,
-                                          referencia:
-                                              _referenciaController.text,
+                                          //referencia: _referenciaController.text,
                                           numFactura:
                                               _numFacturaController.text,
                                           productosAgregados:
@@ -646,8 +645,7 @@ class _AddEntradaPageState extends State<AddEntradaPage> {
                                           idUser: widget.idUser!,
                                           alamcenA: _selectedAlmacen!,
                                           userName: widget.userName!,
-                                          referencia:
-                                              _referenciaController.text,
+                                          //referencia: _referenciaController.text,
                                           productos: _productosAgregados,
                                           proveedorP: _selectedProveedor!,
                                           numFactura:
