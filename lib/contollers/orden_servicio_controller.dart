@@ -159,7 +159,7 @@ class OrdenServicio {
   bool? materialOS;
   String? estadoOS;
   String? prioridadOS;
-  int? contactoOS;
+  String? contactoOS;
   int? idUser;
   int? idPadron;
   int? idTipoProblema;
@@ -185,7 +185,7 @@ class OrdenServicio {
     bool? materialOS,
     String? estadoOS,
     String? prioridadOS,
-    int? contactoOS,
+    String? contactoOS,
     int? idUser,
     int? idPadron,
     int? idTipoProblema,
@@ -232,7 +232,8 @@ class OrdenServicio {
       estadoOS: map['estadoOS'] != null ? map['estadoOS'] as String : null,
       prioridadOS:
           map['prioridadOS'] != null ? map['prioridadOS'] as String : null,
-      contactoOS: map['contactoOS'] != null ? map['contactoOS'] as int : null,
+      contactoOS:
+          map['contactoOS'] != null ? map['contactoOS'] as String : null,
       idUser: map['idUser'] != null ? map['idUser'] as int : null,
       idPadron: map['idPadron'] != null ? map['idPadron'] as int : null,
       idTipoProblema:
