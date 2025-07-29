@@ -45,7 +45,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _referenciaController = TextEditingController();
+  //final TextEditingController _referenciaController = TextEditingController();
   final TextEditingController _busquedaUsuarioController =
       TextEditingController();
   final TextEditingController _idProductoController = TextEditingController();
@@ -370,7 +370,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     return Salidas(
       id_Salida: 0,
       salida_CodFolio: codFolio,
-      salida_Referencia: _referenciaController.text,
+      salida_Referencia: null,
       salida_Estado: true,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
       salida_Costo: double.tryParse(producto['precio'].toString()),
@@ -421,7 +421,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedTipoTrabajo = null;
       _selectedOrdenServicio = null;
 
-      _referenciaController.clear();
+      //_referenciaController.clear();
       _comentarioController.clear();
       _idProductoController.clear();
       _idColoniaController.clear();
@@ -471,19 +471,19 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(width: 10),
-                          Expanded(
-                            child: CustomTextFielTexto(
-                              controller: _referenciaController,
-                              labelText: 'Referencia',
-                              validator: (p0) {
-                                if (p0 == null || p0.isEmpty) {
-                                  return 'Referencia obligatoria.';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 20),
+                          // Expanded(
+                          //   child: CustomTextFielTexto(
+                          //     controller: _referenciaController,
+                          //     labelText: 'Referencia',
+                          //     validator: (p0) {
+                          //       if (p0 == null || p0.isEmpty) {
+                          //         return 'Referencia obligatoria.';
+                          //       }
+                          //       return null;
+                          //     },
+                          //   ),
+                          // ),
+                          //const SizedBox(width: 20),
                           Expanded(
                             child: CustomListaDesplegable(
                               value: _selectedTipoTrabajo,
@@ -861,8 +861,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           context: context,
                                           productosAgregados:
                                               _productosAgregados,
-                                          referenciaController:
-                                              _referenciaController,
+                                          //referenciaController: _referenciaController,
                                           padron: _idPadronController,
                                           colonia: _idColoniaController,
                                           calle: _idCalleController,
@@ -880,8 +879,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           movimiento: 'Salida',
                                           fecha: _fechaController.text,
                                           folio: codFolio!,
-                                          referencia:
-                                              _referenciaController.text,
+                                          //referencia: _referenciaController.text,
                                           userName: widget.userName!,
                                           idUser: widget.idUser!,
                                           alamcenA: _selectedAlmacen!,

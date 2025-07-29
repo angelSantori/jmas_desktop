@@ -268,7 +268,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
           fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
           motivo: _motivoController.text,
           folio: widget.salidas.first.salida_CodFolio ?? '',
-          referencia: widget.salidas.first.salida_Referencia ?? '',
+          //referencia: widget.salidas.first.salida_Referencia ?? '',
           user: _currentUser!,
           almacen: widget.almacen.almacen_Nombre ?? '',
           junta: widget.junta.junta_Name ?? '',
@@ -401,7 +401,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
           movimiento: 'MODIFICACION SALIDA',
           fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
           folio: widget.salidas.first.salida_CodFolio ?? '',
-          referencia: widget.salidas.first.salida_Referencia ?? '',
+          //referencia: widget.salidas.first.salida_Referencia ?? '',
           userName: _currentUser?.user_Name ?? '',
           idUser: _currentUser!.id_User.toString(),
           alamcenA: widget.almacen,
@@ -486,7 +486,9 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                         : constraints.maxWidth,
                     child: Card(
                       elevation: 4,
-                      color: const Color.fromARGB(255, 210, 220, 224),
+                      color: widget.salidas.first.salida_Estado == false
+                          ? const Color.fromARGB(188, 255, 205, 210)
+                          : Colors.blue.shade100,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                       margin: const EdgeInsets.all(100),
@@ -498,13 +500,13 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(
-                                  'Referencia: ${widget.salidas.first.salida_Referencia}',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold),
-                                ),
+                                // Text(
+                                //   'Referencia: ${widget.salidas.first.salida_Referencia}',
+                                //   overflow: TextOverflow.ellipsis,
+                                //   style: const TextStyle(
+                                //       fontSize: 20,
+                                //       fontWeight: FontWeight.bold),
+                                // ),
                                 if ((isAdmin || isGestion) && tieneActivos) ...[
                                   IconButton(
                                     icon: Icon(Icons.delete,

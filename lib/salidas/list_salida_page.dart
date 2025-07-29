@@ -754,9 +754,13 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final producto = _productosCache[salida.idProducto];
         final user = _usersCache[salida.id_User];
 
+        Color colorCard = salida.salida_Estado == false
+            ? Colors.red.shade100
+            : Colors.blue.shade100;
+
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          color: const Color.fromARGB(255, 201, 230, 242),
+          color: colorCard,
           elevation: 4,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -861,13 +865,13 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Text(
-                          'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
+                        // Text(
+                        //   'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
+                        //   overflow: TextOverflow.ellipsis,
+                        //   style: const TextStyle(
+                        //     fontSize: 15,
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
