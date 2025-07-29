@@ -29,6 +29,7 @@ dependencies:
   syncfusion_flutter_xlsio: ^29.2.11
   flutter_localization: ^0.3.3
   syncfusion_flutter_datepicker: ^29.2.11
+  fl_chart: ^1.0.0 #Graficas
 
 dev_dependencies:
   flutter_test:
