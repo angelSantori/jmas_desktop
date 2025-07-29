@@ -15,6 +15,7 @@ import 'package:jmas_desktop/colonias/list_colonias_page.dart';
 import 'package:jmas_desktop/conteoinicial/list_conteoinicial_page.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
+import 'package:jmas_desktop/general/inventory_dashboard_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
 import 'package:jmas_desktop/herramientas/list_herramientas_page.dart';
@@ -92,6 +93,12 @@ class _HomePageState extends State<HomePage>
       userRole = decodeToken?[
           'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
       idUser = decodeToken?['Id_User'];
+
+      _currentPage = (userRole?.toLowerCase() == 'admin')
+          ? const InventoryDashboardPage()
+          : const Center(
+              child: Text('Weolcome to home page!'),
+            );
     });
   }
 
@@ -167,6 +174,7 @@ class _HomePageState extends State<HomePage>
 
       //X
       'home': () => const Center(child: Text('Welcome to home Page!')),
+      'dashboard': () => const InventoryDashboardPage(),
       'listPadron': () => const ListPadronPage(),
 
       //Cuentas contables
@@ -296,6 +304,26 @@ class _HomePageState extends State<HomePage>
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
+                          //  Dashboard
+                          if (userRole?.toLowerCase() == 'admin') ...[
+                            ListTile(
+                              title: const Row(
+                                children: [
+                                  Icon(Icons.bar_chart_outlined,
+                                      color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Dashboard',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () => _navigateTo('dashboard'),
+                            ),
+                          ],
                           // Elementos del menú
                           ListTile(
                             title: const Row(
