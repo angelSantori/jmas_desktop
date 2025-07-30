@@ -1024,7 +1024,7 @@ class BuscarProductoWidget extends StatefulWidget {
 
 class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
-  //double? _invIniConteo;
+  // ignore: unused_field
   double? _existencia;
   final TextEditingController _nombreProducto = TextEditingController();
   final FocusNode _cantidadFocusNode = FocusNode();
@@ -1062,19 +1062,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
         final producto =
             await widget.productosController.getProductoById(int.parse(id));
         if (producto != null) {
-          final existenciaList =
-              await widget.productosController.listProductos();
-
-          final existencia = existenciaList.firstWhere(
-            (element) => element.id_Producto == producto.id_Producto,
-            orElse: () => Productos(prodExistencia: null),
-          );
-          setState(() {
-            _existencia = existencia.prodExistencia;
-          });
-
           widget.onProductoSeleccionado(producto);
-
           FocusScope.of(context).requestFocus(_cantidadFocusNode);
         } else {
           widget.onAdvertencia('Producto con ID: $id, no encontrado');
@@ -1118,6 +1106,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
     setState(() {
       _productosSugeridos = [];
       _nombreProducto.clear();
+      _existencia = producto.prodExistencia;
     });
   }
 
@@ -1165,7 +1154,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                       return ListTile(
                         title: Text(producto.prodDescripcion ?? 'Sin nombre'),
                         subtitle: Text(
-                          'ID: ${producto.id_Producto} - Costo: \$${producto.prodCosto?.toStringAsFixed(2) ?? 'No disponible'}',
+                          'ID: ${producto.id_Producto} - Costo: \$${producto.prodCosto ?? 'No disponible'} - Existencias: ${producto.prodExistencia}',
                         ),
                         onTap: () => _seleccionarProducto(producto),
                       );
@@ -1233,7 +1222,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            'Existencia: ${_existencia ?? 'No disponible'}',
+                            'Existencia: ${widget.selectedProducto?.prodExistencia?.toStringAsFixed(2) ?? 'No disponible'}',
                             style: const TextStyle(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
