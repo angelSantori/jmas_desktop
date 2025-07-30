@@ -52,7 +52,7 @@ class _BuscarColoniaWidgetState extends State<BuscarColoniaWidget> {
 
       try {
         final colonia =
-            await widget.coloniasController.getColoniaXId(int.parse(id));
+            await widget.coloniasController.getColoniaById(int.parse(id));
         if (colonia != null) {
           widget.onColoniaSeleccionada(colonia);
         } else {

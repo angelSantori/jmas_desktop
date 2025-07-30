@@ -34,7 +34,7 @@ class CallesController {
   }
 
   //GetXId
-  Future<Calles?> getCalleXId(int idCalle) async {
+  Future<Calles?> getCalleById(int idCalle) async {
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Calles/$idCalle'),

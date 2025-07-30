@@ -36,7 +36,7 @@ class ColoniasController {
   }
 
   //GetXId
-  Future<Colonias?> getColoniaXId(int idColonia) async {
+  Future<Colonias?> getColoniaById(int idColonia) async {
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Colonias/$idColonia'),

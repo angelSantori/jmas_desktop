@@ -53,7 +53,7 @@ class _BuscarCalleWidgetState extends State<BuscarCalleWidget> {
 
       try {
         final calle =
-            await widget.callesController.getCalleXId(int.parse(idCalle));
+            await widget.callesController.getCalleById(int.parse(idCalle));
         if (calle != null) {
           widget.onCalleSeleccionada(calle);
         } else {

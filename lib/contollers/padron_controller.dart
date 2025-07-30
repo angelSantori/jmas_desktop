@@ -35,6 +35,30 @@ class PadronController {
     }
   }
 
+  Future<Padron?> getPadronById(int idPadron) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Padrons/$idPadron'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            json.decode(response.body) as Map<String, dynamic>;
+        return Padron.fromMap(jsonData);
+      } else {
+        print(
+            'Error getPadronById | Ife | PadronController: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error getPadronById | Try | PadronController: $e');
+      return null;
+    }
+  }
+
   //Edit padron
   Future<bool> editPadron(Padron padron) async {
     try {
