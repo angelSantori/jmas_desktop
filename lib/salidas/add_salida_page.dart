@@ -102,7 +102,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _loadDataSalidas();
     _loadFolioSalida();
     _loadFolioTR();
-    //_cargarOrdenesAprobadas();
+    _cargarOrdenesAprobadas();
   }
 
   Future<void> _loadFolioSalida() async {
@@ -427,7 +427,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _idColoniaController.clear();
       _idCalleController.clear();
       _idPadronController.clear();
-      _idPadronController.clear();
       _cantidadController.clear();
     });
   }
@@ -580,20 +579,24 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           _mostrarOrdenServicio = index == 0;
                                           if (!_mostrarOrdenServicio) {
                                             _selectedOrdenServicio = null;
+                                            _idColoniaController.clear();
+                                            _idCalleController.clear();
+                                            _idPadronController.clear();
+                                            _selectedColonia = null;
+                                            _selectedCalle = null;
+                                            _selectedPadron = null;
                                           }
                                         });
                                       },
                                       children: const [
                                         Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 16),
-                                          child: Text('Sí'),
-                                        ),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 16),
+                                            child: Text('Sí')),
                                         Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 16),
-                                          child: Text('No'),
-                                        ),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 16),
+                                            child: Text('No')),
                                       ],
                                     ),
                                     const SizedBox(width: 20),
@@ -609,12 +612,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                                 labelText: 'Orden de Servicio',
                                                 items:
                                                     _ordenesServicioAprobadas,
-                                                onChanged: (orden) {
-                                                  setState(() {
-                                                    _selectedOrdenServicio =
-                                                        orden;
-                                                  });
-                                                },
+                                                onChanged:
+                                                    _onOrdenServicioSelected,
                                                 validator: (orden) {
                                                   if (_mostrarOrdenServicio &&
                                                       orden == null) {
@@ -985,5 +984,39 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _onOrdenServicioSelected(OrdenServicio? orden) async {
+    if (orden == null) return;
+
+    setState(() {
+      _selectedOrdenServicio = orden;
+    });
+
+    // Si la orden tiene datos de ubicación, buscamos y establecemos los valores correspondientes
+    if (orden.idColonia != null) {
+      final colonia =
+          await _coloniasController.getColoniaById(orden.idColonia!);
+      setState(() {
+        _selectedColonia = colonia;
+        _idColoniaController.text = colonia?.idColonia.toString() ?? '';
+      });
+    }
+
+    if (orden.idCalle != null) {
+      final calle = await _callesController.getCalleById(orden.idCalle!);
+      setState(() {
+        _selectedCalle = calle;
+        _idCalleController.text = calle?.idCalle.toString() ?? '';
+      });
+    }
+
+    if (orden.idPadron != null) {
+      final padron = await _padronController.getPadronById(orden.idPadron!);
+      setState(() {
+        _selectedPadron = padron;
+        _idPadronController.text = padron?.idPadron.toString() ?? '';
+      });
+    }
   }
 }
