@@ -65,10 +65,15 @@ class TrabajoRealizado {
   String? comentarioTR;
   String? fotoAntes64TR;
   String? fotoDespues64TR;
+  String? fotoRequiereMaterial64TR;
   int? encuenstaTR;
   int? idUserTR;
   int? idOrdenServicio;
-  int? idSalida;
+  String? folioOS;
+  String? padronNombre;
+  String? padronDireccion;
+  String? problemaNombre;
+  String? folioSalida;
   TrabajoRealizado({
     this.idTrabajoRealizado,
     this.folioTR,
@@ -77,10 +82,15 @@ class TrabajoRealizado {
     this.comentarioTR,
     this.fotoAntes64TR,
     this.fotoDespues64TR,
+    this.fotoRequiereMaterial64TR,
     this.encuenstaTR,
     this.idUserTR,
     this.idOrdenServicio,
-    this.idSalida,
+    this.folioOS,
+    this.padronNombre,
+    this.padronDireccion,
+    this.problemaNombre,
+    this.folioSalida,
   });
 
   TrabajoRealizado copyWith({
@@ -91,10 +101,15 @@ class TrabajoRealizado {
     String? comentarioTR,
     String? fotoAntes64TR,
     String? fotoDespues64TR,
+    String? fotoRequiereMaterial64TR,
     int? encuenstaTR,
     int? idUserTR,
     int? idOrdenServicio,
-    int? idSalida,
+    String? folioOS,
+    String? padronNombre,
+    String? padronDireccion,
+    String? problemaNombre,
+    String? folioSalida,
   }) {
     return TrabajoRealizado(
       idTrabajoRealizado: idTrabajoRealizado ?? this.idTrabajoRealizado,
@@ -104,10 +119,16 @@ class TrabajoRealizado {
       comentarioTR: comentarioTR ?? this.comentarioTR,
       fotoAntes64TR: fotoAntes64TR ?? this.fotoAntes64TR,
       fotoDespues64TR: fotoDespues64TR ?? this.fotoDespues64TR,
+      fotoRequiereMaterial64TR:
+          fotoRequiereMaterial64TR ?? this.fotoRequiereMaterial64TR,
       encuenstaTR: encuenstaTR ?? this.encuenstaTR,
       idUserTR: idUserTR ?? this.idUserTR,
       idOrdenServicio: idOrdenServicio ?? this.idOrdenServicio,
-      idSalida: idSalida ?? this.idSalida,
+      folioOS: folioOS ?? this.folioOS,
+      padronNombre: padronNombre ?? this.padronNombre,
+      padronDireccion: padronDireccion ?? this.padronDireccion,
+      problemaNombre: problemaNombre ?? this.problemaNombre,
+      folioSalida: folioSalida ?? this.folioSalida,
     );
   }
 
@@ -120,10 +141,15 @@ class TrabajoRealizado {
       'comentarioTR': comentarioTR,
       'fotoAntes64TR': fotoAntes64TR,
       'fotoDespues64TR': fotoDespues64TR,
+      'fotoRequiereMaterial64TR': fotoRequiereMaterial64TR,
       'encuenstaTR': encuenstaTR,
       'idUserTR': idUserTR,
       'idOrdenServicio': idOrdenServicio,
-      'idSalida': idSalida,
+      'folioOS': folioOS,
+      'padronNombre': padronNombre,
+      'padronDireccion': padronDireccion,
+      'problemaNombre': problemaNombre,
+      'folioSalida': folioSalida,
     };
   }
 
@@ -143,12 +169,25 @@ class TrabajoRealizado {
       fotoDespues64TR: map['fotoDespues64TR'] != null
           ? map['fotoDespues64TR'] as String
           : null,
+      fotoRequiereMaterial64TR: map['fotoRequiereMaterial64TR'] != null
+          ? map['fotoRequiereMaterial64TR'] as String
+          : null,
       encuenstaTR:
           map['encuenstaTR'] != null ? map['encuenstaTR'] as int : null,
       idUserTR: map['idUserTR'] != null ? map['idUserTR'] as int : null,
       idOrdenServicio:
           map['idOrdenServicio'] != null ? map['idOrdenServicio'] as int : null,
-      idSalida: map['idSalida'] != null ? map['idSalida'] as int : null,
+      folioOS: map['folioOS'] != null ? map['folioOS'] as String : null,
+      padronNombre:
+          map['padronNombre'] != null ? map['padronNombre'] as String : null,
+      padronDireccion: map['padronDireccion'] != null
+          ? map['padronDireccion'] as String
+          : null,
+      problemaNombre: map['problemaNombre'] != null
+          ? map['problemaNombre'] as String
+          : null,
+      folioSalida:
+          map['folioSalida'] != null ? map['folioSalida'] as String : null,
     );
   }
 
@@ -159,7 +198,7 @@ class TrabajoRealizado {
 
   @override
   String toString() {
-    return 'TrabajoRealizado(idTrabajoRealizado: $idTrabajoRealizado, folioTR: $folioTR, fechaTR: $fechaTR, ubicacionTR: $ubicacionTR, comentarioTR: $comentarioTR, fotoAntes64TR: $fotoAntes64TR, fotoDespues64TR: $fotoDespues64TR, encuenstaTR: $encuenstaTR, idUserTR: $idUserTR, idOrdenServicio: $idOrdenServicio, idSalida: $idSalida)';
+    return 'TrabajoRealizado(idTrabajoRealizado: $idTrabajoRealizado, folioTR: $folioTR, fechaTR: $fechaTR, ubicacionTR: $ubicacionTR, comentarioTR: $comentarioTR, fotoAntes64TR: $fotoAntes64TR, fotoDespues64TR: $fotoDespues64TR, fotoRequiereMaterial64TR: $fotoRequiereMaterial64TR, encuenstaTR: $encuenstaTR, idUserTR: $idUserTR, idOrdenServicio: $idOrdenServicio, folioOS: $folioOS, padronNombre: $padronNombre, padronDireccion: $padronDireccion, problemaNombre: $problemaNombre, folioSalida: $folioSalida)';
   }
 
   @override
@@ -173,10 +212,15 @@ class TrabajoRealizado {
         other.comentarioTR == comentarioTR &&
         other.fotoAntes64TR == fotoAntes64TR &&
         other.fotoDespues64TR == fotoDespues64TR &&
+        other.fotoRequiereMaterial64TR == fotoRequiereMaterial64TR &&
         other.encuenstaTR == encuenstaTR &&
         other.idUserTR == idUserTR &&
         other.idOrdenServicio == idOrdenServicio &&
-        other.idSalida == idSalida;
+        other.folioOS == folioOS &&
+        other.padronNombre == padronNombre &&
+        other.padronDireccion == padronDireccion &&
+        other.problemaNombre == problemaNombre &&
+        other.folioSalida == folioSalida;
   }
 
   @override
@@ -188,9 +232,14 @@ class TrabajoRealizado {
         comentarioTR.hashCode ^
         fotoAntes64TR.hashCode ^
         fotoDespues64TR.hashCode ^
+        fotoRequiereMaterial64TR.hashCode ^
         encuenstaTR.hashCode ^
         idUserTR.hashCode ^
         idOrdenServicio.hashCode ^
-        idSalida.hashCode;
+        folioOS.hashCode ^
+        padronNombre.hashCode ^
+        padronDireccion.hashCode ^
+        problemaNombre.hashCode ^
+        folioSalida.hashCode;
   }
 }
