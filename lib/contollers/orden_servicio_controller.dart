@@ -166,6 +166,7 @@ class OrdenServicio {
   int? idMedio;
   int? idCalle;
   int? idColonia;
+  int? idUserAsignado;
   OrdenServicio({
     this.idOrdenServicio,
     this.folioOS,
@@ -180,6 +181,7 @@ class OrdenServicio {
     this.idMedio,
     this.idCalle,
     this.idColonia,
+    this.idUserAsignado,
   });
 
   OrdenServicio copyWith({
@@ -196,6 +198,7 @@ class OrdenServicio {
     int? idMedio,
     int? idCalle,
     int? idColonia,
+    int? idUserAsignado,
   }) {
     return OrdenServicio(
       idOrdenServicio: idOrdenServicio ?? this.idOrdenServicio,
@@ -211,6 +214,7 @@ class OrdenServicio {
       idMedio: idMedio ?? this.idMedio,
       idCalle: idCalle ?? this.idCalle,
       idColonia: idColonia ?? this.idColonia,
+      idUserAsignado: idUserAsignado ?? this.idUserAsignado,
     );
   }
 
@@ -229,6 +233,7 @@ class OrdenServicio {
       'idMedio': idMedio,
       'idCalle': idCalle,
       'idColonia': idColonia,
+      'idUserAsignado': idUserAsignado,
     };
   }
 
@@ -251,6 +256,8 @@ class OrdenServicio {
       idMedio: map['idMedio'] != null ? map['idMedio'] as int : null,
       idCalle: map['idCalle'] != null ? map['idCalle'] as int : null,
       idColonia: map['idColonia'] != null ? map['idColonia'] as int : null,
+      idUserAsignado:
+          map['idUserAsignado'] != null ? map['idUserAsignado'] as int : null,
     );
   }
 
@@ -261,7 +268,7 @@ class OrdenServicio {
 
   @override
   String toString() {
-    return 'OrdenServicio(idOrdenServicio: $idOrdenServicio, folioOS: $folioOS, fechaOS: $fechaOS, materialOS: $materialOS, estadoOS: $estadoOS, prioridadOS: $prioridadOS, contactoOS: $contactoOS, idUser: $idUser, idPadron: $idPadron, idTipoProblema: $idTipoProblema, idMedio: $idMedio, idCalle: $idCalle, idColonia: $idColonia)';
+    return 'OrdenServicio(idOrdenServicio: $idOrdenServicio, folioOS: $folioOS, fechaOS: $fechaOS, materialOS: $materialOS, estadoOS: $estadoOS, prioridadOS: $prioridadOS, contactoOS: $contactoOS, idUser: $idUser, idPadron: $idPadron, idTipoProblema: $idTipoProblema, idMedio: $idMedio, idCalle: $idCalle, idColonia: $idColonia, idUserAsignado: $idUserAsignado)';
   }
 
   @override
@@ -280,7 +287,8 @@ class OrdenServicio {
         other.idTipoProblema == idTipoProblema &&
         other.idMedio == idMedio &&
         other.idCalle == idCalle &&
-        other.idColonia == idColonia;
+        other.idColonia == idColonia &&
+        other.idUserAsignado == idUserAsignado;
   }
 
   @override
@@ -297,6 +305,7 @@ class OrdenServicio {
         idTipoProblema.hashCode ^
         idMedio.hashCode ^
         idCalle.hashCode ^
-        idColonia.hashCode;
+        idColonia.hashCode ^
+        idUserAsignado.hashCode;
   }
 }
