@@ -154,7 +154,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       setState(() {
         _ordenesServicioAprobadas = todasOrdenes
             .where((orden) =>
-                orden.estadoOS == 'Aprobada - S/A' ||
+                orden.estadoOS == 'Requiere Material' ||
                 orden.estadoOS == 'Devuelta')
             .toList();
         _cargandoOrdenes = false;
@@ -320,15 +320,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
       if (success && _selectedOrdenServicio != null) {
         final trabajoCreado = await _crearTrabajo();
-
         if (!trabajoCreado) {
           showAdvertence(context, 'Error al crear registro de servicio');
         }
-
         _selectedOrdenServicio!.estadoOS = 'Aprobada - A';
         final estadoOrden = await _ordenServicioController
             .editOrdenServicio(_selectedOrdenServicio!);
-
         if (!estadoOrden) {
           showAdvertence(context, 'Error al actualizar estado de la orden');
         }
@@ -337,18 +334,19 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       // Mostrar el mensaje correspondiente al finalizar el ciclo
       if (success) {
         // ignore: use_build_context_synchronously
-        showOk(context, 'Salida creada exitosamente.');
-        setState(() {
-          _isLoading = false;
-          _loadFolioSalida();
-          _loadFolioTR();
-        });
+        showOk(context, 'Salida creada exitosamente.').then(
+          (_) {
+            if (mounted) {
+              _limpiarFormulario();
+              _loadFolioSalida();
+              _loadFolioTR();
+            }
+          },
+        );
       } else {
         // ignore: use_build_context_synchronously
         showError(context, 'Error al registrar salida');
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
 
       _limpiarFormulario();
@@ -394,11 +392,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       return false;
     try {
       final trabajo = TrabajoRealizado(
-        idTrabajoRealizado: 0,
-        folioTR: folioTR,
-        idUserTR: _selectedEmpleado?.id_User,
-        idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
-      );
+          idTrabajoRealizado: 0,
+          folioTR: folioTR,
+          idUserTR: _selectedEmpleado?.id_User,
+          idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
+          folioOS: _selectedOrdenServicio!.folioOS,
+          padronDireccion: _selectedPadron!.padronDireccion,
+          padronNombre: _selectedPadron!.padronNombre,
+          problemaNombre: _selectedTipoTrabajo,
+          folioSalida: codFolio);
 
       return await _trabajoRealizadoController.addTrabajoRealizado(trabajo);
     } catch (e) {
@@ -420,8 +422,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedEmpleado = null;
       _selectedTipoTrabajo = null;
       _selectedOrdenServicio = null;
+      _mostrarOrdenServicio = false;
+      _empleadosFiltrados = [];
 
       //_referenciaController.clear();
+      _busquedaUsuarioController.clear();
       _comentarioController.clear();
       _idProductoController.clear();
       _idColoniaController.clear();
@@ -866,6 +871,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           calle: _idCalleController,
                                           selectedAlmacen: _selectedAlmacen,
                                           selectedJunta: _selectedJunta,
+                                          tipoTrabajo: _selectedTipoTrabajo,
                                           selectedUser: _selectedEmpleado,
                                         );
 
@@ -994,6 +1000,14 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     });
 
     // Si la orden tiene datos de ubicación, buscamos y establecemos los valores correspondientes
+    if (orden.idUserAsignado != null) {
+      final userAsignado =
+          await _usersController.getUserById(orden.idUserAsignado!);
+      setState(() {
+        _selectedEmpleado = userAsignado;
+      });
+    }
+
     if (orden.idColonia != null) {
       final colonia =
           await _coloniasController.getColoniaById(orden.idColonia!);
