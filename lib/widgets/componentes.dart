@@ -1304,6 +1304,7 @@ Future<bool> validarCamposAntesDeImprimir(
     required var padron,
     required var calle,
     required var colonia,
+    required var tipoTrabajo,
     var selectedServicio,
     required var selectedJunta,
     required var selectedUser}) async {
@@ -1316,6 +1317,10 @@ Future<bool> validarCamposAntesDeImprimir(
   //   showAdvertence(context, 'Debe seleccionar una orden de servicio.');
   //   return false;
   // }
+  if (tipoTrabajo == null) {
+    showAdvertence(context, 'Debe seleccionar un tipo de trabajo');
+    return false;
+  }
 
   if (selectedAlmacen == null) {
     showAdvertence(context, 'Debe seleccionar un almacen.');
