@@ -6,6 +6,7 @@ import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
+import 'package:jmas_desktop/widgets/formularios.dart';
 
 class InventoryDashboardPage extends StatefulWidget {
   const InventoryDashboardPage({super.key});
@@ -210,29 +211,25 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
             icon: const Icon(Icons.calendar_today),
             onPressed: () => _selectDateRange(context),
           ),
-          DropdownButton<int>(
+          CustomListaDesplegableTipo<int>(
             value: _selectedMonth ?? DateTime.now().month,
-            items: List.generate(12, (index) {
-              return DropdownMenuItem(
-                  value: index + 1,
-                  child: Text(
-                    DateFormat('MMMM', 'es_ES')
-                        .format(DateTime(0, index + 1))
-                        .toUpperCase(),
-                  ));
-            }),
+            labelText: 'Mes',
+            items: List.generate(12, (index) => index + 1),
             onChanged: _selectMonth,
+            itemLabelBuilder: (month) => DateFormat('MMMM', 'es_ES')
+                .format(DateTime(0, month))
+                .toUpperCase(),
+            icon: Icons.calendar_today,
           ),
-          DropdownButton<int>(
+          const SizedBox(width: 20),
+          CustomListaDesplegableTipo<int>(
             value: _selectedYear,
-            items: List.generate(1, (index) {
-              final year = DateTime.now().year + index;
-              return DropdownMenuItem(
-                value: year,
-                child: Text(year.toString()),
-              );
-            }),
+            labelText: 'Año',
+            items:
+                List.generate(21, (index) => DateTime.now().year - 10 + index),
             onChanged: _selectYear,
+            itemLabelBuilder: (year) => year.toString(),
+            icon: Icons.calendar_view_month,
           ),
         ],
       ),
@@ -896,7 +893,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final monthName = DateFormat('MMMM', 'es_ES')
                             .format(DateTime(0, group.x.toInt()));
-                        final tipo = rodIndex == 0 ? 'Entradas' : 'Salidas';
+                        final tipo = rodIndex == 0 ? 'Unidades' : 'Unidades';
                         return BarTooltipItem(
                           '$monthName\n$tipo: ${rod.toY.toInt()}',
                           const TextStyle(
