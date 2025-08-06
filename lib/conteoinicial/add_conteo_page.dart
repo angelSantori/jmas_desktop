@@ -130,7 +130,14 @@ class _AddConteoPageState extends State<AddConteoPage> {
 
       try {
         final success = await _conteoController.addCapturaFisica(conteo);
-        if (success) conteosGuardados++;
+        if (success) {
+          final updateSuccess = await _productosController.updateInventario(
+            producto.id_Producto!,
+            cantidad,
+            almacenId,
+          );
+          if (updateSuccess) conteosGuardados++;
+        }
       } catch (e) {
         hasErrors = true;
         print(
