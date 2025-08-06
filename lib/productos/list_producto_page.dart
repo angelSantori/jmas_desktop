@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
@@ -33,6 +32,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
   List<Productos> _filteredProductos = [];
 
   bool _isLoading = true;
+  // ignore: unused_field
   bool _isLoadingQRRange = false;
   bool _showExcess = false;
   bool _showDeficit = false;
@@ -520,6 +520,49 @@ class _ListProductoPageState extends State<ListProductoPage> {
     }
   }
 
+  Future<void> _exportarTodosLosProductos() async {
+    try {
+      if (_allProductos.isEmpty) {
+        showOk(context, 'No hay productos para exportar');
+        return;
+      }
+
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Exportar todos los productos'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [Text('¿Estás seguro de exportar todos los productos?')],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+
+                await ExcelService.exportProductosToExcel(
+                  productos: _allProductos,
+                  fileName: 'Todos_Productos',
+                );
+
+                showOk(context,
+                    'Reporte de todos los productos generado correctamente');
+              },
+              child: const Text('Exportar'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      showError(context, 'Error al generar reporte');
+      print('Error al generar reporte de todos los productos: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -546,6 +589,14 @@ class _ListProductoPageState extends State<ListProductoPage> {
             ),
             tooltip: 'Imprimir QRs por',
             onPressed: _imprimirQRsPorRango,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.download,
+              color: Colors.green.shade800,
+            ),
+            tooltip: 'Exportar todos los productos',
+            onPressed: _exportarTodosLosProductos,
           ),
         ],
       ),
