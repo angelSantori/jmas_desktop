@@ -182,6 +182,20 @@ class ProductosController {
       return false;
     }
   }
+
+  Future<bool> updateExistencia(int idProducto, double nuevaExistencia) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('${_authService.apiURL}/Productos/$idProducto/Existencia'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(nuevaExistencia), // Envía el número directamente
+      );
+      return response.statusCode == 204;
+    } catch (e) {
+      print('Error al actualizar existencia: $e');
+      return false;
+    }
+  }
 }
 
 class Productos {
