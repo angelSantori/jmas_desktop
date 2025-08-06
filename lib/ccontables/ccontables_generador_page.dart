@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/ccontables/excel/conteo_inicial.dart';
 import 'package:jmas_desktop/ccontables/excel/entradas_especiales.dart';
 import 'package:jmas_desktop/ccontables/excel/entradas_individual.dart';
 import 'package:jmas_desktop/ccontables/excel/entradas_rurales.dart';
@@ -83,12 +84,13 @@ class _CcontablesGeneradorPageState extends State<CcontablesGeneradorPage> {
 
     try {
       final currentYear = DateTime.now().year;
-      final result = await _capturainviniController.generateConteoInicialExcel(
+      final result = await generateConteoInicialExcel(
         month: _selectedMonth!,
         year: currentYear,
         entradasController: _entradasController,
         salidasController: _salidasController,
         productosController: _productosController,
+        capturainviniController: _capturainviniController,
       );
 
       final blob = html.Blob(
