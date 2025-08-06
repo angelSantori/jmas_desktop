@@ -1,7 +1,10 @@
+// En list_ccontables_page.dart
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
+import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class ListCcontablesPage extends StatefulWidget {
   const ListCcontablesPage({super.key});
@@ -45,7 +48,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
         _isLoading = false;
       });
     } catch (e) {
-      // ignore: avoid_print
       print('Error al cargar datos: $e');
       setState(() {
         _isLoading = false;
@@ -56,13 +58,11 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
   void _filterCuentas(String query, Map<int, Productos> productosCache) {
     setState(() {
       if (query.isEmpty) {
-        _filteredCuentas = _allCuentas; // Si no hay búsqueda, mostrar todas
+        _filteredCuentas = _allCuentas;
       } else {
         _filteredCuentas = _allCuentas.where((cuenta) {
           final nombreProducto =
               productosCache[cuenta.idProducto]?.prodDescripcion ?? '';
-
-          // Buscar en todos los campos
           return cuenta.cC_Cuenta.toString().contains(query) ||
               cuenta.cC_SCTA.toString().contains(query) ||
               cuenta.cC_Detalle!.toLowerCase().contains(query.toLowerCase()) ||
@@ -74,11 +74,265 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
     });
   }
 
+  Future<void> _showEditDialog(
+      CContables cuenta, Map<int, Productos> productosCache) async {
+    final formKey = GlobalKey<FormState>();
+    final cuentaController =
+        TextEditingController(text: cuenta.cC_Cuenta?.toString());
+    final sctaController =
+        TextEditingController(text: cuenta.cC_SCTA?.toString());
+    final detalleController = TextEditingController(text: cuenta.cC_Detalle);
+    final cveprodController =
+        TextEditingController(text: cuenta.cC_CVEPROD?.toString());
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            '${productosCache[cuenta.idProducto]?.id_Producto ?? 'Desconocido'} ${productosCache[cuenta.idProducto]?.prodDescripcion ?? 'Desconocido'}',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomTextFieldNumero(
+                    controller: cuentaController,
+                    labelText: 'Cuenta',
+                    prefixIcon: Icons.numbers,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Ingrese un número de cuenta';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  CustomTextFieldNumero(
+                    controller: sctaController,
+                    labelText: 'Subcuenta',
+                    prefixIcon: Icons.numbers,
+                  ),
+                  const SizedBox(height: 20),
+                  CustomTextFielTexto(
+                    controller: detalleController,
+                    labelText: 'Detalle',
+                    prefixIcon: Icons.description,
+                  ),
+                  const SizedBox(height: 20),
+                  CustomTextFieldNumero(
+                    controller: cveprodController,
+                    labelText: 'CVEPROD',
+                    prefixIcon: Icons.code,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  final updatedCuenta = cuenta.copyWith(
+                    cC_Cuenta: int.tryParse(cuentaController.text),
+                    cC_SCTA: int.tryParse(sctaController.text),
+                    cC_Detalle: detalleController.text,
+                    cC_CVEPROD: BigInt.tryParse(cveprodController.text),
+                  );
+
+                  final success = await _ccontablesController
+                      .updateCcontable(updatedCuenta);
+                  if (success) {
+                    // ignore: use_build_context_synchronously
+                    Navigator.pop(context);
+                    _loadData(); // Recargar datos
+                    showOk(context, 'Cuenta actualizada correctamente');
+                  } else {
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Error al actualizar la cuenta')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAddDialog(Map<int, Productos> productosCache) async {
+    final formKey = GlobalKey<FormState>();
+    final cuentaController = TextEditingController();
+    final sctaController = TextEditingController();
+    final detalleController = TextEditingController();
+    final cveprodController = TextEditingController();
+    Productos? selectedProduct;
+
+    // Obtener productos sin cuenta
+    final productosSinCuenta =
+        await _ccontablesController.getProductosSinCuenta();
+    final productosDisponibles = productosSinCuenta
+        .map((id) => productosCache[id])
+        .where((producto) => producto != null)
+        .cast<Productos>()
+        .toList();
+
+    if (productosDisponibles.isEmpty) {
+      // ignore: use_build_context_synchronously
+      showError(context, 'Todos los productos ya tienen cuenta asociada');
+      return;
+    }
+
+    // Seleccionar el primer producto por defecto
+    selectedProduct = productosDisponibles.first;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text(
+                'Agregar Nueva Cuenta',
+                textAlign: TextAlign.center,
+              ),
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomListaDesplegableTipo<Productos>(
+                        value: selectedProduct,
+                        labelText: 'Producto',
+                        items: productosDisponibles,
+                        onChanged: (producto) {
+                          setState(() {
+                            selectedProduct = producto;
+                          });
+                        },
+                        itemLabelBuilder: (producto) =>
+                            '${producto.id_Producto ?? 'Sin ID'} ${producto.prodDescripcion ?? 'Sin nombre'}',
+                      ),
+                      const SizedBox(height: 20),
+                      CustomTextFieldNumero(
+                        controller: cuentaController,
+                        labelText: 'Cuenta*',
+                        prefixIcon: Icons.numbers,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Campo obligatorio';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Debe ser un número válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      CustomTextFieldNumero(
+                        controller: sctaController,
+                        labelText: 'Subcuenta',
+                        prefixIcon: Icons.numbers,
+                      ),
+                      const SizedBox(height: 20),
+                      CustomTextFielTexto(
+                        controller: detalleController,
+                        labelText: 'Detalle',
+                        prefixIcon: Icons.description,
+                      ),
+                      const SizedBox(height: 20),
+                      CustomTextFieldNumero(
+                        controller: cveprodController,
+                        labelText: 'CVEPROD',
+                        prefixIcon: Icons.code,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (formKey.currentState!.validate()) {
+                      if (selectedProduct == null) {
+                        showError(context, 'Seleccione un producto');
+                        return;
+                      }
+
+                      final nuevaCuenta = CContables(
+                        id_CConTable: 0,
+                        cC_Cuenta: int.tryParse(cuentaController.text),
+                        cC_SCTA: int.tryParse(sctaController.text),
+                        cC_Detalle: detalleController.text,
+                        cC_CVEPROD: BigInt.tryParse(cveprodController.text),
+                        idProducto: selectedProduct!.id_Producto,
+                      );
+
+                      try {
+                        final success = await _ccontablesController
+                            .addCcontable(nuevaCuenta);
+                        if (success) {
+                          // ignore: use_build_context_synchronously
+                          Navigator.pop(context);
+                          _loadData();
+                          showOk(context, 'Cuenta agregada correctamente');
+                        } else {
+                          // ignore: use_build_context_synchronously
+                          showError(context, 'Error al agregar la cuenta');
+                        }
+                      } catch (e) {
+                        // ignore: use_build_context_synchronously
+                        showError(context, 'Error: ${e.toString()}');
+                      }
+                    }
+                  },
+                  child: const Text('Agregar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Cuentas Contables'),
+        actions: [
+          PermissionWidget(
+            permission: 'add',
+            child: IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () async {
+                final productosCache = await _productosFuture;
+                _showAddDialog(productosCache);
+              },
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -88,7 +342,7 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
               controller: _searchController,
               labelText:
                   'Buscar por Cuenta, SCTA, Detalle, CVEPROD, ID Producto o Nombre del Producto',
-              prefixIcon: Icons.search, // Ícono de búsqueda
+              prefixIcon: Icons.search,
               onChanged: (query) {
                 // ignore: unnecessary_null_comparison
                 if (_productosFuture != null) {
@@ -142,33 +396,59 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
                           return Card(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 10),
-                            color: const Color.fromARGB(255, 201, 230, 242),
+                            color: const Color.fromARGB(255, 155, 224, 253),
                             elevation: 4,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            child: ListTile(
-                              title: Text('Cuenta: ${cuenta.cC_Cuenta}'),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Divider(color: Colors.black),
-                                  Text('Id del Producto: ${cuenta.idProducto}'),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    'Nombre: $nombreProducto',
-                                    style: const TextStyle(
-                                      overflow: TextOverflow.ellipsis,
+                            child: InkWell(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Cuenta: ${cuenta.cC_Cuenta}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        PermissionWidget(
+                                          permission: 'edit',
+                                          child: IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            onPressed: () {
+                                              _showEditDialog(
+                                                  cuenta, productosCache);
+                                            },
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text('SCTA: ${cuenta.cC_SCTA}'),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                      'CVEPROD: ${cuenta.cC_CVEPROD ?? 'Sin CVEPROD'}'),
-                                  const SizedBox(height: 10),
-                                  Text('Detalle: ${cuenta.cC_Detalle}'),
-                                  const SizedBox(height: 10),
-                                ],
+                                    const Divider(color: Colors.black),
+                                    Text(
+                                        'Id del Producto: ${cuenta.idProducto}'),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      'Nombre: $nombreProducto',
+                                      style: const TextStyle(
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text('SCTA: ${cuenta.cC_SCTA}'),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                        'CVEPROD: ${cuenta.cC_CVEPROD ?? 'Sin CVEPROD'}'),
+                                    const SizedBox(height: 10),
+                                    Text('Detalle: ${cuenta.cC_Detalle}'),
+                                    const SizedBox(height: 10),
+                                  ],
+                                ),
                               ),
                             ),
                           );
