@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/conteoinicial/add_conteo_page.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -146,6 +147,29 @@ class _ListConteoinicialPageState extends State<ListConteoinicialPage> {
       appBar: AppBar(
         title: const Text('Listado de Conteos Iniciales'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddConteoPage()),
+              );
+              if (result == true) {
+                // Recargar datos si se guardó correctamente
+                _loadData();
+              }
+            },
+          ),
+          IconButton(
+              onPressed: () async {
+                _selectedMonth = "Todos";
+                await _loadData();
+              },
+              icon: const Icon(
+                Icons.refresh,
+              )),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -163,15 +187,11 @@ class _ListConteoinicialPageState extends State<ListConteoinicialPage> {
                       prefixIcon: Icons.search,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  DropdownButton<String>(
+                  const SizedBox(width: 20),
+                  CustomListaDesplegable(
                     value: _selectedMonth,
-                    items: _months.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
+                    labelText: 'Mes',
+                    items: _months,
                     onChanged: (String? newValue) {
                       setState(() {
                         _selectedMonth = newValue;
