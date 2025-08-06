@@ -55,6 +55,79 @@ class CcontablesController {
       return [];
     }
   }
+
+  Future<bool> updateCcontable(CContables cuenta) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${_authService.apiURL}/CContables/${cuenta.id_CConTable}'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: cuenta.toJson(),
+      );
+
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print(
+            'Error al actualizar cuenta: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error al actualizar cuenta: $e');
+      return false;
+    }
+  }
+
+  Future<List<int>> getProductosSinCuenta() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/CContables/ProductosSinCuenta'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((id) => id as int).toList();
+      } else {
+        print(
+            'Error al obtener productos sin cuenta: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      print('Error al obtener productos sin cuenta: $e');
+      return [];
+    }
+  }
+
+  // En ccontables_controller.dart
+  Future<bool> addCcontable(CContables cuenta) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${_authService.apiURL}/CContables'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: cuenta.toJson(),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print(
+            'Error addCcontable | Ife | Controller: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error addCcontable | Try | Controller: $e');
+      return false;
+    }
+  }
 }
 
 class CContables {
