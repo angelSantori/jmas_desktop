@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   final String apiURL = 'https://localhost:5001/api';
   //final String apiURL = 'http://200.200.200.155:5000/api';
-  //final String apiURL = 'https://jmasapi.up.railway.app/api';
-  //final String apiURL = 'http://192.168.0.15:8080/api';
 
   Users? _currentUser;
 
@@ -58,6 +56,8 @@ class AuthService {
         return user!.role!.canManageRoles ?? false;
       case 'evaluar':
         return user!.role!.canEvaluar ?? false;
+      case 'ccontable':
+        return user!.role!.canCContables ?? false;
       default:
         return false;
     }
@@ -68,6 +68,7 @@ class AuthService {
   Future<bool> canEdit() => hasPermission('edit');
   Future<bool> canDelete() => hasPermission('delete');
   Future<bool> canEvaluar() => hasPermission('evaluar');
+  Future<bool> canCContable() => hasPermission('ccontable');
   Future<bool> canManageUsers() => hasPermission('manage_users');
   Future<bool> canManageRoles() => hasPermission('manage_roles');
 

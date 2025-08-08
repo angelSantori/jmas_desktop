@@ -165,6 +165,12 @@ class _AdminRolePageState extends State<AdminRolePage> {
                                   Icons.emoji_food_beverage,
                                   (value) => _updateRole(
                                       role.copyWith(canEvaluar: value))),
+                              _buildPermissionChip(
+                                  'CContable',
+                                  role.canCContables ?? false,
+                                  Icons.emoji_food_beverage,
+                                  (value) => _updateRole(
+                                      role.copyWith(canCContables: value))),
                             ],
                           ),
                         ],

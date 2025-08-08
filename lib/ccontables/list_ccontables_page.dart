@@ -323,7 +323,7 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
         title: const Text('Lista de Cuentas Contables'),
         actions: [
           PermissionWidget(
-            permission: 'add',
+            permission: 'ccontable',
             child: IconButton(
               icon: const Icon(Icons.add),
               onPressed: () async {
@@ -418,7 +418,7 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
                                           ),
                                         ),
                                         PermissionWidget(
-                                          permission: 'edit',
+                                          permission: 'ccontable',
                                           child: IconButton(
                                             icon: const Icon(Icons.edit),
                                             onPressed: () {

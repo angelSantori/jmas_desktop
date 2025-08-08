@@ -93,6 +93,7 @@ class Role {
   bool? canManageUsers;
   bool? canManageRoles;
   bool? canEvaluar;
+  bool? canCContables;
   Role({
     this.idRole,
     this.roleNombre,
@@ -104,6 +105,7 @@ class Role {
     this.canManageUsers,
     this.canManageRoles,
     this.canEvaluar,
+    this.canCContables,
   });
 
   Role copyWith({
@@ -117,6 +119,7 @@ class Role {
     bool? canManageUsers,
     bool? canManageRoles,
     bool? canEvaluar,
+    bool? canCContables,
   }) {
     return Role(
       idRole: idRole ?? this.idRole,
@@ -129,6 +132,7 @@ class Role {
       canManageUsers: canManageUsers ?? this.canManageUsers,
       canManageRoles: canManageRoles ?? this.canManageRoles,
       canEvaluar: canEvaluar ?? this.canEvaluar,
+      canCContables: canCContables ?? this.canCContables,
     );
   }
 
@@ -144,24 +148,23 @@ class Role {
       'canManageUsers': canManageUsers,
       'canManageRoles': canManageRoles,
       'canEvaluar': canEvaluar,
+      'canCContables': canCContables,
     };
   }
 
   factory Role.fromMap(Map<String, dynamic> map) {
     return Role(
       idRole: map['idRole'] != null ? map['idRole'] as int : null,
-      roleNombre:
-          map['roleNombre'] != null ? map['roleNombre'] as String : null,
+      roleNombre: map['roleNombre'] != null ? map['roleNombre'] as String : null,
       roleDescr: map['roleDescr'] != null ? map['roleDescr'] as String : null,
       canView: map['canView'] != null ? map['canView'] as bool : null,
       canAdd: map['canAdd'] != null ? map['canAdd'] as bool : null,
       canEdit: map['canEdit'] != null ? map['canEdit'] as bool : null,
       canDelete: map['canDelete'] != null ? map['canDelete'] as bool : null,
-      canManageUsers:
-          map['canManageUsers'] != null ? map['canManageUsers'] as bool : null,
-      canManageRoles:
-          map['canManageRoles'] != null ? map['canManageRoles'] as bool : null,
+      canManageUsers: map['canManageUsers'] != null ? map['canManageUsers'] as bool : null,
+      canManageRoles: map['canManageRoles'] != null ? map['canManageRoles'] as bool : null,
       canEvaluar: map['canEvaluar'] != null ? map['canEvaluar'] as bool : null,
+      canCContables: map['canCContables'] != null ? map['canCContables'] as bool : null,
     );
   }
 
@@ -172,36 +175,39 @@ class Role {
 
   @override
   String toString() {
-    return 'Role(idRole: $idRole, roleNombre: $roleNombre, roleDescr: $roleDescr, canView: $canView, canAdd: $canAdd, canEdit: $canEdit, canDelete: $canDelete, canManageUsers: $canManageUsers, canManageRoles: $canManageRoles, canEvaluar: $canEvaluar)';
+    return 'Role(idRole: $idRole, roleNombre: $roleNombre, roleDescr: $roleDescr, canView: $canView, canAdd: $canAdd, canEdit: $canEdit, canDelete: $canDelete, canManageUsers: $canManageUsers, canManageRoles: $canManageRoles, canEvaluar: $canEvaluar, canCContables: $canCContables)';
   }
 
   @override
   bool operator ==(covariant Role other) {
     if (identical(this, other)) return true;
-
-    return other.idRole == idRole &&
-        other.roleNombre == roleNombre &&
-        other.roleDescr == roleDescr &&
-        other.canView == canView &&
-        other.canAdd == canAdd &&
-        other.canEdit == canEdit &&
-        other.canDelete == canDelete &&
-        other.canManageUsers == canManageUsers &&
-        other.canManageRoles == canManageRoles &&
-        other.canEvaluar == canEvaluar;
+  
+    return 
+      other.idRole == idRole &&
+      other.roleNombre == roleNombre &&
+      other.roleDescr == roleDescr &&
+      other.canView == canView &&
+      other.canAdd == canAdd &&
+      other.canEdit == canEdit &&
+      other.canDelete == canDelete &&
+      other.canManageUsers == canManageUsers &&
+      other.canManageRoles == canManageRoles &&
+      other.canEvaluar == canEvaluar &&
+      other.canCContables == canCContables;
   }
 
   @override
   int get hashCode {
     return idRole.hashCode ^
-        roleNombre.hashCode ^
-        roleDescr.hashCode ^
-        canView.hashCode ^
-        canAdd.hashCode ^
-        canEdit.hashCode ^
-        canDelete.hashCode ^
-        canManageUsers.hashCode ^
-        canManageRoles.hashCode ^
-        canEvaluar.hashCode;
+      roleNombre.hashCode ^
+      roleDescr.hashCode ^
+      canView.hashCode ^
+      canAdd.hashCode ^
+      canEdit.hashCode ^
+      canDelete.hashCode ^
+      canManageUsers.hashCode ^
+      canManageRoles.hashCode ^
+      canEvaluar.hashCode ^
+      canCContables.hashCode;
   }
 }
