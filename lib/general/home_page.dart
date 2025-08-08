@@ -8,7 +8,7 @@ import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/calles/add_calles_page.dart';
 import 'package:jmas_desktop/calles/list_calles_page.dart';
 import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
-import 'package:jmas_desktop/ccontables/ccontables_generador_page.dart';
+import 'package:jmas_desktop/ccontables/ccontables_reportes_page.dart';
 import 'package:jmas_desktop/ccontables/list_ccontables_page.dart';
 import 'package:jmas_desktop/colonias/add_colonias_page.dart';
 import 'package:jmas_desktop/colonias/list_colonias_page.dart';
@@ -179,7 +179,7 @@ class _HomePageState extends State<HomePage>
 
       //Cuentas contables
       'listCC': () => const ListCcontablesPage(),
-      'generadorCC': () => const CcontablesGeneradorPage(),
+      'generadorCC': () => const CcontablesReportesPage(),
 
       //'mapa': () => const MapaLecturasPage(),
       // 'addAjusteMenos': () => const AddAjusteMenosPage(),
