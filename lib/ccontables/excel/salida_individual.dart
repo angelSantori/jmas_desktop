@@ -24,6 +24,14 @@ class ExcelSalidasIndividual {
 
       // Obtener todas las salidas
       final allSalidas = await salidasController.listSalidas();
+
+      final allProductos = await productosController.listProductos();
+      final productosNoServicio = allProductos
+          .where((p) =>
+              p.prodUMedSalida?.toLowerCase() != "servicio" &&
+              p.prodUMedEntrada?.toLowerCase() != "servicio")
+          .toList();
+
       final salidasInPeriod = allSalidas.where((s) {
         if (s.salida_Fecha == null ||
             s.id_Junta != selectedJunta.id_Junta ||
@@ -42,6 +50,11 @@ class ExcelSalidasIndividual {
 
       for (var salida in salidasInPeriod) {
         if (salida.idProducto == null) continue;
+
+        final producto = productosNoServicio.firstWhere(
+            (p) => p.id_Producto == salida.idProducto,
+            orElse: () => Productos());
+        if (producto.id_Producto == null) continue;
 
         if (!salidasByProduct.containsKey(salida.idProducto)) {
           salidasByProduct[salida.idProducto!] = [];
@@ -209,11 +222,12 @@ class ExcelSalidasIndividual {
 
       // Datos de salidas
       int currentRow = 9;
-      final productos = await productosController.listProductos();
 
       for (var productId in salidasByProduct.keys) {
-        final product = productos.firstWhere((p) => p.id_Producto == productId,
+        final product = productosNoServicio.firstWhere(
+            (p) => p.id_Producto == productId,
             orElse: () => Productos());
+        if (product.id_Producto == null) continue;
         final cc = ccByProduct[productId];
         final totalCosto = totalCostoByProduct[productId] ?? 0;
 

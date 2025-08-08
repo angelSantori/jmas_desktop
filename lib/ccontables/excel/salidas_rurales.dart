@@ -38,16 +38,34 @@ class ExcelSalidasRurales {
 
       final allSalidas = await salidasController.listSalidas();
 
-      // Filtrar salidas para juntas rurales en el periodo seleccionado
+      // 1. Primero obtén todos los productos y filtra los que no son "Servicio"
+      final allProductos = await productosController.listProductos();
+      final productosNoServicio = allProductos
+          .where((p) =>
+              p.prodUMedSalida?.toLowerCase() != "servicio" &&
+              p.prodUMedEntrada?.toLowerCase() != "servicio")
+          .toList();
+
+      // 2. Luego filtra las salidas para incluir solo las de productos no servicio
       final salidasInPeriod = allSalidas.where((s) {
         if (s.salida_Fecha == null ||
             s.salida_Estado != true ||
-            s.id_Junta == null) {
+            s.id_Junta == null ||
+            s.idProducto == null) {
           return false;
         }
 
+        // Excluir juntas especiales
         if (juntasEsp.contains(s.id_Junta)) {
           return false;
+        }
+
+        // Verificar que el producto no sea de tipo "Servicio"
+        final producto = productosNoServicio.firstWhere(
+            (p) => p.id_Producto == s.idProducto,
+            orElse: () => Productos());
+        if (producto.id_Producto == null) {
+          return false; // Excluir si el producto es de tipo "Servicio"
         }
 
         final salidaDate = parseFecha(s.salida_Fecha!);

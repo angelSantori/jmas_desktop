@@ -33,7 +33,12 @@ class ExcelSalidasEspeciales {
       }
 
       // Obtener todos los productos
-      final productos = await productosController.listProductos();
+      final allProductos = await productosController.listProductos();
+      final productos = allProductos
+          .where((p) =>
+              p.prodUMedSalida?.toLowerCase() != "servicio" &&
+              p.prodUMedEntrada?.toLowerCase() != "servicio")
+          .toList();
 
       // Obtener salidas para todas las juntas especiales en el mes seleccionado
       final currentYear = DateTime.now().year;
@@ -64,6 +69,12 @@ class ExcelSalidasEspeciales {
 
       for (var salida in salidasInPeriod) {
         if (salida.idProducto == null) continue;
+
+        // Verificar si el producto existe en la lista filtrada
+        final producto = productos.firstWhere(
+            (p) => p.id_Producto == salida.idProducto,
+            orElse: () => Productos());
+        if (producto.id_Producto == null) continue;
 
         if (!salidasByProduct.containsKey(salida.idProducto)) {
           salidasByProduct[salida.idProducto!] = [];
@@ -234,6 +245,7 @@ class ExcelSalidasEspeciales {
       for (var productId in salidasByProduct.keys) {
         final product = productos.firstWhere((p) => p.id_Producto == productId,
             orElse: () => Productos());
+        if (product.id_Producto == null) continue;
         final cc = ccByProduct[productId];
         final totalCosto = totalCostoByProduct[productId] ?? 0;
 
