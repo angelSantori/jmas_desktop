@@ -106,10 +106,21 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   }
 
   Future<void> _loadFolioSalida() async {
-    final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
-    setState(() {
-      codFolio = fetchedCodFolio;
-    });
+    try {
+      final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
+      if (mounted) {
+        setState(() {
+          codFolio = fetchedCodFolio;
+        });
+      }
+    } catch (e) {
+      print('Error al cargar folio de salida: $e');
+      if (mounted) {
+        setState(() {
+          codFolio = 'SAL-${DateFormat('yyyyMMdd').format(DateTime.now())}-ERR';
+        });
+      }
+    }
   }
 
   Future<void> _loadFolioTR() async {
@@ -272,6 +283,10 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       bool success = true;
+
+      // Obtener el folio actual antes de guardar
+      final currentFolio = codFolio;
+
       for (var producto in _productosAgregados) {
         await _getUserId();
 
@@ -281,11 +296,10 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
         if (!result) {
           success = false;
-          break; // Si hay error, no procesamos más productos y mostramos el error
+          break;
         }
 
         if (producto['id'] == null) {
-          // ignore: use_build_context_synchronously
           showAdvertence(context,
               'Id nulo: ${producto['id_Producto']}, no se puede continuar');
           success = false;
@@ -296,7 +310,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
             await _productosController.getProductoById(producto['id']);
 
         if (productoActualizado == null) {
-          // ignore: use_build_context_synchronously
           showAdvertence(context,
               'Producto con ID ${producto['id']} no encontrado en la base de datos.');
           success = false;
@@ -310,7 +323,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
             await _productosController.editProducto(productoActualizado);
 
         if (!editResult) {
-          // ignore: use_build_context_synchronously
           showAdvertence(context,
               'Error al actualizar las existencias del producto con ID ${producto['id_Producto']}');
           success = false;
@@ -331,25 +343,22 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         }
       }
 
-      // Mostrar el mensaje correspondiente al finalizar el ciclo
       if (success) {
-        // ignore: use_build_context_synchronously
-        showOk(context, 'Salida creada exitosamente.').then(
-          (_) {
-            if (mounted) {
-              _limpiarFormulario();
-              _loadFolioSalida();
-              _loadFolioTR();
-            }
-          },
-        );
+        // Limpiar y actualizar antes de mostrar el mensaje
+        _limpiarFormulario();
+        await _loadFolioSalida(); // Esperar a que se cargue el nuevo folio
+        await _loadFolioTR();
+
+        if (mounted) {
+          showOk(context, 'Salida creada exitosamente. Folio: $currentFolio');
+        }
       } else {
-        // ignore: use_build_context_synchronously
-        showError(context, 'Error al registrar salida');
-        setState(() => _isLoading = false);
+        if (mounted) {
+          showError(context, 'Error al registrar salida');
+        }
       }
 
-      _limpiarFormulario();
+      setState(() => _isLoading = false);
     }
   }
 
