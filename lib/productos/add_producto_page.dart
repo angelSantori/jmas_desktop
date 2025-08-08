@@ -39,6 +39,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
     'Rollo',
     'Pallet',
     'Barril',
+    'Servicio',
   ];
 
   final List<String> _unMedSalida = [
@@ -50,7 +51,8 @@ class _AddProductoPageState extends State<AddProductoPage> {
     'Gfon (Galón)',
     'Gr (Gramos)',
     'Ml (Mililitros)',
-    'Un (Unidad)'
+    'Un (Unidad)',
+    'Servicio'
   ];
 
   final List<String> _rack = ['R1', 'R2', 'R3'];
@@ -171,6 +173,9 @@ class _AddProductoPageState extends State<AddProductoPage> {
     _existenciaController.clear();
     _maxController.clear();
     _minController.clear();
+    _rack.clear();
+    _nivel.clear();
+    _letra.clear();
     setState(() {
       _selectedUnMedEntrada = null;
       _selectedUnMedSalida = null;
