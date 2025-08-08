@@ -793,13 +793,13 @@ class _HomePageState extends State<HomePage>
 
                           //REportes
                           CustomExpansionTile(
-                            title: 'Reportes',
+                            title: 'Contabilidad',
                             icon: const Icon(
                               Icons.paste_rounded,
                             ),
                             children: [
                               CustomListTile(
-                                title: 'CContable',
+                                title: 'CContables',
                                 icon: const Icon(
                                   Icons.list,
                                   color: Colors.white,
@@ -807,7 +807,7 @@ class _HomePageState extends State<HomePage>
                                 onTap: () => _navigateTo('listCC'),
                               ),
                               CustomListTile(
-                                title: 'Generador',
+                                title: 'Reportes',
                                 icon: const Icon(
                                   Icons.add_chart,
                                   color: Colors.white,
