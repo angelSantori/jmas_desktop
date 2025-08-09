@@ -28,7 +28,9 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
 
   List<Entradas> _entradas = [];
   List<Salidas> _salidas = [];
+  // ignore: unused_field
   List<Productos> _productos = [];
+  List<Productos> _productosFiltrados = [];
 
   @override
   void initState() {
@@ -45,6 +47,10 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
       _entradas = entradas;
       _salidas = salidas;
       _productos = productos;
+      _productosFiltrados = productos.where((producto) {
+        return producto.prodUMedSalida?.toLowerCase() != 'servicio' &&
+            producto.prodUMedEntrada?.toLowerCase() != 'servicio';
+      }).toList();
     });
   }
 
@@ -136,7 +142,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
   }
 
   double get _totalCostoAlmacen {
-    return _productos.fold(0, (sum, producto) {
+    return _productosFiltrados.fold(0, (sum, producto) {
       final existencia = producto.prodExistencia ?? 0;
       final costo = producto.prodCosto ?? 0;
       return sum + (existencia * costo);
@@ -503,7 +509,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
                   final productId = _getProductIdFromSection(section);
 
                   // Buscar el producto por ID
-                  final producto = _productos.firstWhere(
+                  final producto = _productosFiltrados.firstWhere(
                     (p) => p.id_Producto == productId,
                     orElse: () => Productos(
                       prodDescripcion: 'Desconocido',
@@ -654,7 +660,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
 
     for (int i = 0; i < topProducts.length; i++) {
       final entry = topProducts[i];
-      final producto = _productos.firstWhere(
+      final producto = _productosFiltrados.firstWhere(
         (p) => p.id_Producto == entry.key,
         orElse: () => Productos(
           id_Producto: entry.key,
