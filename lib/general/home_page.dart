@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 // import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/ajustes_plus/list_ajuste_mas_page.dart';
@@ -13,10 +14,13 @@ import 'package:jmas_desktop/ccontables/list_ccontables_page.dart';
 import 'package:jmas_desktop/colonias/add_colonias_page.dart';
 import 'package:jmas_desktop/colonias/list_colonias_page.dart';
 import 'package:jmas_desktop/conteoinicial/list_conteoinicial_page.dart';
+import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
+import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/inventory_dashboard_page.dart';
 import 'package:jmas_desktop/general/login_page.dart';
+import 'package:jmas_desktop/general/widgets/excel_validar_captura.dart';
 import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
 import 'package:jmas_desktop/herramientas/list_herramientas_page.dart';
 import 'package:jmas_desktop/htaPrest/add_htaprest_page.dart';
@@ -41,6 +45,7 @@ import 'package:jmas_desktop/universal/consulta_universal_page.dart';
 import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/permission_widget.dart';
 
 class HomePage extends StatefulWidget {
@@ -56,9 +61,11 @@ class _HomePageState extends State<HomePage>
   String? userName;
   String? userRole;
   String? idUser;
+  bool hasPendingCaptures = false;
 
   late AnimationController _animationController;
   late Animation<double> _animation;
+  Widget _currentPage = const Center(child: Text('Welcome to home Page!'));
 
   @override
   void initState() {
@@ -88,23 +95,220 @@ class _HomePageState extends State<HomePage>
 
   Future<void> _loadUserData() async {
     final decodeToken = await _authService.decodeToken();
+
+    hasPendingCaptures = await _checkPendingCaptures();
     setState(() {
       userName = decodeToken?['User_Name'];
       userRole = decodeToken?[
           'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
       idUser = decodeToken?['Id_User'];
 
-      _currentPage = (userRole?.toLowerCase() == 'admin')
-          ? const InventoryDashboardPage()
-          : const Center(
-              child: Text('Weolcome to home page!'),
-            );
+      // Primero verificar si es admin (sin importar el nombre de usuario)
+      if (userRole?.toLowerCase() == 'admin') {
+        _currentPage = const InventoryDashboardPage();
+      }
+      // Luego verificar si es "Empleado 156" y tiene capturas pendientes
+      // (esto se aplicará incluso si es admin)
+      if (userName == "Angel" && hasPendingCaptures) {
+        _currentPage = _buildCaptureValidationCard();
+      }
+      // Si no cumple ninguna condición especial, mostrar página de inicio normal
+      // ignore: unnecessary_null_comparison
+      else if (_currentPage == null) {
+        _currentPage = const Center(
+          child: Text('Welcome to home Page!'),
+        );
+      }
     });
   }
 
-  Widget _currentPage = const Center(
-    child: Text('Welcome to home Page!'),
-  );
+  Future<bool> _checkPendingCaptures() async {
+    try {
+      final controller = CapturainviniController();
+      final captures = await controller.listCapturaI();
+      return captures.any((capture) => capture.invIniEstado == false);
+    } catch (e) {
+      print('Error checking pending captures: $e');
+      return false;
+    }
+  }
+
+  Widget _buildCaptureValidationCard() {
+    return Center(
+      child: Card(
+        elevation: 8,
+        margin: const EdgeInsets.all(20),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Validar captura del mes: ${DateFormat.MMMM('es_ES').format(DateTime.now()).toUpperCase()}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.download),
+                    label: const Text('Descargar Excel'),
+                    onPressed: _downloadExcelReport,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade800,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.check_circle),
+                    label: const Text('Aceptar Captura'),
+                    onPressed: _showAcceptCaptureDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade900,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _downloadExcelReport() async {
+    try {
+      final controller = CapturainviniController();
+      final productController = ProductosController();
+
+      // Obtener capturas pendientes
+      final captures = await controller.listCapturaI();
+      final pendingCaptures =
+          captures.where((c) => c.invIniEstado == false).toList();
+
+      // Obtener información de productos
+      List<Map<String, dynamic>> excelData = [];
+
+      for (var capture in pendingCaptures) {
+        final product =
+            await productController.getProductoById(capture.id_Producto!);
+
+        excelData.add({
+          'IdProducto': capture.id_Producto,
+          'Descripción': product?.prodDescripcion ?? 'N/A',
+          'Existencia Sistema': product?.prodExistencia ?? 0,
+          'Conteo Capturado': capture.invIniConteo,
+          'Diferencia':
+              (capture.invIniConteo ?? 0) - (product?.prodExistencia ?? 0),
+          'Justificación': capture.invIniJustificacion ?? '',
+        });
+      }
+
+      // Generar y descargar el Excel
+      await excelValidarCaptura(
+        data: excelData,
+        context: context,
+      );
+
+      // Mostrar mensaje de éxito
+      showOk(context, 'Reporte generado exitosamente');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al generar reporte: $e')),
+      );
+    }
+  }
+
+  void _showAcceptCaptureDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Desea aceptar la captura?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => _showConfirmationDialog(),
+            child: const Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showConfirmationDialog() {
+    Navigator.pop(context); // Cerrar el primer diálogo
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmación'),
+        content: const Text(
+          '¿Seguro que desea aceptar la captura? '
+          'Esta acción editará las existencias actuales de los productos',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _acceptCapture();
+            },
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _acceptCapture() async {
+    try {
+      final captureController = CapturainviniController();
+      final productController = ProductosController();
+
+      // Obtener capturas pendientes
+      final captures = await captureController.listCapturaI();
+      final pendingCaptures =
+          captures.where((c) => c.invIniEstado == false).toList();
+
+      // Procesar cada captura
+      for (var capture in pendingCaptures) {
+        // Actualizar estado de la captura
+        final updatedCapture = capture.copyWith(invIniEstado: true);
+        await captureController.editCapturaI(updatedCapture);
+
+        // Actualizar existencia del producto
+        final product =
+            await productController.getProductoById(capture.id_Producto!);
+        if (product != null) {
+          await productController.updateInventario(
+            product.id_Producto!,
+            capture.invIniConteo!,
+            capture.id_Almacen!,
+          );
+        }
+      }
+
+      showOk(context, 'Captura aceptada exitosamente');
+      // Actualizar la vista
+      setState(() {
+        _currentPage = const Center(child: Text('Welcome to home Page!'));
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al aceptar captura: $e')),
+      );
+    }
+  }
 
   // Método para obtener el Map de rutas
   Map<String, Widget Function()> _getRoutes() {
