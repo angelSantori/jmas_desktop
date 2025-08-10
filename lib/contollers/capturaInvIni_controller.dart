@@ -1,6 +1,9 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-import 'package:jmas_desktop/service/auth_service.dart';
+
 import 'package:http/http.dart' as http;
+
+import 'package:jmas_desktop/service/auth_service.dart';
 
 class CapturainviniController {
   final AuthService _authService = AuthService();
@@ -134,12 +137,16 @@ class Capturainvini {
   int? idInvIni;
   String? invIniFecha;
   double? invIniConteo;
+  bool? invIniEstado;
+  String? invIniJustificacion;
   int? id_Producto;
   int? id_Almacen;
   Capturainvini({
     this.idInvIni,
     this.invIniFecha,
     this.invIniConteo,
+    this.invIniEstado,
+    this.invIniJustificacion,
     this.id_Producto,
     this.id_Almacen,
   });
@@ -148,6 +155,8 @@ class Capturainvini {
     int? idInvIni,
     String? invIniFecha,
     double? invIniConteo,
+    bool? invIniEstado,
+    String? invIniJustificacion,
     int? id_Producto,
     int? id_Almacen,
   }) {
@@ -155,6 +164,8 @@ class Capturainvini {
       idInvIni: idInvIni ?? this.idInvIni,
       invIniFecha: invIniFecha ?? this.invIniFecha,
       invIniConteo: invIniConteo ?? this.invIniConteo,
+      invIniEstado: invIniEstado ?? this.invIniEstado,
+      invIniJustificacion: invIniJustificacion ?? this.invIniJustificacion,
       id_Producto: id_Producto ?? this.id_Producto,
       id_Almacen: id_Almacen ?? this.id_Almacen,
     );
@@ -165,6 +176,8 @@ class Capturainvini {
       'idInvIni': idInvIni,
       'invIniFecha': invIniFecha,
       'invIniConteo': invIniConteo,
+      'invIniEstado': invIniEstado,
+      'invIniJustificacion': invIniJustificacion,
       'id_Producto': id_Producto,
       'id_Almacen': id_Almacen,
     };
@@ -175,10 +188,12 @@ class Capturainvini {
       idInvIni: map['idInvIni'] != null ? map['idInvIni'] as int : null,
       invIniFecha:
           map['invIniFecha'] != null ? map['invIniFecha'] as String : null,
-      invIniConteo: map['invIniConteo'] != null
-          ? (map['invIniConteo'] is int
-              ? (map['invIniConteo'] as int).toDouble()
-              : map['invIniConteo'] as double)
+      invIniConteo:
+          map['invIniConteo'] != null ? map['invIniConteo'] as double : null,
+      invIniEstado:
+          map['invIniEstado'] != null ? map['invIniEstado'] as bool : null,
+      invIniJustificacion: map['invIniJustificacion'] != null
+          ? map['invIniJustificacion'] as String
           : null,
       id_Producto:
           map['id_Producto'] != null ? map['id_Producto'] as int : null,
@@ -193,7 +208,7 @@ class Capturainvini {
 
   @override
   String toString() {
-    return 'Capturainvini(idInvIni: $idInvIni, invIniFecha: $invIniFecha, invIniConteo: $invIniConteo, id_Producto: $id_Producto, id_Almacen: $id_Almacen)';
+    return 'Capturainvini(idInvIni: $idInvIni, invIniFecha: $invIniFecha, invIniConteo: $invIniConteo, invIniEstado: $invIniEstado, invIniJustificacion: $invIniJustificacion, id_Producto: $id_Producto, id_Almacen: $id_Almacen)';
   }
 
   @override
@@ -203,6 +218,8 @@ class Capturainvini {
     return other.idInvIni == idInvIni &&
         other.invIniFecha == invIniFecha &&
         other.invIniConteo == invIniConteo &&
+        other.invIniEstado == invIniEstado &&
+        other.invIniJustificacion == invIniJustificacion &&
         other.id_Producto == id_Producto &&
         other.id_Almacen == id_Almacen;
   }
@@ -212,6 +229,8 @@ class Capturainvini {
     return idInvIni.hashCode ^
         invIniFecha.hashCode ^
         invIniConteo.hashCode ^
+        invIniEstado.hashCode ^
+        invIniJustificacion.hashCode ^
         id_Producto.hashCode ^
         id_Almacen.hashCode;
   }
