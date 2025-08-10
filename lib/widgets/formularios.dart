@@ -398,6 +398,8 @@ class CustomTextFieldNumero extends StatefulWidget {
   final String labelText;
   final String? Function(String?)? validator;
   final IconData prefixIcon;
+  final bool allowNegative;
+  final bool isDecimal;
   final FocusNode? focusNode;
   final void Function(String)? onFieldSubmitted;
   final bool enabled;
@@ -411,6 +413,8 @@ class CustomTextFieldNumero extends StatefulWidget {
     this.validator,
     this.focusNode,
     this.onFieldSubmitted,
+    this.allowNegative = false,
+    this.isDecimal = true,
     this.enabled = true,
     this.onChanged,
   });
@@ -518,9 +522,19 @@ class _CustomTextFieldNumeroState extends State<CustomTextFieldNumero>
               color: widget.enabled ? Colors.black : Colors.grey.shade600,
             ),
             validator: widget.validator,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.numberWithOptions(
+              decimal: widget.isDecimal,
+              signed: widget.allowNegative,
+            ),
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+              // Opcional: Filtra caracteres no numéricos (excepto '-' si allowNegative=true)
+              FilteringTextInputFormatter.allow(
+                widget.allowNegative
+                    ? RegExp(
+                        r'^-?\d*\.?\d*') // Permite números negativos y decimales
+                    : RegExp(
+                        r'^\d*\.?\d*'), // Solo números positivos y decimales
+              )
             ],
             onFieldSubmitted: widget.onFieldSubmitted,
             onChanged: widget.onChanged,
