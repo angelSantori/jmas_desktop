@@ -23,7 +23,9 @@ class _AddConteoPageState extends State<AddConteoPage> {
   List<Productos> _productosFiltrados = [];
   List<Almacenes> _almacenes = [];
   final Map<int, TextEditingController> _cantidadControllers = {};
+  final Map<int, TextEditingController> _justificacionControllers = {};
   final Map<int, int?> _almacenPorProducto = {};
+  final Map<int, bool> _mostrarJustificacion = {};
   bool _isLoading = true;
 
   @override
@@ -35,7 +37,6 @@ class _AddConteoPageState extends State<AddConteoPage> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
-      // Obtener mes y año actual para filtrar
       final currentMonth = DateTime.now().month;
       final currentYear = DateTime.now().year;
 
@@ -55,9 +56,12 @@ class _AddConteoPageState extends State<AddConteoPage> {
           .map((c) => c.id_Producto)
           .toSet();
 
-      // Filtrar productos que no tienen conteo este mes
+      // Filtrar productos: excluir los que ya tienen conteo y los que son servicios
       final productosSinConteo = todosProductos
           .where((p) => !productosConConteo.contains(p.id_Producto))
+          .where((p) =>
+              p.prodUMedEntrada?.toLowerCase() != "servicio" &&
+              p.prodUMedSalida?.toLowerCase() != "servicio")
           .toList();
 
       setState(() {
@@ -65,11 +69,28 @@ class _AddConteoPageState extends State<AddConteoPage> {
         _productosFiltrados = productosSinConteo;
         _almacenes = resultados[1] as List<Almacenes>;
 
-        // Inicializar controladores y selección de almacén
         for (var producto in _productosFiltrados) {
           _cantidadControllers[producto.id_Producto!] = TextEditingController();
+          _justificacionControllers[producto.id_Producto!] =
+              TextEditingController();
           _almacenPorProducto[producto.id_Producto!] =
               _almacenes.isNotEmpty ? _almacenes.first.id_Almacen : null;
+          _mostrarJustificacion[producto.id_Producto!] = false;
+
+          // Listener para mostrar/ocultar justificación según cantidad
+          _cantidadControllers[producto.id_Producto!]?.addListener(() {
+            final cantidadText =
+                _cantidadControllers[producto.id_Producto!]?.text ?? '';
+            final cantidad = double.tryParse(cantidadText);
+            if (cantidad != null && producto.prodExistencia != null) {
+              // ignore: unused_local_variable
+              final diferencia = (cantidad - producto.prodExistencia!).abs();
+              setState(() {
+                _mostrarJustificacion[producto.id_Producto!] =
+                    cantidad != producto.prodExistencia;
+              });
+            }
+          });
         }
 
         _isLoading = false;
@@ -85,10 +106,29 @@ class _AddConteoPageState extends State<AddConteoPage> {
       showAdvertence(context, 'No hay productos para guardar');
       return;
     }
+
+    // Validar antes de guardar
+    for (var producto in _productosFiltrados) {
+      final cantidadText =
+          _cantidadControllers[producto.id_Producto]?.text ?? '';
+      if (cantidadText.isEmpty) continue;
+
+      final cantidad = double.tryParse(cantidadText);
+      if (cantidad == null) continue;
+
+      // Verificar si necesita justificación y si la tiene
+      if (_mostrarJustificacion[producto.id_Producto] == true &&
+          (_justificacionControllers[producto.id_Producto]?.text.isEmpty ??
+              true)) {
+        showAdvertence(context,
+            'Debe proporcionar una justificación para el producto ${producto.prodDescripcion}');
+        return;
+      }
+    }
+
     int conteosGuardados = 0;
     bool hasErrors = false;
 
-    // Mostrar diálogo de progreso
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -106,7 +146,6 @@ class _AddConteoPageState extends State<AddConteoPage> {
       ),
     );
 
-    // Procesar cada producto filtrado
     for (var producto in _productosFiltrados) {
       final cantidadText =
           _cantidadControllers[producto.id_Producto]?.text ?? '';
@@ -114,6 +153,8 @@ class _AddConteoPageState extends State<AddConteoPage> {
 
       final cantidad = double.tryParse(cantidadText);
       final almacenId = _almacenPorProducto[producto.id_Producto];
+      final justificacion =
+          _justificacionControllers[producto.id_Producto]?.text;
 
       if (cantidad == null || almacenId == null) {
         hasErrors = true;
@@ -124,20 +165,17 @@ class _AddConteoPageState extends State<AddConteoPage> {
         idInvIni: 0,
         invIniFecha: DateFormat('dd/MM/yy').format(DateTime.now()),
         invIniConteo: cantidad,
+        invIniEstado: false,
+        invIniJustificacion: _mostrarJustificacion[producto.id_Producto] == true
+            ? justificacion
+            : null,
         id_Producto: producto.id_Producto,
         id_Almacen: almacenId,
       );
 
       try {
         final success = await _conteoController.addCapturaFisica(conteo);
-        if (success) {
-          final updateSuccess = await _productosController.updateInventario(
-            producto.id_Producto!,
-            cantidad,
-            almacenId,
-          );
-          if (updateSuccess) conteosGuardados++;
-        }
+        if (success) conteosGuardados++;
       } catch (e) {
         hasErrors = true;
         print(
@@ -145,7 +183,6 @@ class _AddConteoPageState extends State<AddConteoPage> {
       }
     }
 
-    // Cerrar diálogo de progreso
     if (mounted) Navigator.of(context).pop();
 
     if (mounted) {
@@ -154,12 +191,7 @@ class _AddConteoPageState extends State<AddConteoPage> {
             'Se guardaron $conteosGuardados conteos, pero hubo algunos errores');
       } else {
         showOk(context, 'Se guardaron $conteosGuardados conteos correctamente');
-
-        // Opción 1: Recargar esta página para mostrar solo los productos faltantes
         _loadData();
-
-        // Opción 2: Volver a la lista anterior con los datos actualizados
-        // Navigator.of(context).pop(true);
       }
     }
   }
@@ -167,6 +199,9 @@ class _AddConteoPageState extends State<AddConteoPage> {
   @override
   void dispose() {
     for (var controller in _cantidadControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _justificacionControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -186,10 +221,7 @@ class _AddConteoPageState extends State<AddConteoPage> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.save,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.save, color: Colors.white),
             onPressed: _guardarConteos,
             tooltip: 'Guardar',
           ),
@@ -202,7 +234,6 @@ class _AddConteoPageState extends State<AddConteoPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  // Lista de productos con campos de cantidad y almacén
                   Expanded(
                     child: ListView.builder(
                       itemCount: _productosFiltrados.length,
@@ -223,6 +254,13 @@ class _AddConteoPageState extends State<AddConteoPage> {
                                     fontSize: 16,
                                   ),
                                 ),
+                                Text(
+                                  'Existencia actual: ${producto.prodExistencia?.toStringAsFixed(2) ?? "N/A"}',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontSize: 14,
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
@@ -232,6 +270,7 @@ class _AddConteoPageState extends State<AddConteoPage> {
                                             producto.id_Producto]!,
                                         labelText: 'Cantidad',
                                         prefixIcon: Icons.numbers,
+                                        allowNegative: true,
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -264,6 +303,17 @@ class _AddConteoPageState extends State<AddConteoPage> {
                                     ),
                                   ],
                                 ),
+                                if (_mostrarJustificacion[
+                                        producto.id_Producto] ==
+                                    true) ...[
+                                  const SizedBox(height: 8),
+                                  CustomTextFielTexto(
+                                    controller: _justificacionControllers[
+                                        producto.id_Producto]!,
+                                    labelText: 'Justificación (requerida)',
+                                    prefixIcon: Icons.note_add,
+                                  ),
+                                ],
                               ],
                             ),
                           ),
