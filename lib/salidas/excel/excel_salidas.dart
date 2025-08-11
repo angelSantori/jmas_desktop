@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart';
@@ -14,6 +15,7 @@ class ExcelSalidasMes {
     DateTime? selectedMonth,
     required List<Salidas> allSalidas,
     required BuildContext context,
+    required ProductosController productosController,
   }) async {
     try {
       // Filtrar salidas: solo juntas especiales, activas y del mes seleccionado
@@ -43,11 +45,11 @@ class ExcelSalidasMes {
       }
 
       await _generateExcelReport(
-        context: context,
-        filteredSalidas: filteredSalidas,
-        reportType: 'JUNTAS_ESPECIALES',
-        selectedMonth: selectedMonth,
-      );
+          context: context,
+          filteredSalidas: filteredSalidas,
+          reportType: 'JUNTAS_ESPECIALES',
+          selectedMonth: selectedMonth,
+          productosController: productosController);
     } catch (e) {
       showError(
           context, 'Error al generar el archivo Excel de juntas especiales');
@@ -60,6 +62,7 @@ class ExcelSalidasMes {
     DateTime? selectedMonth,
     required List<Salidas> allSalidas,
     required BuildContext context,
+    required ProductosController productosController,
   }) async {
     try {
       // Filtrar salidas: juntas no especiales, activas y del mes seleccionado
@@ -93,6 +96,7 @@ class ExcelSalidasMes {
         filteredSalidas: filteredSalidas,
         reportType: 'JUNTAS_RURALES',
         selectedMonth: selectedMonth,
+        productosController: productosController,
       );
     } catch (e) {
       showError(context, 'Error al generar el archivo Excel de juntas rurales');
@@ -106,7 +110,25 @@ class ExcelSalidasMes {
     required List<Salidas> filteredSalidas,
     required String reportType,
     DateTime? selectedMonth,
+    required ProductosController productosController,
   }) async {
+    final allProductos = await productosController.listProductos();
+
+    // Filtrar salidas para excluir productos de tipo "Servicio"
+    final filteredSalidasSinServicios = filteredSalidas.where((salida) {
+      final producto = allProductos.firstWhere(
+        (prod) => prod.id_Producto == salida.idProducto,
+        orElse: () => Productos(
+          id_Producto: 0,
+          prodUMedEntrada: '',
+          prodUMedSalida: '',
+        ),
+      );
+
+      return producto.prodUMedEntrada?.toLowerCase() != 'servicio' &&
+          producto.prodUMedSalida?.toLowerCase() != 'servicio';
+    }).toList();
+
     final Workbook workbook = Workbook();
     final Worksheet sheet = workbook.worksheets[0];
 
@@ -181,7 +203,7 @@ class ExcelSalidasMes {
 
     // Datos
     int rowIndex = 5;
-    for (var salida in filteredSalidas) {
+    for (var salida in filteredSalidasSinServicios) {
       sheet.getRangeByIndex(rowIndex, 1).setText(salida.salida_CodFolio ?? '');
       sheet
           .getRangeByIndex(rowIndex, 2)
@@ -211,10 +233,10 @@ class ExcelSalidasMes {
     }
 
     // Totales
-    final double totalUnidades = filteredSalidas.fold(
+    final double totalUnidades = filteredSalidasSinServicios.fold(
         0, (sum, item) => sum + (item.salida_Unidades ?? 0));
-    final double totalCosto =
-        filteredSalidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
+    final double totalCosto = filteredSalidasSinServicios.fold(
+        0, (sum, item) => sum + (item.salida_Costo ?? 0));
 
     sheet.getRangeByIndex(rowIndex, 3).setText('TOTALES:');
     sheet.getRangeByIndex(rowIndex, 3).cellStyle.bold = true;

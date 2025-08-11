@@ -1119,6 +1119,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       await ExcelSalidasMes.generateExcelJuntasEspeciales(
         selectedMonth: _selectedMonth,
         allSalidas: _allSalidas,
+        productosController: _productosController,
         context: context,
       );
     } catch (e) {
@@ -1135,6 +1136,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     setState(() => _isGeneratingExcel = true);
     try {
       await ExcelSalidasMes.generateExcelJuntasRurales(
+        productosController: _productosController,
         selectedMonth: _selectedMonth,
         allSalidas: _allSalidas,
         context: context,
