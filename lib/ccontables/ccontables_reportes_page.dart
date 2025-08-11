@@ -397,18 +397,18 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
               ),
             ],
           ),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: _isGeneratingConteo ? null : _generateConteoInicialExcel,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple.shade700,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-            ),
-            child: _isGeneratingConteo
-                ? const CircularProgressIndicator()
-                : const Text('Generar Conteo Inicial',
-                    style: TextStyle(fontSize: 16, color: Colors.white)),
-          ),
+          // const SizedBox(height: 30),
+          // ElevatedButton(
+          //   onPressed: _isGeneratingConteo ? null : _generateConteoInicialExcel,
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: Colors.purple.shade700,
+          //     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+          //   ),
+          //   child: _isGeneratingConteo
+          //       ? const CircularProgressIndicator()
+          //       : const Text('Generar Conteo Inicial',
+          //           style: TextStyle(fontSize: 16, color: Colors.white)),
+          // ),
         ],
       ),
     );
