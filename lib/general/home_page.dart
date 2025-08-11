@@ -65,7 +65,11 @@ class _HomePageState extends State<HomePage>
 
   late AnimationController _animationController;
   late Animation<double> _animation;
-  Widget _currentPage = const Center(child: Text('Welcome to home Page!'));
+  Widget _currentPage = const Center(
+      child: Text(
+    'Presiona \nCtrl + Shift + R \nUna o dos veces para cargar posibles actualizaciones en el sistema!',
+    textAlign: TextAlign.center,
+  ));
 
   @override
   void initState() {
@@ -116,7 +120,10 @@ class _HomePageState extends State<HomePage>
       // ignore: unnecessary_null_comparison
       else if (_currentPage == null) {
         _currentPage = const Center(
-          child: Text('Welcome to home Page!'),
+          child: Text(
+            'Presiona \nCtrl + Shift + R \nUna o dos veces para posibles actualizaciones en el sistema!',
+            textAlign: TextAlign.center,
+          ),
         );
       }
     });
@@ -301,7 +308,11 @@ class _HomePageState extends State<HomePage>
       showOk(context, 'Captura aceptada exitosamente');
       // Actualizar la vista
       setState(() {
-        _currentPage = const Center(child: Text('Welcome to home Page!'));
+        _currentPage = const Center(
+            child: Text(
+          'Presiona \nCtrl + Shift + R \nUna o dos veces para cargar posibles actualizaciones en el sistema!',
+          textAlign: TextAlign.center,
+        ));
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -377,7 +388,11 @@ class _HomePageState extends State<HomePage>
       'listOrdenCompra': () => ListOrdenCompraPage(userRole: userRole),
 
       //X
-      'home': () => const Center(child: Text('Welcome to home Page!')),
+      'home': () => const Center(
+              child: Text(
+            'Presiona \nCtrl + Shift + R \nUna o dos veces para cargar posibles actualizaciones en el sistema!',
+            textAlign: TextAlign.center,
+          )),
       'dashboard': () => const InventoryDashboardPage(),
       'listPadron': () => const ListPadronPage(),
 
