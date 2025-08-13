@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/ccontables/excel/conteo_inicial.dart';
+//import 'package:jmas_desktop/ccontables/excel/conteo_inicial.dart';
 import 'package:jmas_desktop/ccontables/excel/entradas_especiales.dart';
 import 'package:jmas_desktop/ccontables/excel/entradas_individual.dart';
 import 'package:jmas_desktop/ccontables/excel/entradas_rurales.dart';
@@ -8,7 +8,7 @@ import 'package:jmas_desktop/ccontables/excel/salida_individual.dart';
 import 'package:jmas_desktop/ccontables/excel/salidas_especiales.dart';
 import 'package:jmas_desktop/ccontables/excel/salidas_rurales.dart';
 import 'package:jmas_desktop/ccontables/widgets_ccontables.dart';
-import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
+//import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
@@ -16,7 +16,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
-import 'dart:html' as html;
+//import 'dart:html' as html;
 
 class CcontablesReportesPage extends StatefulWidget {
   const CcontablesReportesPage({super.key});
@@ -32,8 +32,8 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
   final CcontablesController _ccontablesController = CcontablesController();
   final EntradasController _entradasController = EntradasController();
   final SalidasController _salidasController = SalidasController();
-  final CapturainviniController _capturainviniController =
-      CapturainviniController();
+  // final CapturainviniController _capturainviniController =
+  //     CapturainviniController();
 
   List<Juntas> _juntas = [];
   Juntas? _selectedJunta;
@@ -45,7 +45,7 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
   bool _isGeneratingSalidasEspeciales = false;
   bool _isGeneratingEntradasRurales = false;
   bool _isGeneratingSalidasRurales = false;
-  bool _isGeneratingConteo = false;
+  //bool _isGeneratingConteo = false;
 
   int? _selectedMonth;
   final List<String> _monthNames = [
@@ -85,45 +85,45 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
     });
   }
 
-  Future<void> _generateConteoInicialExcel() async {
-    if (_selectedMonth == null) {
-      showAdvertence(context, 'Por favor seleccione un mes');
-      return;
-    }
+  // Future<void> _generateConteoInicialExcel() async {
+  //   if (_selectedMonth == null) {
+  //     showAdvertence(context, 'Por favor seleccione un mes');
+  //     return;
+  //   }
 
-    setState(() => _isGeneratingConteo = true);
+  //   setState(() => _isGeneratingConteo = true);
 
-    try {
-      final currentYear = DateTime.now().year;
-      final result = await generateConteoInicialExcel(
-        month: _selectedMonth!,
-        year: currentYear,
-        entradasController: _entradasController,
-        salidasController: _salidasController,
-        productosController: _productosController,
-        capturainviniController: _capturainviniController,
-      );
+  //   try {
+  //     final currentYear = DateTime.now().year;
+  //     final result = await generateConteoInicialExcel(
+  //       month: _selectedMonth!,
+  //       year: currentYear,
+  //       entradasController: _entradasController,
+  //       salidasController: _salidasController,
+  //       productosController: _productosController,
+  //       capturainviniController: _capturainviniController,
+  //     );
 
-      final blob = html.Blob(
-        [result['bytes']],
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      );
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      // ignore: unused_local_variable
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', result['fileName'])
-        ..click();
+  //     final blob = html.Blob(
+  //       [result['bytes']],
+  //       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  //     );
+  //     final url = html.Url.createObjectUrlFromBlob(blob);
+  //     // ignore: unused_local_variable
+  //     final anchor = html.AnchorElement(href: url)
+  //       ..setAttribute('download', result['fileName'])
+  //       ..click();
 
-      html.Url.revokeObjectUrl(url);
+  //     html.Url.revokeObjectUrl(url);
 
-      showOk(context, 'Archivo generado: ${result['fileName']}');
-    } catch (e) {
-      showError(context, 'Error al generar el archivo: $e');
-      print('Error al generar el archivo: $e');
-    } finally {
-      setState(() => _isGeneratingConteo = false);
-    }
-  }
+  //     showOk(context, 'Archivo generado: ${result['fileName']}');
+  //   } catch (e) {
+  //     showError(context, 'Error al generar el archivo: $e');
+  //     print('Error al generar el archivo: $e');
+  //   } finally {
+  //     setState(() => _isGeneratingConteo = false);
+  //   }
+  // }
 
   Future<void> _generateExcelEntradasEspeciales() async {
     setState(() => _isGeneratingEntradasEspeciales = true);
@@ -500,7 +500,7 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
           const Text(
