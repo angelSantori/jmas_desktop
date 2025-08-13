@@ -261,9 +261,8 @@ class ExcelSalidasRurales {
         sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
 
         sheet.getRangeByName('D$currentRow').merge();
-        sheet
-            .getRangeByName('D$currentRow')
-            .setText('${junta.junta_Name?.toUpperCase()}');
+        sheet.getRangeByName('D$currentRow').setText(
+            'SALIDA DE ALMACÉN DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear ${junta.junta_Name?.toUpperCase()}');
         sheet.getRangeByName('D$currentRow').cellStyle = styleInfoData;
 
         sheet.getRangeByName('E$currentRow').setText('149825');
