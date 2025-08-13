@@ -1,4 +1,3 @@
-// En list_ccontables_page.dart
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -66,7 +65,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
           return cuenta.cC_Cuenta.toString().contains(query) ||
               cuenta.cC_SCTA.toString().contains(query) ||
               cuenta.cC_Detalle!.toLowerCase().contains(query.toLowerCase()) ||
-              cuenta.cC_CVEPROD.toString().contains(query) ||
               cuenta.idProducto.toString().contains(query) ||
               nombreProducto.toLowerCase().contains(query.toLowerCase());
         }).toList();
@@ -82,8 +80,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
     final sctaController =
         TextEditingController(text: cuenta.cC_SCTA?.toString());
     final detalleController = TextEditingController(text: cuenta.cC_Detalle);
-    final cveprodController =
-        TextEditingController(text: cuenta.cC_CVEPROD?.toString());
 
     await showDialog(
       context: context,
@@ -126,12 +122,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
                     labelText: 'Detalle',
                     prefixIcon: Icons.description,
                   ),
-                  const SizedBox(height: 20),
-                  CustomTextFieldNumero(
-                    controller: cveprodController,
-                    labelText: 'CVEPROD',
-                    prefixIcon: Icons.code,
-                  ),
                 ],
               ),
             ),
@@ -145,11 +135,9 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   final updatedCuenta = cuenta.copyWith(
-                    cC_Cuenta: int.tryParse(cuentaController.text),
-                    cC_SCTA: int.tryParse(sctaController.text),
-                    cC_Detalle: detalleController.text,
-                    cC_CVEPROD: BigInt.tryParse(cveprodController.text),
-                  );
+                      cC_Cuenta: int.tryParse(cuentaController.text),
+                      cC_SCTA: int.tryParse(sctaController.text),
+                      cC_Detalle: detalleController.text);
 
                   final success = await _ccontablesController
                       .updateCcontable(updatedCuenta);
@@ -180,7 +168,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
     final cuentaController = TextEditingController();
     final sctaController = TextEditingController();
     final detalleController = TextEditingController();
-    final cveprodController = TextEditingController();
     Productos? selectedProduct;
 
     // Obtener productos sin cuenta
@@ -256,12 +243,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
                         labelText: 'Detalle',
                         prefixIcon: Icons.description,
                       ),
-                      const SizedBox(height: 20),
-                      CustomTextFieldNumero(
-                        controller: cveprodController,
-                        labelText: 'CVEPROD',
-                        prefixIcon: Icons.code,
-                      ),
                     ],
                   ),
                 ),
@@ -284,7 +265,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
                         cC_Cuenta: int.tryParse(cuentaController.text),
                         cC_SCTA: int.tryParse(sctaController.text),
                         cC_Detalle: detalleController.text,
-                        cC_CVEPROD: BigInt.tryParse(cveprodController.text),
                         idProducto: selectedProduct!.id_Producto,
                       );
 
@@ -341,7 +321,7 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
             child: CustomTextFielTexto(
               controller: _searchController,
               labelText:
-                  'Buscar por Cuenta, SCTA, Detalle, CVEPROD, ID Producto o Nombre del Producto',
+                  'Buscar por Cuenta, SCTA, Detalle, ID Producto o Nombre del Producto',
               prefixIcon: Icons.search,
               onChanged: (query) {
                 // ignore: unnecessary_null_comparison
@@ -441,9 +421,6 @@ class _ListCcontablesPageState extends State<ListCcontablesPage> {
                                     ),
                                     const SizedBox(height: 10),
                                     Text('SCTA: ${cuenta.cC_SCTA}'),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                        'CVEPROD: ${cuenta.cC_CVEPROD ?? 'Sin CVEPROD'}'),
                                     const SizedBox(height: 10),
                                     Text('Detalle: ${cuenta.cC_Detalle}'),
                                     const SizedBox(height: 10),
