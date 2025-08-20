@@ -1149,52 +1149,108 @@ Future<Uint8List> generateAndPrintPdfSalidaBytes({
 
             // Sección de firma al pie de página
             pw.Positioned(
-                bottom: 30,
-                left: 0,
-                right: 0,
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: pw.Container(
                 child: pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
-                    children: [
-                      //Fimra de Entrga
-                      pw.Column(children: [
-                        pw.Container(
-                          width: 120,
-                          height: 1,
-                          decoration: const pw.BoxDecoration(
-                            color: PdfColors.black,
-                          ),
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Columna izquierda con 2 firmas
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        // Firma de Solicitó (usuario asignado)
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.Container(
+                              width: 120,
+                              height: 1,
+                              decoration: const pw.BoxDecoration(
+                                color: PdfColors.black,
+                              ),
+                            ),
+                            pw.SizedBox(height: 6),
+                            pw.Text(
+                              'Solicitó \n${userAsignado.user_Name}',
+                              style: const pw.TextStyle(fontSize: 10),
+                              textAlign: pw.TextAlign.center, // Texto centrado
+                            ),
+                          ],
                         ),
-                        pw.SizedBox(height: 6),
-                        pw.Text('Solicitó',
-                            style: const pw.TextStyle(fontSize: 10)),
-                      ]),
-                      //Fimra de Autoriza
-                      pw.Column(children: [
-                        pw.Container(
-                          width: 120,
-                          height: 1,
-                          decoration: const pw.BoxDecoration(
-                            color: PdfColors.black,
-                          ),
+                        pw.SizedBox(height: 50),
+                        // Firma de Recibió (junta destino)
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.Container(
+                              width: 120,
+                              height: 1,
+                              decoration: const pw.BoxDecoration(
+                                color: PdfColors.black,
+                              ),
+                            ),
+                            pw.SizedBox(height: 6),
+                            pw.Text(
+                              'Recibió \n${junta.junta_Name}',
+                              style: const pw.TextStyle(fontSize: 10),
+                              textAlign: pw.TextAlign.center, // Texto centrado
+                            ),
+                          ],
                         ),
-                        pw.SizedBox(height: 6),
-                        pw.Text('Autorizó',
-                            style: const pw.TextStyle(fontSize: 10)),
-                      ]),
-                      //Fimra de Recibe
-                      pw.Column(children: [
-                        pw.Container(
-                          width: 120,
-                          height: 1,
-                          decoration: const pw.BoxDecoration(
-                            color: PdfColors.black,
-                          ),
+                      ],
+                    ),
+
+                    // Columna derecha con 2 firmas
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        // Firma de Entregó (quien captura)
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.Container(
+                              width: 120,
+                              height: 1,
+                              decoration: const pw.BoxDecoration(
+                                color: PdfColors.black,
+                              ),
+                            ),
+                            pw.SizedBox(height: 6),
+                            pw.Text(
+                              'Entregó \n$userName',
+                              style: const pw.TextStyle(fontSize: 10),
+                              textAlign: pw.TextAlign.center, // Texto centrado
+                            ),
+                          ],
                         ),
-                        pw.SizedBox(height: 6),
-                        pw.Text('Entregó',
-                            style: const pw.TextStyle(fontSize: 10)),
-                      ]),
-                    ])),
+                        pw.SizedBox(height: 50),
+                        // Firma de Autorizó (se mantiene igual)
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.center,
+                          children: [
+                            pw.Container(
+                              width: 120,
+                              height: 1,
+                              decoration: const pw.BoxDecoration(
+                                color: PdfColors.black,
+                              ),
+                            ),
+                            pw.SizedBox(height: 6),
+                            pw.Text(
+                              'Autorizó',
+                              style: const pw.TextStyle(fontSize: 10),
+                              textAlign: pw.TextAlign.center, // Texto centrado
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         );
       },
