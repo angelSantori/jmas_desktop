@@ -1154,7 +1154,7 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                       return ListTile(
                         title: Text(producto.prodDescripcion ?? 'Sin nombre'),
                         subtitle: Text(
-                          'ID: ${producto.id_Producto} - Costo: \$${producto.prodCosto ?? 'No disponible'} - Existencias: ${producto.prodExistencia}',
+                          'ID: ${producto.id_Producto} - Costo: \$${producto.prodCosto ?? 'No disponible'} - Existencias: ${producto.prodExistencia} - Ubicación: ${producto.prodUbFisica ?? 'Sin ubicación'}',
                         ),
                         onTap: () => _seleccionarProducto(producto),
                       );
@@ -1213,6 +1213,11 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                           const SizedBox(height: 5),
                           Text(
                             'Descripción: ${widget.selectedProducto!.prodDescripcion ?? 'No disponible'}',
+                            style: const TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Ubicación: ${widget.selectedProducto!.prodUbFisica ?? 'Sin ubicación'}',
                             style: const TextStyle(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
