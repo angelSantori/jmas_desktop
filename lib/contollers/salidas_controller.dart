@@ -131,6 +131,7 @@ class Salidas {
   String? salida_Fecha;
   String? salida_TipoTrabajo;
   String? salida_Comentario;
+  String? salida_Imag64Orden;
   int? idProducto;
   int? id_User;
   int? id_Junta;
@@ -140,6 +141,7 @@ class Salidas {
   int? idCalle;
   int? idColonia;
   int? idOrdenServicio;
+  int? idUserAutoriza;
   Salidas({
     this.id_Salida,
     this.salida_CodFolio,
@@ -150,6 +152,7 @@ class Salidas {
     this.salida_Fecha,
     this.salida_TipoTrabajo,
     this.salida_Comentario,
+    this.salida_Imag64Orden,
     this.idProducto,
     this.id_User,
     this.id_Junta,
@@ -159,6 +162,7 @@ class Salidas {
     this.idCalle,
     this.idColonia,
     this.idOrdenServicio,
+    this.idUserAutoriza,
   });
 
   Salidas copyWith({
@@ -171,6 +175,7 @@ class Salidas {
     String? salida_Fecha,
     String? salida_TipoTrabajo,
     String? salida_Comentario,
+    String? salida_Imag64Orden,
     int? idProducto,
     int? id_User,
     int? id_Junta,
@@ -180,6 +185,7 @@ class Salidas {
     int? idCalle,
     int? idColonia,
     int? idOrdenServicio,
+    int? idUserAutoriza,
   }) {
     return Salidas(
       id_Salida: id_Salida ?? this.id_Salida,
@@ -191,6 +197,7 @@ class Salidas {
       salida_Fecha: salida_Fecha ?? this.salida_Fecha,
       salida_TipoTrabajo: salida_TipoTrabajo ?? this.salida_TipoTrabajo,
       salida_Comentario: salida_Comentario ?? this.salida_Comentario,
+      salida_Imag64Orden: salida_Imag64Orden ?? this.salida_Imag64Orden,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
@@ -200,6 +207,7 @@ class Salidas {
       idCalle: idCalle ?? this.idCalle,
       idColonia: idColonia ?? this.idColonia,
       idOrdenServicio: idOrdenServicio ?? this.idOrdenServicio,
+      idUserAutoriza: idUserAutoriza ?? this.idUserAutoriza,
     );
   }
 
@@ -214,6 +222,7 @@ class Salidas {
       'salida_Fecha': salida_Fecha,
       'salida_TipoTrabajo': salida_TipoTrabajo,
       'salida_Comentario': salida_Comentario,
+      'salida_Imag64Orden': salida_Imag64Orden,
       'idProducto': idProducto,
       'id_User': id_User,
       'id_Junta': id_Junta,
@@ -223,29 +232,51 @@ class Salidas {
       'idCalle': idCalle,
       'idColonia': idColonia,
       'idOrdenServicio': idOrdenServicio,
+      'idUserAutoriza': idUserAutoriza,
     };
   }
 
   factory Salidas.fromMap(Map<String, dynamic> map) {
     return Salidas(
       id_Salida: map['id_Salida'] != null ? map['id_Salida'] as int : null,
-      salida_CodFolio: map['salida_CodFolio'] != null ? map['salida_CodFolio'] as String : null,
-      salida_Referencia: map['salida_Referencia'] != null ? map['salida_Referencia'] as String : null,
-      salida_Estado: map['salida_Estado'] != null ? map['salida_Estado'] as bool : null,
-      salida_Unidades: map['salida_Unidades'] != null ? map['salida_Unidades'] as double : null,
-      salida_Costo: map['salida_Costo'] != null ? map['salida_Costo'] as double : null,
-      salida_Fecha: map['salida_Fecha'] != null ? map['salida_Fecha'] as String : null,
-      salida_TipoTrabajo: map['salida_TipoTrabajo'] != null ? map['salida_TipoTrabajo'] as String : null,
-      salida_Comentario: map['salida_Comentario'] != null ? map['salida_Comentario'] as String : null,
+      salida_CodFolio: map['salida_CodFolio'] != null
+          ? map['salida_CodFolio'] as String
+          : null,
+      salida_Referencia: map['salida_Referencia'] != null
+          ? map['salida_Referencia'] as String
+          : null,
+      salida_Estado:
+          map['salida_Estado'] != null ? map['salida_Estado'] as bool : null,
+      salida_Unidades: map['salida_Unidades'] != null
+          ? map['salida_Unidades'] as double
+          : null,
+      salida_Costo:
+          map['salida_Costo'] != null ? map['salida_Costo'] as double : null,
+      salida_Fecha:
+          map['salida_Fecha'] != null ? map['salida_Fecha'] as String : null,
+      salida_TipoTrabajo: map['salida_TipoTrabajo'] != null
+          ? map['salida_TipoTrabajo'] as String
+          : null,
+      salida_Comentario: map['salida_Comentario'] != null
+          ? map['salida_Comentario'] as String
+          : null,
+      salida_Imag64Orden: map['salida_Imag64Orden'] != null
+          ? map['salida_Imag64Orden'] as String
+          : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
       id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
-      id_User_Asignado: map['id_User_Asignado'] != null ? map['id_User_Asignado'] as int : null,
+      id_User_Asignado: map['id_User_Asignado'] != null
+          ? map['id_User_Asignado'] as int
+          : null,
       idPadron: map['idPadron'] != null ? map['idPadron'] as int : null,
       idCalle: map['idCalle'] != null ? map['idCalle'] as int : null,
       idColonia: map['idColonia'] != null ? map['idColonia'] as int : null,
-      idOrdenServicio: map['idOrdenServicio'] != null ? map['idOrdenServicio'] as int : null,
+      idOrdenServicio:
+          map['idOrdenServicio'] != null ? map['idOrdenServicio'] as int : null,
+      idUserAutoriza:
+          map['idUserAutoriza'] != null ? map['idUserAutoriza'] as int : null,
     );
   }
 
@@ -256,53 +287,56 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, salida_Imag64Orden: $salida_Imag64Orden, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio, idUserAutoriza: $idUserAutoriza)';
   }
 
   @override
   bool operator ==(covariant Salidas other) {
     if (identical(this, other)) return true;
-  
-    return 
-      other.id_Salida == id_Salida &&
-      other.salida_CodFolio == salida_CodFolio &&
-      other.salida_Referencia == salida_Referencia &&
-      other.salida_Estado == salida_Estado &&
-      other.salida_Unidades == salida_Unidades &&
-      other.salida_Costo == salida_Costo &&
-      other.salida_Fecha == salida_Fecha &&
-      other.salida_TipoTrabajo == salida_TipoTrabajo &&
-      other.salida_Comentario == salida_Comentario &&
-      other.idProducto == idProducto &&
-      other.id_User == id_User &&
-      other.id_Junta == id_Junta &&
-      other.id_Almacen == id_Almacen &&
-      other.id_User_Asignado == id_User_Asignado &&
-      other.idPadron == idPadron &&
-      other.idCalle == idCalle &&
-      other.idColonia == idColonia &&
-      other.idOrdenServicio == idOrdenServicio;
+
+    return other.id_Salida == id_Salida &&
+        other.salida_CodFolio == salida_CodFolio &&
+        other.salida_Referencia == salida_Referencia &&
+        other.salida_Estado == salida_Estado &&
+        other.salida_Unidades == salida_Unidades &&
+        other.salida_Costo == salida_Costo &&
+        other.salida_Fecha == salida_Fecha &&
+        other.salida_TipoTrabajo == salida_TipoTrabajo &&
+        other.salida_Comentario == salida_Comentario &&
+        other.salida_Imag64Orden == salida_Imag64Orden &&
+        other.idProducto == idProducto &&
+        other.id_User == id_User &&
+        other.id_Junta == id_Junta &&
+        other.id_Almacen == id_Almacen &&
+        other.id_User_Asignado == id_User_Asignado &&
+        other.idPadron == idPadron &&
+        other.idCalle == idCalle &&
+        other.idColonia == idColonia &&
+        other.idOrdenServicio == idOrdenServicio &&
+        other.idUserAutoriza == idUserAutoriza;
   }
 
   @override
   int get hashCode {
     return id_Salida.hashCode ^
-      salida_CodFolio.hashCode ^
-      salida_Referencia.hashCode ^
-      salida_Estado.hashCode ^
-      salida_Unidades.hashCode ^
-      salida_Costo.hashCode ^
-      salida_Fecha.hashCode ^
-      salida_TipoTrabajo.hashCode ^
-      salida_Comentario.hashCode ^
-      idProducto.hashCode ^
-      id_User.hashCode ^
-      id_Junta.hashCode ^
-      id_Almacen.hashCode ^
-      id_User_Asignado.hashCode ^
-      idPadron.hashCode ^
-      idCalle.hashCode ^
-      idColonia.hashCode ^
-      idOrdenServicio.hashCode;
+        salida_CodFolio.hashCode ^
+        salida_Referencia.hashCode ^
+        salida_Estado.hashCode ^
+        salida_Unidades.hashCode ^
+        salida_Costo.hashCode ^
+        salida_Fecha.hashCode ^
+        salida_TipoTrabajo.hashCode ^
+        salida_Comentario.hashCode ^
+        salida_Imag64Orden.hashCode ^
+        idProducto.hashCode ^
+        id_User.hashCode ^
+        id_Junta.hashCode ^
+        id_Almacen.hashCode ^
+        id_User_Asignado.hashCode ^
+        idPadron.hashCode ^
+        idCalle.hashCode ^
+        idColonia.hashCode ^
+        idOrdenServicio.hashCode ^
+        idUserAutoriza.hashCode;
   }
 }

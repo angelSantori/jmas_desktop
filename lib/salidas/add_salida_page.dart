@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
@@ -10,6 +13,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/trabajo_realizado_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/salidas/widgets/pdf_salida.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/buscar_calle_widget.dart';
 import 'package:jmas_desktop/widgets/buscar_colonia_widget.dart';
@@ -68,6 +72,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   bool _buscandoEmpleados = false;
   Users? _selectedEmpleado;
 
+  //Autotiza
+  TextEditingController _busquedaAutorizaController = TextEditingController();
+  bool _buscandoAutoriza = false;
+  List<Users> _listaAutoriza = [];
+  Users? _selectedAutoriza;
+
   //Odenes aprobadas
   List<OrdenServicio> _ordenesServicioAprobadas = [];
   // ignore: unused_field
@@ -89,6 +99,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   bool _isGeneratingPDF = false;
   bool _mostrarOrdenServicio = false;
 
+  Uint8List? _imagenOrden;
+
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
     'Mantenimiento',
@@ -103,6 +115,19 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _loadFolioSalida();
     _loadFolioTR();
     _cargarOrdenesAprobadas();
+  }
+
+  Future<void> _seleccionarImagen() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? imagen = await picker.pickImage(source: ImageSource.gallery);
+
+    if (imagen != null) {
+      final Uint8List bytes = await imagen.readAsBytes();
+
+      setState(() {
+        _imagenOrden = bytes;
+      });
+    }
   }
 
   Future<void> _loadFolioSalida() async {
@@ -155,6 +180,21 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     setState(() {
       _empleadosFiltrados = empleados;
       _buscandoEmpleados = false;
+    });
+  }
+
+  Future<void> _buscarAutoriza(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _listaAutoriza = [];
+      });
+      return;
+    }
+    setState(() => _buscandoAutoriza = true);
+    final resultadosAutoriza = await _usersController.getUserXNombre(query);
+    setState(() {
+      _listaAutoriza = resultadosAutoriza;
+      _buscandoAutoriza = false;
     });
   }
 
@@ -384,6 +424,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Fecha: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
       salida_TipoTrabajo: _selectedTipoTrabajo,
       salida_Comentario: _comentarioController.text,
+      salida_Imag64Orden:
+          _imagenOrden != null ? base64Encode(_imagenOrden!) : null,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta,
@@ -393,6 +435,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       idCalle: _selectedCalle?.idCalle,
       idColonia: _selectedColonia?.idColonia,
       idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
+      idUserAutoriza: _selectedAutoriza?.id_User,
     );
   }
 
@@ -430,6 +473,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedPadron = null;
       _selectedEmpleado = null;
       _selectedTipoTrabajo = null;
+      _selectedAutoriza = null;
+      _imagenOrden = null;
       _selectedOrdenServicio = null;
       _mostrarOrdenServicio = false;
       _empleadosFiltrados = [];
@@ -484,19 +529,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(width: 10),
-                          // Expanded(
-                          //   child: CustomTextFielTexto(
-                          //     controller: _referenciaController,
-                          //     labelText: 'Referencia',
-                          //     validator: (p0) {
-                          //       if (p0 == null || p0.isEmpty) {
-                          //         return 'Referencia obligatoria.';
-                          //       }
-                          //       return null;
-                          //     },
-                          //   ),
-                          // ),
-                          //const SizedBox(width: 20),
                           Expanded(
                             child: CustomListaDesplegable(
                               value: _selectedTipoTrabajo,
@@ -560,6 +592,41 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                             ),
                           ),
                           const SizedBox(width: 10),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                _imagenOrden != null
+                                    ? Image.memory(
+                                        _imagenOrden!,
+                                        width: 200,
+                                        height: 200,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : const Text(
+                                        'No se ah seleccionado ninguna orden',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                const SizedBox(height: 10),
+                                ElevatedButton.icon(
+                                    onPressed: _seleccionarImagen,
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue.shade900),
+                                    icon: const Icon(
+                                      Icons.image,
+                                      color: Colors.white,
+                                    ),
+                                    label: const Text(
+                                      'Seleccionar orden',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                              ],
+                            ),
+                          )
                         ],
                       ),
                       const SizedBox(height: 30),
@@ -742,6 +809,95 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                   ),
                                 const SizedBox(height: 30),
 
+                                //  Buscar Autoriza
+                                CustomTextFielTexto(
+                                  controller: _busquedaAutorizaController,
+                                  labelText: 'Buscar Autorizador',
+                                  onChanged: _buscarAutoriza,
+                                  validator: (autoriza) {
+                                    if (_selectedAutoriza == null) {
+                                      return 'Seleccione quien autoriza';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                if (_buscandoAutoriza) ...[
+                                  CircularProgressIndicator(
+                                    color: Colors.blue.shade900,
+                                  )
+                                ],
+                                if (_listaAutoriza.isNotEmpty) ...[
+                                  Card(
+                                    elevation: 3,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxHeight:
+                                            MediaQuery.of(context).size.height *
+                                                0.3,
+                                      ),
+                                      child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: _listaAutoriza.length,
+                                        itemBuilder: (context, index) {
+                                          final autoriza =
+                                              _listaAutoriza[index];
+                                          return ListTile(
+                                            leading: const Icon(
+                                              Icons.person,
+                                              color: Colors.blue,
+                                            ),
+                                            title: Text(
+                                              autoriza.user_Name ??
+                                                  'Sin nombre',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            subtitle: Text(
+                                              'ID: ${autoriza.id_User}',
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                            onTap: () {
+                                              setState(() {
+                                                _selectedAutoriza = autoriza;
+                                                _listaAutoriza = [];
+                                                _busquedaAutorizaController
+                                                    .clear();
+                                              });
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                ],
+                                if (_selectedAutoriza != null) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Chip(
+                                      label: Text(
+                                        _selectedAutoriza!.user_Name ??
+                                            'Empleado seleccionado',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 20),
+                                      ),
+                                      backgroundColor: Colors.blue.shade800,
+                                      deleteIcon: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                      ),
+                                      onDeleted: () {
+                                        setState(() {
+                                          _selectedAutoriza = null;
+                                          _busquedaAutorizaController.clear();
+                                        });
+                                      },
+                                    ),
+                                  )
+                                ],
+                                const SizedBox(height: 30),
+
                                 //  Comentario
                                 Row(
                                   children: [
@@ -870,7 +1026,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                       try {
                                         //1. Validar campos
                                         bool datosCompletos =
-                                            await validarCamposAntesDeImprimir(
+                                            await validarCamposAntesDeImprimirSalida(
                                           context: context,
                                           productosAgregados:
                                               _productosAgregados,
@@ -882,6 +1038,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           selectedJunta: _selectedJunta,
                                           tipoTrabajo: _selectedTipoTrabajo,
                                           selectedUser: _selectedEmpleado,
+                                          selectedUserAutoriza:
+                                              _selectedAutoriza,
                                         );
 
                                         if (!datosCompletos) {
@@ -904,6 +1062,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           calle: _selectedCalle!,
                                           junta: _selectedJunta!,
                                           ordenServicio: _selectedOrdenServicio,
+                                          userAutoriza: _selectedAutoriza!,
                                           comentario:
                                               _comentarioController.text,
                                           productos: _productosAgregados,

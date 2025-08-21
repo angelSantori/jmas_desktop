@@ -11,7 +11,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/salidas/details_salida_page.dart';
-import 'package:jmas_desktop/salidas/excel/excel_salidas.dart';
+import 'package:jmas_desktop/salidas/widgets/excel_salidas.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -52,6 +52,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   Map<int, Almacenes> _almacenCache = {};
   // ignore: unused_field
   Map<int, Users> _userAsignadoCache = {};
+  // ignore: unused_field
+  Map<int, Users> _userAutorizaCache = {};
 
   List<Juntas> _juntas = [];
   List<Almacenes> _almacenes = [];
@@ -60,6 +62,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   List<Colonias> _colonias = [];
   List<Calles> _calles = [];
   List<Users> _userAsignado = [];
+  List<Users> _userAutoriza = [];
 
   String? _selectedJunta;
   String? _selectedColonia;
@@ -109,6 +112,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final colonias = await _coloniasController.listColonias();
       final calles = await _callesController.listCalles();
       final userAsignado = await _usersController.listUsers();
+      final userAutoriza = await _usersController.listUsers();
 
       setState(() {
         _allSalidas = salidas;
@@ -117,6 +121,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _productosCache = {for (var prod in productos) prod.id_Producto!: prod};
         _usersCache = {for (var us in users) us.id_User!: us};
         _userAsignadoCache = {for (var usAs in users) usAs.id_User!: usAs};
+        _userAutorizaCache = {for (var usAu in users) usAu.id_User!: usAu};
         _juntasCache = {for (var jn in juntas) jn.id_Junta!: jn};
         _almacenCache = {for (var alm in almacen) alm.id_Almacen!: alm};
 
@@ -127,6 +132,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _colonias = colonias;
         _calles = calles;
         _userAsignado = userAsignado;
+        _userAutoriza = userAutoriza;
 
         _isLoading = false;
       });
@@ -784,7 +790,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
               final ordenServicio = _ordenesServicios.firstWhere(
                 (ordenS) => ordenS.idOrdenServicio == salida.idOrdenServicio,
-                orElse: () => OrdenServicio(folioOS: 'S/F'),
+                orElse: () => OrdenServicio(folioOS: 'Sin folio OS'),
               );
 
               final colonia = _colonias.firstWhere(
@@ -803,6 +809,11 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
               );
 
+              final userAutoriza = _userAutoriza.firstWhere(
+                (usAu) => usAu.id_User == salida.idUserAutoriza,
+                orElse: () => Users(id_User: 0, user_Name: 'No especificado'),
+              );
+
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -815,6 +826,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     colonia: colonia,
                     user: user!.user_Name!,
                     userAsignado: userAsig,
+                    userAutoriza: userAutoriza,
                     ordenServicio: ordenServicio,
                     userRole: widget.userRole!,
                   ),
