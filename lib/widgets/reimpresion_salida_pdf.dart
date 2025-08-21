@@ -1,6 +1,7 @@
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -17,7 +18,6 @@ class ReimpresionSalidaPdf {
     required String movimiento,
     required String fecha,
     required String folio,
-    required String referencia,
     required String userName,
     required String idUser,
     required Almacenes almacen,
@@ -26,10 +26,12 @@ class ReimpresionSalidaPdf {
     required Padron padron,
     required Colonias colonia,
     required Calles calle,
-    required OrdenServicio ordenServicio,
+    required Juntas junta,
+    required Users userAutoriza,
+    OrdenServicio? ordenServicio,
+    String? comentario,
     required List<Map<String, dynamic>> productos,
-    required bool
-        mostrarEstado, // Nuevo parámetro para controlar si se muestra el estado
+    required bool mostrarEstado,
   }) async {
     final pdf = pw.Document();
 
@@ -155,56 +157,87 @@ class ReimpresionSalidaPdf {
                     ),
                   ),
 
-                  // Información de variables en 3 columnas
                   pw.Container(
                     margin: const pw.EdgeInsets.only(bottom: 15),
                     child: pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: pw.MainAxisAlignment.start,
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        // Columna izquierda
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text('Mov: $folio',
+                            pw.Text('INFORMACIÓN DEL MOVIMIENTO',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                  decoration: pw.TextDecoration.underline,
+                                )),
+                            pw.SizedBox(height: 5),
+                            pw.Text('Movimiento: $folio',
                                 style: const pw.TextStyle(fontSize: 9)),
                             pw.SizedBox(height: 3),
-                            pw.Text('Ref: $referencia',
+                            pw.Text('Fecha: $fecha',
                                 style: const pw.TextStyle(fontSize: 9)),
                             pw.SizedBox(height: 3),
-                            pw.Text('TT: $tipoTrabajo',
-                                style: const pw.TextStyle(fontSize: 9)),
                             pw.Text(
-                                'OT: ${ordenServicio.folioOS}',
+                                'Almacen: ${almacen.id_Almacen} - ${almacen.almacen_Nombre}',
                                 style: const pw.TextStyle(fontSize: 9)),
+                            pw.SizedBox(height: 3),
+                            pw.Text('Tipo de Trabajo: $tipoTrabajo',
+                                style: const pw.TextStyle(fontSize: 9)),
+                            if (ordenServicio?.prioridadOS != null) ...[
+                              pw.SizedBox(height: 3),
+                              pw.Text(
+                                  'Orden Servicio: ${ordenServicio?.folioOS} - ${ordenServicio?.prioridadOS}',
+                                  style: const pw.TextStyle(fontSize: 9)),
+                            ],
                           ],
                         ),
-
-                        // Columna central
+                        pw.SizedBox(width: 50),
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text('Fec: $fecha',
-                                style: const pw.TextStyle(fontSize: 9)),
-                            pw.SizedBox(height: 3),
+                            pw.Text('INFORMACIÓN DE USUARIOS',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                  decoration: pw.TextDecoration.underline,
+                                )),
+                            pw.SizedBox(height: 5),
                             pw.Text('Capturó: $idUser - $userName',
                                 style: const pw.TextStyle(fontSize: 9)),
                             pw.SizedBox(height: 3),
                             pw.Text(
-                                'Padron: ${padron.idPadron} - ${padron.padronNombre}',
+                                'Usuario Asignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
                                 style: const pw.TextStyle(fontSize: 9)),
                             pw.SizedBox(height: 3),
                             pw.Text(
-                                'UserASignado: ${userAsignado.id_User} - ${userAsignado.user_Name}',
+                                'Autoriza: ${userAutoriza.id_User} - ${userAutoriza.user_Name}',
                                 style: const pw.TextStyle(fontSize: 9)),
                           ],
                         ),
+                      ],
+                    ),
+                  ),
 
-                        // Columna derecha
+                  pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 5),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.start,
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
+                            pw.Text('INFORMACIÓN DESTINO',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                  decoration: pw.TextDecoration.underline,
+                                )),
+                            pw.SizedBox(height: 5),
                             pw.Text(
-                                'Almacen: ${almacen.id_Almacen} - ${almacen.almacen_Nombre}',
+                                'Junta: ${junta.id_Junta} - ${junta.junta_Name}',
                                 style: const pw.TextStyle(fontSize: 9)),
                             pw.SizedBox(height: 3),
                             pw.Text(
@@ -216,9 +249,29 @@ class ReimpresionSalidaPdf {
                                 style: const pw.TextStyle(fontSize: 9)),
                           ],
                         ),
+                        pw.SizedBox(width: 50),
+                        pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text('INFORMACIÓN PADRON',
+                                style: pw.TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: pw.FontWeight.bold,
+                                  decoration: pw.TextDecoration.underline,
+                                )),
+                            pw.SizedBox(height: 5),
+                            pw.Text(
+                                'Padron: ${padron.idPadron} - ${padron.padronNombre}',
+                                style: const pw.TextStyle(fontSize: 9)),
+                            pw.SizedBox(height: 3),
+                            pw.Text('Dirección: ${padron.padronDireccion}',
+                                style: const pw.TextStyle(fontSize: 9)),
+                          ],
+                        ),
                       ],
                     ),
                   ),
+                  pw.SizedBox(height: 15),
 
                   // Tabla de productos
                   pw.Table(
@@ -392,8 +445,31 @@ class ReimpresionSalidaPdf {
                       ),
                     ],
                   ),
+                  pw.SizedBox(height: 15),
 
-                  pw.SizedBox(height: 30),
+                  if (comentario != null && comentario.isNotEmpty) ...[
+                    pw.Container(
+                        width: double.infinity,
+                        margin: const pw.EdgeInsets.only(top: 10),
+                        padding: const pw.EdgeInsets.all(5),
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(width: 0.5),
+                          borderRadius: pw.BorderRadius.circular(5),
+                        ),
+                        child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text('COMENTARIOS: ',
+                                  style: pw.TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: pw.FontWeight.bold,
+                                  )),
+                              pw.SizedBox(height: 3),
+                              pw.Text(comentario,
+                                  style: const pw.TextStyle(fontSize: 8))
+                            ])),
+                    pw.SizedBox(height: 30),
+                  ],
                 ],
               ),
 
@@ -410,52 +486,112 @@ class ReimpresionSalidaPdf {
 
               // Sección de firma al pie de página
               pw.Positioned(
-                  bottom: 30,
-                  left: 0,
-                  right: 0,
+                bottom: 30,
+                left: 0,
+                right: 0,
+                child: pw.Container(
                   child: pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
-                      children: [
-                        //Fimra de Entrga
-                        pw.Column(children: [
-                          pw.Container(
-                            width: 120,
-                            height: 1,
-                            decoration: const pw.BoxDecoration(
-                              color: PdfColors.black,
-                            ),
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Columna izquierda con 2 firmas
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        children: [
+                          // Firma de Solicitó (usuario asignado)
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            children: [
+                              pw.Container(
+                                width: 120,
+                                height: 1,
+                                decoration: const pw.BoxDecoration(
+                                  color: PdfColors.black,
+                                ),
+                              ),
+                              pw.SizedBox(height: 6),
+                              pw.Text(
+                                'Solicitó \n${userAsignado.user_Name}',
+                                style: const pw.TextStyle(fontSize: 10),
+                                textAlign:
+                                    pw.TextAlign.center, // Texto centrado
+                              ),
+                            ],
                           ),
-                          pw.SizedBox(height: 6),
-                          pw.Text('Entrega',
-                              style: const pw.TextStyle(fontSize: 10)),
-                        ]),
-                        //Fimra de Autoriza
-                        pw.Column(children: [
-                          pw.Container(
-                            width: 120,
-                            height: 1,
-                            decoration: const pw.BoxDecoration(
-                              color: PdfColors.black,
-                            ),
+                          pw.SizedBox(height: 50),
+                          // Firma de Recibió (junta destino)
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            children: [
+                              pw.Container(
+                                width: 120,
+                                height: 1,
+                                decoration: const pw.BoxDecoration(
+                                  color: PdfColors.black,
+                                ),
+                              ),
+                              pw.SizedBox(height: 6),
+                              pw.Text(
+                                'Recibió \n${junta.junta_Name}',
+                                style: const pw.TextStyle(fontSize: 10),
+                                textAlign:
+                                    pw.TextAlign.center, // Texto centrado
+                              ),
+                            ],
                           ),
-                          pw.SizedBox(height: 6),
-                          pw.Text('Autoriza',
-                              style: const pw.TextStyle(fontSize: 10)),
-                        ]),
-                        //Fimra de Recibe
-                        pw.Column(children: [
-                          pw.Container(
-                            width: 120,
-                            height: 1,
-                            decoration: const pw.BoxDecoration(
-                              color: PdfColors.black,
-                            ),
+                        ],
+                      ),
+
+                      // Columna derecha con 2 firmas
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        children: [
+                          // Firma de Entregó (quien captura)
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            children: [
+                              pw.Container(
+                                width: 120,
+                                height: 1,
+                                decoration: const pw.BoxDecoration(
+                                  color: PdfColors.black,
+                                ),
+                              ),
+                              pw.SizedBox(height: 6),
+                              pw.Text(
+                                'Entregó \n$userName',
+                                style: const pw.TextStyle(fontSize: 10),
+                                textAlign:
+                                    pw.TextAlign.center, // Texto centrado
+                              ),
+                            ],
                           ),
-                          pw.SizedBox(height: 6),
-                          pw.Text('Recibe',
-                              style: const pw.TextStyle(fontSize: 10)),
-                        ]),
-                      ])),
+                          pw.SizedBox(height: 50),
+                          // Firma de Autorizó (se mantiene igual)
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            children: [
+                              pw.Container(
+                                width: 120,
+                                height: 1,
+                                decoration: const pw.BoxDecoration(
+                                  color: PdfColors.black,
+                                ),
+                              ),
+                              pw.SizedBox(height: 6),
+                              pw.Text(
+                                'Autorizó \n${userAutoriza.user_Name}',
+                                style: const pw.TextStyle(fontSize: 10),
+                                textAlign:
+                                    pw.TextAlign.center, // Texto centrado
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           );
         },

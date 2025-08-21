@@ -10,12 +10,11 @@ import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/salidas/widgets/pdf_salida.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/pdf_cancelacion.dart';
-import 'package:jmas_desktop/widgets/widgets_salida.dart';
-
 import '../widgets/reimpresion_salida_pdf.dart';
 
 class DetailsSalidaPage extends StatefulWidget {
@@ -27,7 +26,8 @@ class DetailsSalidaPage extends StatefulWidget {
   final Colonias colonia;
   final Calles calle;
   final Users userAsignado;
-  final OrdenServicio ordenServicio;
+  final Users userAutoriza;
+  final OrdenServicio? ordenServicio;
   final String user;
 
   const DetailsSalidaPage({
@@ -41,7 +41,8 @@ class DetailsSalidaPage extends StatefulWidget {
     required this.userRole,
     required this.colonia,
     required this.calle,
-    required this.ordenServicio,
+    required this.userAutoriza,
+    this.ordenServicio,
   });
 
   @override
@@ -135,10 +136,11 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         movimiento: 'SALIDA',
         fecha: widget.salidas.first.salida_Fecha ?? '',
         folio: widget.salidas.first.salida_CodFolio ?? '',
-        referencia: widget.salidas.first.salida_Referencia ?? '',
         userName: widget.user,
         idUser: _currentUserId ?? '0',
         almacen: widget.almacen,
+        userAutoriza: widget.userAutoriza,
+        junta: widget.junta,
         userAsignado: widget.userAsignado,
         tipoTrabajo: widget.salidas.first.salida_TipoTrabajo ?? '',
         padron: widget.padron,
@@ -146,6 +148,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         calle: widget.calle,
         ordenServicio: widget.ordenServicio,
         productos: productosParaPDF,
+        comentario: widget.salidas.first.salida_Comentario,
         mostrarEstado: true, // Mostrar columna de estado
       );
     } catch (e) {
@@ -268,7 +271,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
           fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
           motivo: _motivoController.text,
           folio: widget.salidas.first.salida_CodFolio ?? '',
-          //referencia: widget.salidas.first.salida_Referencia ?? '',
           user: _currentUser!,
           almacen: widget.almacen.almacen_Nombre ?? '',
           junta: widget.junta.junta_Name ?? '',
@@ -401,7 +403,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
           movimiento: 'MODIFICACION SALIDA',
           fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
           folio: widget.salidas.first.salida_CodFolio ?? '',
-          //referencia: widget.salidas.first.salida_Referencia ?? '',
           userName: _currentUser?.user_Name ?? '',
           idUser: _currentUser!.id_User.toString(),
           alamcenA: widget.almacen,
@@ -409,6 +410,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
           tipoTrabajo: widget.salidas.first.salida_TipoTrabajo ?? '',
           padron: widget.padron,
           colonia: widget.colonia,
+          userAutoriza: widget.userAutoriza,
           calle: widget.calle,
           junta: juntaSeleccionada!,
           productos: productosParaPDF,
@@ -500,13 +502,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                // Text(
-                                //   'Referencia: ${widget.salidas.first.salida_Referencia}',
-                                //   overflow: TextOverflow.ellipsis,
-                                //   style: const TextStyle(
-                                //       fontSize: 20,
-                                //       fontWeight: FontWeight.bold),
-                                // ),
                                 if ((isAdmin || isGestion) && tieneActivos) ...[
                                   IconButton(
                                     icon: Icon(Icons.delete,
@@ -545,9 +540,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                             GestureDetector(
                                               onTap: () {
                                                 if (widget.userRole ==
-                                                        "Admin" ||
-                                                    widget.userRole ==
-                                                        "Gestion") {
+                                                    "Admin") {
                                                   _editarJuntaSalida();
                                                 }
                                               },
@@ -588,8 +581,11 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                         ),
                                         Text(
                                             'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
-                                        Text(
-                                            'Orden Trabajo: ${widget.ordenServicio.folioOS}'),
+                                        if (widget.ordenServicio?.prioridadOS !=
+                                            null) ...[
+                                          Text(
+                                              'Orden Trabajo: ${widget.ordenServicio?.folioOS} - ${widget.ordenServicio?.prioridadOS}'),
+                                        ]
                                       ],
                                     ),
                                   ),
@@ -627,6 +623,8 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                             'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo ?? 'N/A'}'),
                                         Text(
                                             'Fecha: ${widget.salidas.first.salida_Fecha}'),
+                                        Text(
+                                            'Autoriza: ${widget.userAutoriza.user_Name ?? 'No especificado'}'),
                                       ],
                                     ),
                                   ),
