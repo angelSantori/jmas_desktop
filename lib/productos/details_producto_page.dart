@@ -47,6 +47,7 @@ void showProductDetailsDialog(
               buildInfoItem('Costo', '\$${producto.prodCosto}'),
               buildInfoItem(
                   'Ubicación física', producto.prodUbFisica ?? 'Sin ubicación'),
+              buildInfoItem('Estado', producto.prodEstado ?? 'Sin estado'),
               buildInfoItem('Unidad de medida de entrada',
                   producto.prodUMedEntrada ?? 'N/A'),
               buildInfoItem('Unidad de medida de salida',

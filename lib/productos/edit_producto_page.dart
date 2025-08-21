@@ -5,6 +5,7 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/productos/widgets/listas_caracteristicas.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -39,37 +40,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
 
   String? _selectedUnMedSalida;
   String? _selectedUnMedEntrada;
-  final List<String> _unMedEntrada = [
-    'Caja',
-    'Paquete',
-    'Saco',
-    'Tarima',
-    'Contenedor',
-    'Bolsa',
-    'Tambor',
-    'Rollo',
-    'Pallet',
-    'Barril',
-    'Servicio',
-  ];
-
-  final List<String> _unMedSalida = [
-    'Pza (Pieza)',
-    'Kg (Kilogramo)',
-    'Lts (Litros)',
-    'Mto (Metro)',
-    'Cilin (Cilindro)',
-    'Gfon (Galón)',
-    'Gr (Gramos)',
-    'Ml (Mililitros)',
-    'Un (Unidad)',
-    'Servicio',
-  ];
-
-  final List<String> _rack = ['R1', 'R2', 'R3'];
-  final List<String> _nivel = ['N1', 'N2', 'N3', 'N4', 'N5'];
-  final List<String> _letra = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-
+  String? _selectedEstado;
   String? _selectedRack;
   String? _selectedNivel;
   String? _selectedLetra;
@@ -94,10 +65,10 @@ class _EditProductoPageState extends State<EditProductoPage> {
         text: (widget.producto.prodMin ?? 0.0).toString());
     _costoController = TextEditingController(
         text: (widget.producto.prodCosto ?? 0.0).toString());
-    _selectedUnMedSalida =
-        widget.producto.prodUMedSalida ?? _unMedEntrada.first;
+    _selectedUnMedSalida = widget.producto.prodUMedSalida ?? unMedEntrada.first;
     _selectedUnMedEntrada =
-        widget.producto.prodUMedEntrada ?? _unMedSalida.first;
+        widget.producto.prodUMedEntrada ?? unMedSalida.first;
+    _selectedEstado = widget.producto.prodEstado ?? estadoLista.first;
     _precioController = TextEditingController(
         text: (widget.producto.prodPrecio ?? 0.0).toString());
 
@@ -207,6 +178,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
         prodUbFisica: _selectedRack! + _selectedNivel! + _selectedLetra!,
         prodUMedSalida: _selectedUnMedSalida,
         prodUMedEntrada: _selectedUnMedEntrada,
+        prodEstado: _selectedEstado,
         prodPrecio: double.parse(_precioController.text),
         prodImgB64: _encodedImage,
         idProveedor: _selectedProveedor?.id_Proveedor ?? 0,
@@ -319,6 +291,26 @@ class _EditProductoPageState extends State<EditProductoPage> {
                           },
                         ),
                       ),
+                      const SizedBox(width: 30),
+
+                      Expanded(
+                        child: CustomListaDesplegable(
+                          value: _selectedEstado,
+                          labelText: 'Estado',
+                          items: estadoLista,
+                          onChanged: (estado) {
+                            setState(() {
+                              _selectedEstado = estado;
+                            });
+                          },
+                          validator: (estado) {
+                            if (estado == null || estado.isEmpty) {
+                              return 'Estado de producto obligatorio';
+                            }
+                            return null;
+                          },
+                        ),
+                      )
                     ],
                   ),
 
@@ -389,7 +381,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
                         child: CustomListaDesplegable(
                           value: _selectedUnMedEntrada,
                           labelText: 'Unidad de Medida Entrada',
-                          items: _unMedEntrada,
+                          items: unMedEntrada,
                           onChanged: (value) {
                             setState(() {
                               _selectedUnMedEntrada = value;
@@ -410,7 +402,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
                         child: CustomListaDesplegable(
                           value: _selectedUnMedSalida,
                           labelText: 'Unidad de Medida Salida',
-                          items: _unMedSalida,
+                          items: unMedSalida,
                           onChanged: (value) {
                             setState(() {
                               _selectedUnMedSalida = value;
@@ -483,7 +475,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
                         child: CustomListaDesplegable(
                           value: _selectedRack,
                           labelText: 'Rack',
-                          items: _rack,
+                          items: rack,
                           onChanged: (rack) {
                             setState(() {
                               _selectedRack = rack;
@@ -504,7 +496,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
                         child: CustomListaDesplegable(
                           value: _selectedNivel,
                           labelText: 'Nivel',
-                          items: _nivel,
+                          items: nivel,
                           onChanged: (nivel) {
                             setState(() {
                               _selectedNivel = nivel;
@@ -525,7 +517,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
                         child: CustomListaDesplegable(
                           value: _selectedLetra,
                           labelText: 'Letra',
-                          items: _letra,
+                          items: letra,
                           onChanged: (letra) {
                             setState(() {
                               _selectedLetra = letra;

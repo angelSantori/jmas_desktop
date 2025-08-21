@@ -1,5 +1,8 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class ProductosController {
@@ -215,6 +218,7 @@ class Productos {
   String? prodUMedEntrada;
   double? prodPrecio;
   String? prodImgB64;
+  String? prodEstado;
   int? idProveedor;
   int? id_Almacen;
   Productos({
@@ -229,6 +233,7 @@ class Productos {
     this.prodUMedEntrada,
     this.prodPrecio,
     this.prodImgB64,
+    this.prodEstado,
     this.idProveedor,
     this.id_Almacen,
   });
@@ -245,6 +250,7 @@ class Productos {
     String? prodUMedEntrada,
     double? prodPrecio,
     String? prodImgB64,
+    String? prodEstado,
     int? idProveedor,
     int? id_Almacen,
   }) {
@@ -260,6 +266,7 @@ class Productos {
       prodUMedEntrada: prodUMedEntrada ?? this.prodUMedEntrada,
       prodPrecio: prodPrecio ?? this.prodPrecio,
       prodImgB64: prodImgB64 ?? this.prodImgB64,
+      prodEstado: prodEstado ?? this.prodEstado,
       idProveedor: idProveedor ?? this.idProveedor,
       id_Almacen: id_Almacen ?? this.id_Almacen,
     );
@@ -278,6 +285,7 @@ class Productos {
       'prodUMedEntrada': prodUMedEntrada,
       'prodPrecio': prodPrecio,
       'prodImgB64': prodImgB64,
+      'prodEstado': prodEstado,
       'idProveedor': idProveedor,
       'id_Almacen': id_Almacen,
     };
@@ -325,6 +333,8 @@ class Productos {
           : null,
       prodImgB64:
           map['prodImgB64'] != null ? map['prodImgB64'] as String : null,
+      prodEstado:
+          map['prodEstado'] != null ? map['prodEstado'] as String : null,
       idProveedor:
           map['idProveedor'] != null ? map['idProveedor'] as int : null,
       id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
@@ -338,7 +348,7 @@ class Productos {
 
   @override
   String toString() {
-    return 'Productos(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUbFisica: $prodUbFisica, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodImgB64: $prodImgB64, idProveedor: $idProveedor, id_Almacen: $id_Almacen)';
+    return 'Productos(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUbFisica: $prodUbFisica, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodImgB64: $prodImgB64, prodEstado: $prodEstado, idProveedor: $idProveedor, id_Almacen: $id_Almacen)';
   }
 
   @override
@@ -356,6 +366,7 @@ class Productos {
         other.prodUMedEntrada == prodUMedEntrada &&
         other.prodPrecio == prodPrecio &&
         other.prodImgB64 == prodImgB64 &&
+        other.prodEstado == prodEstado &&
         other.idProveedor == idProveedor &&
         other.id_Almacen == id_Almacen;
   }
@@ -373,6 +384,7 @@ class Productos {
         prodUMedEntrada.hashCode ^
         prodPrecio.hashCode ^
         prodImgB64.hashCode ^
+        prodEstado.hashCode ^
         idProveedor.hashCode ^
         id_Almacen.hashCode;
   }

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/productos/widgets/listas_caracteristicas.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
@@ -28,37 +29,6 @@ class _AddProductoPageState extends State<AddProductoPage> {
   List<Proveedores> _proveedores = [];
   Proveedores? _selectedProveedor;
 
-  final List<String> _unMedEntrada = [
-    'Caja',
-    'Paquete',
-    'Saco',
-    'Tarima',
-    'Contenedor',
-    'Bolsa',
-    'Tambor',
-    'Rollo',
-    'Pallet',
-    'Barril',
-    'Servicio',
-  ];
-
-  final List<String> _unMedSalida = [
-    'Pza (Pieza)',
-    'Kg (Kilogramo)',
-    'Lts (Litros)',
-    'Mto (Metro)',
-    'Cilin (Cilindro)',
-    'Gfon (Galón)',
-    'Gr (Gramos)',
-    'Ml (Mililitros)',
-    'Un (Unidad)',
-    'Servicio'
-  ];
-
-  final List<String> _rack = ['R1', 'R2', 'R3'];
-  final List<String> _nivel = ['N1', 'N2', 'N3', 'N4', 'N5'];
-  final List<String> _letra = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-
   final _formKey = GlobalKey<FormState>();
 
   // ignore: unused_field
@@ -73,6 +43,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
   String? _selectedUnMedEntrada;
   XFile? _selectedImage;
   String? _encodedImage;
+  String? _selectedEstado;
 
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -138,6 +109,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
           prodUMedEntrada: _selectedUnMedEntrada,
           prodPrecio: double.parse(_precioController.text),
           prodImgB64: _encodedImage,
+          prodEstado: _selectedEstado,
           idProveedor: _selectedProveedor?.id_Proveedor ?? 0,
           id_Almacen: _selectedAlmacen?.id_Almacen,
         );
@@ -173,14 +145,16 @@ class _AddProductoPageState extends State<AddProductoPage> {
     _existenciaController.clear();
     _maxController.clear();
     _minController.clear();
-    _rack.clear();
-    _nivel.clear();
-    _letra.clear();
+    rack.clear();
+    nivel.clear();
+    letra.clear();
     setState(() {
       _selectedUnMedEntrada = null;
       _selectedUnMedSalida = null;
       _selectedProveedor = null;
       _selectedImage = null;
+      _selectedEstado = null;
+      _selectedAlmacen = null;
     });
   }
 
@@ -257,6 +231,26 @@ class _AddProductoPageState extends State<AddProductoPage> {
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Existencias obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 30),
+
+                        Expanded(
+                          child: CustomListaDesplegable(
+                            value: _selectedEstado,
+                            labelText: 'Estado',
+                            items: estadoLista,
+                            onChanged: (estado) {
+                              setState(() {
+                                _selectedEstado = estado;
+                              });
+                            },
+                            validator: (estado) {
+                              if (estado == null || estado.isEmpty) {
+                                return 'Estdo de producto obligatorio';
                               }
                               return null;
                             },
@@ -359,7 +353,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
                           child: CustomListaDesplegable(
                             value: _selectedUnMedEntrada,
                             labelText: 'Unidad de Medida Entrada',
-                            items: _unMedEntrada,
+                            items: unMedEntrada,
                             onChanged: (value) {
                               setState(() {
                                 _selectedUnMedEntrada = value;
@@ -380,7 +374,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
                           child: CustomListaDesplegable(
                             value: _selectedUnMedSalida,
                             labelText: 'Unidad de Medida Salida',
-                            items: _unMedSalida,
+                            items: unMedSalida,
                             onChanged: (value) {
                               setState(() {
                                 _selectedUnMedSalida = value;
@@ -467,7 +461,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
                           child: CustomListaDesplegable(
                             value: _selectedRack,
                             labelText: 'Rack',
-                            items: _rack,
+                            items: rack,
                             onChanged: (rack) {
                               setState(() {
                                 _selectedRack = rack;
@@ -486,7 +480,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
                           child: CustomListaDesplegable(
                             value: _selectedNivel,
                             labelText: 'Nivel',
-                            items: _nivel,
+                            items: nivel,
                             onChanged: (nivel) {
                               setState(() {
                                 _selectedNivel = nivel;
@@ -505,7 +499,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
                           child: CustomListaDesplegable(
                             value: _selectedLetra,
                             labelText: 'Letra',
-                            items: _letra,
+                            items: letra,
                             onChanged: (letra) {
                               setState(() {
                                 _selectedLetra = letra;
