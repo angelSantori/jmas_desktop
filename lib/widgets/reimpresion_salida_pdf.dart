@@ -62,7 +62,7 @@ class ReimpresionSalidaPdf {
     // Definir columnas según si se muestra el estado o no
     final columnWidths = mostrarEstado
         ? {
-            0: const pw.FixedColumnWidth(40), // Clave
+            0: const pw.FixedColumnWidth(60), // Clave
             1: const pw.FixedColumnWidth(50), // Cantidad
             2: const pw.FlexColumnWidth(2.5), // Descripción
             3: const pw.FixedColumnWidth(50), // Costo
@@ -70,7 +70,7 @@ class ReimpresionSalidaPdf {
             5: const pw.FixedColumnWidth(45), // Estado
           }
         : {
-            0: const pw.FixedColumnWidth(50), // Clave
+            0: const pw.FixedColumnWidth(60), // Clave
             1: const pw.FixedColumnWidth(50), // Cantidad
             2: const pw.FlexColumnWidth(3), // Descripción
             3: const pw.FixedColumnWidth(50), // Costo

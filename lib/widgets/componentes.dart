@@ -860,7 +860,8 @@ Widget buildProductosAgregados(
           2: FlexColumnWidth(1), //Precio
           3: FlexColumnWidth(1), //Cantidad
           4: FlexColumnWidth(1), //Precio Total
-          5: FlexColumnWidth(1) //Eliminar
+          5: FlexColumnWidth(1), //Descuento
+          6: FlexColumnWidth(1) //Eliminar
         },
         children: [
           TableRow(
@@ -873,6 +874,7 @@ Widget buildProductosAgregados(
               TableHeaderCell(texto: 'Costo'),
               TableHeaderCell(texto: 'Cantidad'),
               TableHeaderCell(texto: 'Total'),
+              TableHeaderCell(texto: 'Descuento'),
               TableHeaderCell(texto: 'Eliminar'),
             ],
           ),
@@ -887,6 +889,9 @@ Widget buildProductosAgregados(
             );
 
             return TableRow(
+              decoration: producto['descuento_aplicado'] == true
+                  ? BoxDecoration(color: Colors.green.shade100)
+                  : null,
               children: [
                 TableCellText(texto: producto['id'].toString()),
                 TableCellText(
@@ -919,6 +924,9 @@ Widget buildProductosAgregados(
                 TableCellText(
                     texto:
                         '\$${producto['precio'] is double ? producto['precio'].toStringAsFixed(2) : (double.tryParse(producto['precio'].toString())?.toStringAsFixed(2) ?? '0.00')}'),
+                TableCellText(
+                    texto:
+                        producto['descuento_aplicado'] == true ? '60%' : '0%'),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: IconButton(
@@ -954,6 +962,7 @@ Widget buildProductosAgregados(
                 textAlign: TextAlign.center,
               ),
             ),
+            const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
             const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
           ])
         ],

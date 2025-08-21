@@ -292,7 +292,18 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       }
 
       setState(() {
-        final double precioUnitario = _selectedProducto!.prodCosto ?? 0.0;
+        double precioUnitario = _selectedProducto!.prodCosto ?? 0.0;
+
+        // Aplicar descuento del 60% si el producto es 40050569 o 40050570
+        // y la junta NO es 1, 6, 8 o 14
+        if ((_selectedProducto!.id_Producto == 40050569 ||
+                _selectedProducto!.id_Producto == 40050570) &&
+            _selectedJunta != null &&
+            ![1, 6, 8, 14].contains(_selectedJunta!.id_Junta)) {
+          precioUnitario = precioUnitario *
+              0.4; // 60% de descuento (40% del precio original)
+        }
+
         final double precioTotal = precioUnitario * cantidad;
 
         _productosAgregados.add({
@@ -300,10 +311,12 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           'descripcion': _selectedProducto!.prodDescripcion,
           'costo': precioUnitario,
           'cantidad': cantidad,
-          'precio': precioTotal
+          'precio': precioTotal,
+          'descuento_aplicado': (precioUnitario !=
+              _selectedProducto!.prodCosto) // Marcar si se aplicó descuento
         });
 
-        //Limpiar campos despuués de agregar
+        //Limpiar campos después de agregar
         _idProductoController.clear();
         _cantidadController.clear();
         _selectedProducto = null;
