@@ -4,6 +4,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/productos/details_producto_page.dart';
 import 'package:jmas_desktop/productos/edit_producto_page.dart';
+import 'package:jmas_desktop/productos/widgets/listas_caracteristicas.dart';
 import 'package:jmas_desktop/widgets/excel_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -36,6 +37,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
   bool _isLoadingQRRange = false;
   bool _showExcess = false;
   bool _showDeficit = false;
+  bool _showServices = false;
 
   @override
   void initState() {
@@ -307,10 +309,17 @@ class _ListProductoPageState extends State<ListProductoPage> {
         bool matchesDeficit = _showDeficit &&
             (totalExistencias != null && totalExistencias < producto.prodMin!);
 
-        return matchesSearch &&
-            (matchesExcess ||
-                matchesDeficit ||
-                (!_showExcess && !_showDeficit));
+        bool matchesServices = _showServices &&
+            (producto.prodUMedEntrada?.toLowerCase() == 'servicio' &&
+                producto.prodUMedSalida?.toLowerCase() == 'servicio');
+
+        if (_showExcess || _showDeficit || _showServices) {
+          return matchesSearch &&
+              (matchesExcess || matchesDeficit || matchesServices);
+        } else {
+          // Si ningún filtro está activo, mostrar todos los que coincidan con la búsqueda
+          return matchesSearch;
+        }
       }).toList();
     });
   }
@@ -619,6 +628,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
+                      //  Excesos
                       Checkbox(
                         value: _showExcess,
                         activeColor: Colors.blue.shade900,
@@ -630,11 +640,13 @@ class _ListProductoPageState extends State<ListProductoPage> {
                         },
                       ),
                       const Text(
-                        'Mostrar excesos',
+                        'Excesos',
                         style: TextStyle(fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(width: 15),
+
+                      //  Deficit Faltantes
                       Checkbox(
                         value: _showDeficit,
                         activeColor: Colors.blue.shade900,
@@ -646,7 +658,25 @@ class _ListProductoPageState extends State<ListProductoPage> {
                         },
                       ),
                       const Text(
-                        'Mostrar faltantes',
+                        'Faltantes',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 15),
+
+                      //  Servicios
+                      Checkbox(
+                        value: _showServices,
+                        activeColor: Colors.blue.shade900,
+                        onChanged: (value) {
+                          setState(() {
+                            _showServices = value ?? false;
+                            _filterProductos();
+                          });
+                        },
+                      ),
+                      const Text(
+                        'Servicios',
                         style: TextStyle(fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       )
@@ -738,6 +768,24 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                                 fontSize: 20,
                                                 fontWeight: FontWeight.bold,
                                               ),
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Chip(
+                                              label: Text(
+                                                producto.prodEstado ??
+                                                    'Sin estado',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              backgroundColor: getEstadoColor(
+                                                  producto.prodEstado),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 4,
+                                                      vertical: 4),
                                             ),
                                             const SizedBox(height: 10),
                                             Text(
