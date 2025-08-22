@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -16,6 +17,7 @@ class ExcelSalidasMes {
     required List<Salidas> allSalidas,
     required BuildContext context,
     required ProductosController productosController,
+    required JuntasController juntasController,
   }) async {
     try {
       // Filtrar salidas: solo juntas especiales, activas y del mes seleccionado
@@ -45,11 +47,13 @@ class ExcelSalidasMes {
       }
 
       await _generateExcelReport(
-          context: context,
-          filteredSalidas: filteredSalidas,
-          reportType: 'JUNTAS_ESPECIALES',
-          selectedMonth: selectedMonth,
-          productosController: productosController);
+        context: context,
+        filteredSalidas: filteredSalidas,
+        reportType: 'JUNTAS_ESPECIALES',
+        selectedMonth: selectedMonth,
+        productosController: productosController,
+        juntasController: juntasController,
+      );
     } catch (e) {
       showError(
           context, 'Error al generar el archivo Excel de juntas especiales');
@@ -63,6 +67,7 @@ class ExcelSalidasMes {
     required List<Salidas> allSalidas,
     required BuildContext context,
     required ProductosController productosController,
+    required JuntasController juntasController,
   }) async {
     try {
       // Filtrar salidas: juntas no especiales, activas y del mes seleccionado
@@ -97,6 +102,7 @@ class ExcelSalidasMes {
         reportType: 'JUNTAS_RURALES',
         selectedMonth: selectedMonth,
         productosController: productosController,
+        juntasController: juntasController,
       );
     } catch (e) {
       showError(context, 'Error al generar el archivo Excel de juntas rurales');
@@ -111,8 +117,10 @@ class ExcelSalidasMes {
     required String reportType,
     DateTime? selectedMonth,
     required ProductosController productosController,
+    required JuntasController juntasController,
   }) async {
     final allProductos = await productosController.listProductos();
+    final allJuntas = await juntasController.listJuntas();
 
     // Filtrar salidas para excluir productos de tipo "Servicio"
     final filteredSalidasSinServicios = filteredSalidas.where((salida) {
@@ -192,7 +200,7 @@ class ExcelSalidasMes {
       'ID Producto',
       'ID Almacén',
       'ID Padron',
-      'ID Junta'
+      'ID Junta - Nombre'
     ];
 
     // Escribir encabezados
@@ -225,9 +233,16 @@ class ExcelSalidasMes {
       sheet
           .getRangeByIndex(rowIndex, 9)
           .setNumber((salida.idPadron ?? 0).toDouble());
+
+      //  Mostrar "ID - Nombre"
+      final juntaID = salida.id_Junta ?? 0;
+      final junta = allJuntas.firstWhere(
+        (j) => j.id_Junta == juntaID,
+        orElse: () => Juntas(junta_Name: 'Desconocido'),
+      );
       sheet
           .getRangeByIndex(rowIndex, 10)
-          .setNumber((salida.id_Junta ?? 0).toDouble());
+          .setText('$juntaID - ${junta.junta_Name}');
 
       rowIndex++;
     }
@@ -266,9 +281,12 @@ class ExcelSalidasMes {
   static Future<void> generateExcelSalidasMes({
     DateTime? selectedMonth,
     required List<Salidas> filteredSalidas,
+    required JuntasController juntasController,
     required BuildContext context,
   }) async {
     try {
+      final allJuntas = await juntasController.listJuntas();
+
       // Filtrar salidas por mes si está seleccionado
       final salidasFiltradas = selectedMonth != null
           ? filteredSalidas.where((salida) {
@@ -345,7 +363,7 @@ class ExcelSalidasMes {
         'ID Producto',
         'ID Almacén',
         'ID Padron',
-        'ID Junta'
+        'ID Junta - Nombre'
       ];
 
       // Escribir encabezados uno por uno
@@ -382,9 +400,16 @@ class ExcelSalidasMes {
         sheet
             .getRangeByIndex(rowIndex, 9)
             .setNumber((salida.idPadron ?? 0).toDouble());
+
+        //  Juntas "ID - Nombre"
+        final juntaID = salida.id_Junta ?? 0;
+        final junta = allJuntas.firstWhere(
+          (j) => j.id_Junta == juntaID,
+          orElse: () => Juntas(junta_Name: 'Desconocido'),
+        );
         sheet
             .getRangeByIndex(rowIndex, 10)
-            .setNumber((salida.id_Junta ?? 0).toDouble());
+            .setText('$juntaID - ${junta.junta_Name}');
 
         rowIndex++;
       }
