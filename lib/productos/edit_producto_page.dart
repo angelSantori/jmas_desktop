@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
@@ -29,6 +30,11 @@ class _EditProductoPageState extends State<EditProductoPage> {
   late TextEditingController _maxController = TextEditingController();
   late TextEditingController _minController = TextEditingController();
 
+  // Nuevos controladores para ubicación física
+  late TextEditingController _rackController = TextEditingController();
+  late TextEditingController _nivelController = TextEditingController();
+  late TextEditingController _letraController = TextEditingController();
+
   final ProveedoresController _proveedoresController = ProveedoresController();
   List<Proveedores> _proveedores = [];
   Proveedores? _selectedProveedor;
@@ -41,9 +47,6 @@ class _EditProductoPageState extends State<EditProductoPage> {
   String? _selectedUnMedSalida;
   String? _selectedUnMedEntrada;
   String? _selectedEstado;
-  String? _selectedRack;
-  String? _selectedNivel;
-  String? _selectedLetra;
 
   final _formkey = GlobalKey<FormState>();
 
@@ -74,17 +77,10 @@ class _EditProductoPageState extends State<EditProductoPage> {
 
     _existenciaController = TextEditingController(text: '0.0');
 
+    // Parsear la ubicación física existente
     if (widget.producto.prodUbFisica != null &&
         widget.producto.prodUbFisica!.isNotEmpty) {
-      String ubicacion = widget.producto.prodUbFisica!;
-
-      _selectedRack = ubicacion.length >= 2 ? ubicacion.substring(0, 2) : null;
-      _selectedNivel = ubicacion.length >= 4 ? ubicacion.substring(2, 4) : null;
-      _selectedLetra = ubicacion.length == 5 ? ubicacion.substring(4) : null;
-    } else {
-      _selectedRack = null;
-      _selectedNivel = null;
-      _selectedLetra = null;
+      _parseUbicacionFisica(widget.producto.prodUbFisica!);
     }
 
     _loadProveedores();
@@ -97,6 +93,35 @@ class _EditProductoPageState extends State<EditProductoPage> {
       _selectedImage = XFile.fromData(
         base64Decode(widget.producto.prodImgB64!),
       );
+    }
+  }
+
+  // Método para parsear la ubicación física existente
+  void _parseUbicacionFisica(String ubicacion) {
+    try {
+      // Buscar los índices de 'R', 'N' y 'A'
+      int indexR = ubicacion.indexOf('R');
+      int indexN = ubicacion.indexOf('N');
+      int indexA = ubicacion.indexOf('A');
+
+      if (indexR != -1 && indexN != -1 && indexA != -1) {
+        // Extraer rack (después de 'R' hasta antes de 'N')
+        String rackValue = ubicacion.substring(indexR + 1, indexN);
+        // Extraer nivel (después de 'N' hasta antes de 'A')
+        String nivelValue = ubicacion.substring(indexN + 1, indexA);
+        // Extraer letra (después de 'A')
+        String letraValue = ubicacion.substring(indexA + 1);
+
+        _rackController = TextEditingController(text: rackValue);
+        _nivelController = TextEditingController(text: nivelValue);
+        _letraController = TextEditingController(text: letraValue);
+      }
+    } catch (e) {
+      print('Error al parsear ubicación física: $e');
+      // Si hay error, inicializar con valores vacíos
+      _rackController = TextEditingController();
+      _nivelController = TextEditingController();
+      _letraController = TextEditingController();
     }
   }
 
@@ -161,6 +186,9 @@ class _EditProductoPageState extends State<EditProductoPage> {
     _minController.dispose();
     _costoController.dispose();
     _precioController.dispose();
+    _rackController.dispose(); // Nuevo
+    _nivelController.dispose(); // Nuevo
+    _letraController.dispose(); // Nuevo
     super.dispose();
   }
 
@@ -169,13 +197,17 @@ class _EditProductoPageState extends State<EditProductoPage> {
       _isLoading = true;
     });
     if (_formkey.currentState!.validate()) {
+      // Construir la ubicación física con el nuevo formato
+      final ubicacionFisica =
+          'R${_rackController.text}N${_nivelController.text}A${_letraController.text}';
+
       final updateProducto = widget.producto.copyWith(
         prodDescripcion: _descripcionController.text,
         prodExistencia: double.parse(_existenciaController!.text),
         prodMax: double.parse(_maxController.text),
         prodMin: double.parse(_minController.text),
         prodCosto: double.parse(_costoController.text),
-        prodUbFisica: _selectedRack! + _selectedNivel! + _selectedLetra!,
+        prodUbFisica: ubicacionFisica, // Usar la nueva ubicación
         prodUMedSalida: _selectedUnMedSalida,
         prodUMedEntrada: _selectedUnMedEntrada,
         prodEstado: _selectedEstado,
@@ -220,7 +252,7 @@ class _EditProductoPageState extends State<EditProductoPage> {
 
       final result = await _capturainviniController.editCapturaI(updateCaptura);
       if (!result) {
-        print('Errir al actualizar Capturainini | If');
+        print('Error al actualizar Capturainini | If');
       }
     } catch (e) {
       print('Error en _updateCapturaIni | TryCatch: $e');
@@ -467,71 +499,87 @@ class _EditProductoPageState extends State<EditProductoPage> {
                   const SizedBox(height: 30),
                   const Divider(),
                   const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      //Rack
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedRack,
-                          labelText: 'Rack',
-                          items: rack,
-                          onChanged: (rack) {
-                            setState(() {
-                              _selectedRack = rack;
-                            });
-                          },
-                          validator: (rack) {
-                            if (rack == null || rack.isEmpty) {
-                              return 'Rack obligatorio.';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 30),
 
-                      //Nivel
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedNivel,
-                          labelText: 'Nivel',
-                          items: nivel,
-                          onChanged: (nivel) {
-                            setState(() {
-                              _selectedNivel = nivel;
-                            });
-                          },
-                          validator: (nivel) {
-                            if (nivel == null || nivel.isEmpty) {
-                              return 'Nivel obligatorio.';
-                            }
-                            return null;
-                          },
+                  // Ubicación física con campos de texto
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        // Rack
+                        Expanded(
+                          child: CustomTextFieldNumero(
+                            controller: _rackController,
+                            labelText: 'Rack (Número)',
+                            prefixIcon: Icons.shelves,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Rack obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 30),
+                        const SizedBox(width: 30),
 
-                      //letra
-                      Expanded(
-                        child: CustomListaDesplegable(
-                          value: _selectedLetra,
-                          labelText: 'Letra',
-                          items: letra,
-                          onChanged: (letra) {
-                            setState(() {
-                              _selectedLetra = letra;
-                            });
-                          },
-                          validator: (letra) {
-                            if (letra == null || letra.isEmpty) {
-                              return 'Letra obligatoria.';
-                            }
-                            return null;
-                          },
+                        // Nivel
+                        Expanded(
+                          child: CustomTextFieldNumero(
+                            controller: _nivelController,
+                            labelText: 'Nivel (Número)',
+                            prefixIcon: Icons.layers,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Nivel obligatorio.';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 30),
+
+                        // Letra
+                        Expanded(
+                          child: CustomTextFielTexto(
+                            controller: _letraController,
+                            labelText: 'Anaquel (A-Z)',
+                            prefixIcon: Icons.abc,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'[A-Za-z]')),
+                              LengthLimitingTextInputFormatter(1),
+                            ],
+                            onChanged: (letra) {
+                              if (letra.isNotEmpty) {
+                                _letraController.text = letra.toUpperCase();
+                                _letraController.selection =
+                                    TextSelection.fromPosition(TextPosition(
+                                        offset: _letraController.text.length));
+                              }
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Letra obligatoria';
+                              }
+                              if (value.length > 1) {
+                                return 'Solo una letra';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 30),
