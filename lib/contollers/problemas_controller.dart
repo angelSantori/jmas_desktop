@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:jmas_desktop/service/auth_service.dart';
 
-class ProblemasController {
+class ProblemasControllerX {
   final AuthService _authService = AuthService();
 
   Future<List<Problemas>> listProblemas() async {

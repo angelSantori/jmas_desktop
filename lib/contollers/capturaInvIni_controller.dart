@@ -39,10 +39,11 @@ class CapturainviniController {
       return cacheCapturaIni!;
     }
     try {
-      final response = await http
-          .get(Uri.parse('${_authService.apiURL}/CapturaInvInis'), headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-      });
+      final response = await http.get(
+          Uri.parse('${_authService.apiNubeURL}/CapturaInvInis'),
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+          });
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
         return jsonData
@@ -63,7 +64,7 @@ class CapturainviniController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiURL}/CapturaInvInis/ByProducto/$productoId'),
+            '${_authService.apiNubeURL}/CapturaInvInis/ByProducto/$productoId'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -110,7 +111,8 @@ class CapturainviniController {
       int month, int year) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/CapturaInvInis/ByMonth/$month/$year'),
+        Uri.parse(
+            '${_authService.apiNubeURL}/CapturaInvInis/ByMonth/$month/$year'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

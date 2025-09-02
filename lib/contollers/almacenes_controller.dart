@@ -36,7 +36,7 @@ class AlmacenesController {
   Future<List<Almacenes>> listAlmacenes() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Almacenes'),
+        Uri.parse('${_authService.apiNubeURL}/Almacenes'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

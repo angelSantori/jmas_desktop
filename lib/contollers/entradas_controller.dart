@@ -13,7 +13,7 @@ class EntradasController {
   Future<List<Entradas>> listEntradas() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Entradas'),
+        Uri.parse('${_authService.apiNubeURL}/Entradas'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -37,7 +37,7 @@ class EntradasController {
   Future<List<Entradas>> listEntradaXProducto(int productoID) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Entradas/ByProducto/$productoID'),
+        Uri.parse('${_authService.apiNubeURL}/Entradas/ByProducto/$productoID'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -83,7 +83,8 @@ class EntradasController {
   Future<List<Entradas>> getEntradaByReferencia(String referencia) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Entradas/ByReferencia/$referencia'),
+        Uri.parse(
+            '${_authService.apiNubeURL}/Entradas/ByReferencia/$referencia'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -109,7 +110,7 @@ class EntradasController {
   Future<List<Entradas>> getEntradaByCodFolio(String codFolio) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Entradas/ByCodFolio/$codFolio'),
+        Uri.parse('${_authService.apiNubeURL}/Entradas/ByCodFolio/$codFolio'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

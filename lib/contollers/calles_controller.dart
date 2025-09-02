@@ -13,7 +13,7 @@ class CallesController {
 
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Calles'),
+        Uri.parse('${_authService.apiNubeURL}/Calles'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -37,7 +37,7 @@ class CallesController {
   Future<Calles?> getCalleById(int idCalle) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Calles/$idCalle'),
+        Uri.parse('${_authService.apiNubeURL}/Calles/$idCalle'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -66,7 +66,7 @@ class CallesController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiURL}/Calles/BuscarPorNombre?nombreCalle=$nombreCalle'),
+            '${_authService.apiNubeURL}/Calles/BuscarPorNombre?nombreCalle=$nombreCalle'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

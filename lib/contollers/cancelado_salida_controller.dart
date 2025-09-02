@@ -31,7 +31,7 @@ class CanceladoSalidaController {
   Future<List<CanceladoSalidas>> listCanceladoSalida() async {
     try {
       final response = await http
-          .get(Uri.parse('${_authService.apiURL}/CanceladoSalidas'), headers: {
+          .get(Uri.parse('${_authService.apiNubeURL}/CanceladoSalidas'), headers: {
         'Content-Type': 'application/json; charset=UTF-8',
       });
 

@@ -40,7 +40,7 @@ class UsersController {
   Future<Users?> getUserById(int idUser) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Users/$idUser'),
+        Uri.parse('${_authService.apiNubeURL}/Users/$idUser'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -67,7 +67,7 @@ class UsersController {
   Future<List<Users>> listUsers() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Users'),
+        Uri.parse('${_authService.apiNubeURL}/Users'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -92,7 +92,7 @@ class UsersController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiURL}/Users/UserPorNombre?userNombre=$userNombre'),
+            '${_authService.apiNubeURL}/Users/UserPorNombre?userNombre=$userNombre'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

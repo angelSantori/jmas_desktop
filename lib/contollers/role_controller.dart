@@ -13,7 +13,7 @@ class RoleController {
   Future<List<Role>> listRole() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/Roles'),
+        Uri.parse('${_authService.apiNubeURL}/Roles'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

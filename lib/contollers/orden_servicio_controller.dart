@@ -1,9 +1,6 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 // Librerías
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class OrdenServicioController {
@@ -14,7 +11,7 @@ class OrdenServicioController {
   Future<List<OrdenServicio>> listOrdenServicio() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/OrdenServicios'),
+        Uri.parse('${_authService.apiNubeURL}/OrdenServicios'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
@@ -36,7 +33,7 @@ class OrdenServicioController {
   Future<List<OrdenServicio>> listOTXFolio(String folio) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/OrdenServicios/ByFolio/$folio'),
+        Uri.parse('${_authService.apiNubeURL}/OrdenServicios/ByFolio/$folio'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
@@ -82,7 +79,7 @@ class OrdenServicioController {
   Future<OrdenServicio?> getOrdenServicioXId(int idOT) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/OrdenServicios/$idOT'),
+        Uri.parse('${_authService.apiNubeURL}/OrdenServicios/$idOT'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
       if (response.statusCode == 200) {

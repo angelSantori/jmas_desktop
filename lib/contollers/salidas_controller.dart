@@ -14,7 +14,7 @@ class SalidasController {
   Future<List<Salidas>> listSalidas() async {
     try {
       final response =
-          await http.get(Uri.parse('${_authService.apiURL}/Salidas'), headers: {
+          await http.get(Uri.parse('${_authService.apiNubeURL}/Salidas'), headers: {
         'Content-Type': 'application/json; charset=UTF-8',
       });
 
@@ -59,7 +59,7 @@ class SalidasController {
   Future<List<Salidas>> getSalidaByFolio(String folio) async {
     try {
       final response = await http.get(
-          Uri.parse('${_authService.apiURL}/Salidas/ByFolio/$folio'),
+          Uri.parse('${_authService.apiNubeURL}/Salidas/ByFolio/$folio'),
           headers: {
             'Content-Type': 'application/json; charset=UTF-8',
           });
