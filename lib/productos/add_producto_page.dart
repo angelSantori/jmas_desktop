@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -24,6 +25,9 @@ class _AddProductoPageState extends State<AddProductoPage> {
   final TextEditingController _existenciaController = TextEditingController();
   final TextEditingController _maxController = TextEditingController();
   final TextEditingController _minController = TextEditingController();
+  final TextEditingController _rackController = TextEditingController();
+  final TextEditingController _nivelController = TextEditingController();
+  final TextEditingController _letraController = TextEditingController();
 
   final ProveedoresController _proveedoresController = ProveedoresController();
   List<Proveedores> _proveedores = [];
@@ -36,9 +40,6 @@ class _AddProductoPageState extends State<AddProductoPage> {
   // ignore: unused_field
   bool _isLoading = false;
 
-  String? _selectedRack;
-  String? _selectedNivel;
-  String? _selectedLetra;
   String? _selectedUnMedSalida;
   String? _selectedUnMedEntrada;
   XFile? _selectedImage;
@@ -97,6 +98,9 @@ class _AddProductoPageState extends State<AddProductoPage> {
         return;
       }
       try {
+        final ubicacionFisica =
+            'R${_rackController.text}N${_nivelController.text}A${_letraController.text}';
+
         final producto = Productos(
           id_Producto: 0,
           prodDescripcion: _descripcionController.text,
@@ -104,7 +108,7 @@ class _AddProductoPageState extends State<AddProductoPage> {
           prodMax: double.parse(_maxController.text),
           prodMin: double.parse(_minController.text),
           prodCosto: double.parse(_costoController.text),
-          prodUbFisica: _selectedRack! + _selectedNivel! + _selectedLetra!,
+          prodUbFisica: ubicacionFisica,
           prodUMedSalida: _selectedUnMedSalida,
           prodUMedEntrada: _selectedUnMedEntrada,
           prodPrecio: double.parse(_precioController.text),
@@ -145,9 +149,9 @@ class _AddProductoPageState extends State<AddProductoPage> {
     _existenciaController.clear();
     _maxController.clear();
     _minController.clear();
-    rack.clear();
-    nivel.clear();
-    letra.clear();
+    _rackController.clear();
+    _nivelController.clear();
+    _letraController.clear();
     setState(() {
       _selectedUnMedEntrada = null;
       _selectedUnMedSalida = null;
@@ -458,56 +462,55 @@ class _AddProductoPageState extends State<AddProductoPage> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: CustomListaDesplegable(
-                            value: _selectedRack,
-                            labelText: 'Rack',
-                            items: rack,
-                            onChanged: (rack) {
-                              setState(() {
-                                _selectedRack = rack;
-                              });
-                            },
-                            validator: (rack) {
-                              if (rack == null || rack.isEmpty) {
-                                return 'Rack obligatorio.';
-                              }
-                              return null;
-                            },
-                          ),
+                          child: CustomTextFieldNumero(
+                              controller: _rackController,
+                              validator: (rack) {
+                                if (rack == null || rack.isEmpty) {
+                                  return 'Rack obligatorio';
+                                }
+                                return null;
+                              },
+                              labelText: 'Rack (Número)',
+                              prefixIcon: Icons.shelves),
                         ),
                         const SizedBox(width: 30),
                         Expanded(
-                          child: CustomListaDesplegable(
-                            value: _selectedNivel,
-                            labelText: 'Nivel',
-                            items: nivel,
-                            onChanged: (nivel) {
-                              setState(() {
-                                _selectedNivel = nivel;
-                              });
-                            },
-                            validator: (nivel) {
-                              if (nivel == null || nivel.isEmpty) {
-                                return 'Nivel obligatorio.';
-                              }
-                              return null;
-                            },
-                          ),
+                          child: CustomTextFieldNumero(
+                              controller: _nivelController,
+                              validator: (nivel) {
+                                if (nivel == null || nivel.isEmpty) {
+                                  return 'Nivel obligatorio';
+                                }
+                                return null;
+                              },
+                              labelText: 'Nivel (Número)',
+                              prefixIcon: Icons.layers),
                         ),
                         const SizedBox(width: 30),
                         Expanded(
-                          child: CustomListaDesplegable(
-                            value: _selectedLetra,
-                            labelText: 'Letra',
-                            items: letra,
+                          child: CustomTextFielTexto(
+                            controller: _letraController,
+                            labelText: 'Anaquel (A-Z)',
+                            prefixIcon: Icons.abc,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'[A-Za-z]')),
+                              LengthLimitingTextInputFormatter(1),
+                            ],
                             onChanged: (letra) {
-                              setState(() {
-                                _selectedLetra = letra;
-                              });
+                              if (letra.isNotEmpty) {
+                                _letraController.text = letra.toUpperCase();
+                                _letraController.selection =
+                                    TextSelection.fromPosition(TextPosition(
+                                        offset: _letraController.text.length));
+                              }
                             },
                             validator: (letra) {
                               if (letra == null || letra.isEmpty) {
-                                return 'Letra obligatoria';
+                                return 'Anaquel obligatorio';
+                              }
+                              if (letra.length > 1) {
+                                return 'Solo una letra';
                               }
                               return null;
                             },
