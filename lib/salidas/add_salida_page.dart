@@ -296,8 +296,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
         // Aplicar descuento del 60% si el producto es 40050569 o 40050570
         // y la junta NO es 1, 6, 8 o 14
-        if ((_selectedProducto!.id_Producto == 40050569 ||
-                _selectedProducto!.id_Producto == 40050570) &&
+        if ((_selectedProducto!.id_Producto == 40050558 ||
+                _selectedProducto!.id_Producto == 40050559) &&
             _selectedJunta != null &&
             ![1, 6, 8, 14].contains(_selectedJunta!.id_Junta)) {
           precioUnitario = precioUnitario *
