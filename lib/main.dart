@@ -1,8 +1,10 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/general/home_page.dart';
-import 'package:jmas_desktop/general/login_page.dart';
+import 'package:jmas_desktop/general/login2.dart';
+//import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
@@ -52,9 +54,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: isLoggedIn ? const HomePage() : const LoginPage(),
+      home: isLoggedIn ? const HomePage() : const LoginWidget(),
       routes: {
-        '/login': (context) => const LoginPage(),
+        '/login': (context) => const LoginWidget(),
         '/home': (context) => const HomePage(),
       },
     );
