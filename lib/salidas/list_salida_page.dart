@@ -71,6 +71,11 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
   bool _isLoading = true;
 
+  int _currentPage = 1;
+  int _itemsPerPage = 20;
+  int get _totalPages =>
+      (_filteredSalidasGrouped.length / _itemsPerPage).ceil();
+
   DateTime? _selectedMonth;
   // ignore: unused_field
   bool _isGeneratingExcel = false;
@@ -81,6 +86,43 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     super.initState();
     _loadData();
     _searchController.addListener(_filterSalidas);
+  }
+
+  Map<String, List<Salidas>> get _paginatedGroupedSalidas {
+    // Primero agrupar todas las salidas filtradas
+    Map<String, List<Salidas>> groupedSalidas = {};
+    for (var salida in _filteredSalidas) {
+      groupedSalidas.putIfAbsent(
+        salida.salida_CodFolio!,
+        () => [],
+      );
+      groupedSalidas[salida.salida_CodFolio]!.add(salida);
+    }
+
+    // Convertir a lista de grupos y paginar
+    final groupsList = groupedSalidas.entries.toList();
+    final startIndex = (_currentPage - 1) * _itemsPerPage;
+    final endIndex = startIndex + _itemsPerPage;
+
+    // Crear un nuevo mapa solo con los grupos de la página actual
+    final paginatedGroups = groupsList.sublist(
+      startIndex.clamp(0, groupsList.length),
+      endIndex.clamp(0, groupsList.length),
+    );
+
+    return Map.fromEntries(paginatedGroups);
+  }
+
+  Map<String, List<Salidas>> get _filteredSalidasGrouped {
+    Map<String, List<Salidas>> grouped = {};
+    for (var salida in _filteredSalidas) {
+      grouped.putIfAbsent(
+        salida.salida_CodFolio!,
+        () => [],
+      );
+      grouped[salida.salida_CodFolio]!.add(salida);
+    }
+    return grouped;
   }
 
   Future<void> _reloadData() async {
@@ -214,6 +256,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
             matchesColonia &&
             matchesCalle;
       }).toList();
+      _currentPage = 1;
     });
   }
 
@@ -416,6 +459,50 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     } finally {
       setState(() => _isGeneratingExcel = false);
     }
+  }
+
+  Widget _buildPaginationControls() {
+    if (_filteredSalidas.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios),
+            onPressed:
+                _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+          ),
+          Text(
+            'Página $_currentPage de $_totalPages',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward_ios),
+            onPressed: _currentPage < _totalPages
+                ? () => setState(() => _currentPage++)
+                : null,
+          ),
+          const SizedBox(width: 16),
+          DropdownButton<int>(
+            value: _itemsPerPage,
+            items: [10, 20, 50, 100].map(
+              (value) {
+                return DropdownMenuItem<int>(
+                    value: value, child: Text('$value por página'));
+              },
+            ).toList(),
+            onChanged: (value) {
+              setState(() {
+                _itemsPerPage = value!;
+                _currentPage = 1;
+              });
+            },
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -723,192 +810,207 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       );
     }
 
-    Map<String, List<Salidas>> gorupSalidas = {};
-    for (var salida in _filteredSalidas) {
-      gorupSalidas.putIfAbsent(
-        salida.salida_CodFolio!,
-        () => [],
-      );
-      gorupSalidas[salida.salida_CodFolio]!.add(salida);
-    }
+    final groupedSalidas = _paginatedGroupedSalidas;
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(10),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 450,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.6,
-      ),
-      itemCount: gorupSalidas.keys.length,
-      itemBuilder: (context, index) {
-        if (index >= gorupSalidas.keys.length) {
-          return const SizedBox.shrink();
-        }
-        String codFolio = gorupSalidas.keys.elementAt(index);
-        List<Salidas> salidas = gorupSalidas[codFolio]!;
+    // Map<String, List<Salidas>> gorupSalidas = {};
+    // for (var salida in _paginatedSalidas) {
+    //   gorupSalidas.putIfAbsent(
+    //     salida.salida_CodFolio!,
+    //     () => [],
+    //   );
+    //   gorupSalidas[salida.salida_CodFolio]!.add(salida);
+    // }
 
-        double totalUnidades =
-            salidas.fold(0, (sum, item) => sum + (item.salida_Unidades ?? 0));
-
-        double totalCosto =
-            salidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
-
-        final salidaPrincipal = salidas.first;
-        final salida = salidaPrincipal;
-
-        // ignore: unused_local_variable
-        final producto = _productosCache[salida.idProducto];
-        final user = _usersCache[salida.id_User];
-
-        Color colorCard = salida.salida_Estado == false
-            ? Colors.red.shade100
-            : Colors.blue.shade100;
-
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          color: colorCard,
-          elevation: 4,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: InkWell(
-            onTap: () async {
-              final almacen = _almacenes.firstWhere(
-                (alm) => alm.id_Almacen == salida.id_Almacen,
-                orElse: () =>
-                    Almacenes(id_Almacen: 0, almacen_Nombre: 'Desconocido'),
-              );
-
-              final junta = _juntas.firstWhere(
-                (jnt) => jnt.id_Junta == salida.id_Junta,
-                orElse: () => Juntas(id_Junta: 0, junta_Name: 'Deconocido'),
-              );
-
-              final padron = _padrones.firstWhere(
-                (pdr) => pdr.idPadron == salida.idPadron,
-                orElse: () => Padron(idPadron: 0, padronNombre: 'Desconocido'),
-              );
-
-              final ordenServicio = _ordenesServicios.firstWhere(
-                (ordenS) => ordenS.idOrdenServicio == salida.idOrdenServicio,
-                orElse: () => OrdenServicio(folioOS: 'Sin folio OS'),
-              );
-
-              final colonia = _colonias.firstWhere(
-                (colonia) => colonia.idColonia == salida.idColonia,
-                orElse: () =>
-                    Colonias(idColonia: 0, nombreColonia: 'Desconocido'),
-              );
-
-              final calle = _calles.firstWhere(
-                (calles) => calles.idCalle == salida.idCalle,
-                orElse: () => Calles(idCalle: 0, calleNombre: 'Desconocida'),
-              );
-
-              final userAsig = _userAsignado.firstWhere(
-                (uas) => uas.id_User == salida.id_User_Asignado,
-                orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
-              );
-
-              final userAutoriza = _userAutoriza.firstWhere(
-                (usAu) => usAu.id_User == salida.idUserAutoriza,
-                orElse: () => Users(id_User: 0, user_Name: 'No especificado'),
-              );
-
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DetailsSalidaPage(
-                    salidas: salidas,
-                    almacen: almacen,
-                    junta: junta,
-                    padron: padron,
-                    calle: calle,
-                    colonia: colonia,
-                    user: user!.user_Name!,
-                    userAsignado: userAsig,
-                    userAutoriza: userAutoriza,
-                    ordenServicio: ordenServicio,
-                    userRole: widget.userRole!,
-                  ),
-                ),
-              );
-
-              if (result == true) {
-                await _reloadData();
+    return Column(
+      children: [
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(10),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 450,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.6,
+            ),
+            itemCount: groupedSalidas.keys.length,
+            itemBuilder: (context, index) {
+              if (index >= groupedSalidas.keys.length) {
+                return const SizedBox.shrink();
               }
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
+              String codFolio = groupedSalidas.keys.elementAt(index);
+              List<Salidas> salidas = groupedSalidas[codFolio]!;
+
+              double totalUnidades = salidas.fold(
+                  0, (sum, item) => sum + (item.salida_Unidades ?? 0));
+
+              double totalCosto = salidas.fold(
+                  0, (sum, item) => sum + (item.salida_Costo ?? 0));
+
+              final salidaPrincipal = salidas.first;
+              final salida = salidaPrincipal;
+
+              // ignore: unused_local_variable
+              final producto = _productosCache[salida.idProducto];
+              final user = _usersCache[salida.id_User];
+
+              Color colorCard = salida.salida_Estado == false
+                  ? Colors.red.shade100
+                  : Colors.blue.shade100;
+
+              return Card(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                color: colorCard,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: InkWell(
+                  onTap: () async {
+                    final almacen = _almacenes.firstWhere(
+                      (alm) => alm.id_Almacen == salida.id_Almacen,
+                      orElse: () => Almacenes(
+                          id_Almacen: 0, almacen_Nombre: 'Desconocido'),
+                    );
+
+                    final junta = _juntas.firstWhere(
+                      (jnt) => jnt.id_Junta == salida.id_Junta,
+                      orElse: () =>
+                          Juntas(id_Junta: 0, junta_Name: 'Deconocido'),
+                    );
+
+                    final padron = _padrones.firstWhere(
+                      (pdr) => pdr.idPadron == salida.idPadron,
+                      orElse: () =>
+                          Padron(idPadron: 0, padronNombre: 'Desconocido'),
+                    );
+
+                    final ordenServicio = _ordenesServicios.firstWhere(
+                      (ordenS) =>
+                          ordenS.idOrdenServicio == salida.idOrdenServicio,
+                      orElse: () => OrdenServicio(folioOS: 'Sin folio OS'),
+                    );
+
+                    final colonia = _colonias.firstWhere(
+                      (colonia) => colonia.idColonia == salida.idColonia,
+                      orElse: () =>
+                          Colonias(idColonia: 0, nombreColonia: 'Desconocido'),
+                    );
+
+                    final calle = _calles.firstWhere(
+                      (calles) => calles.idCalle == salida.idCalle,
+                      orElse: () =>
+                          Calles(idCalle: 0, calleNombre: 'Desconocida'),
+                    );
+
+                    final userAsig = _userAsignado.firstWhere(
+                      (uas) => uas.id_User == salida.id_User_Asignado,
+                      orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
+                    );
+
+                    final userAutoriza = _userAutoriza.firstWhere(
+                      (usAu) => usAu.id_User == salida.idUserAutoriza,
+                      orElse: () =>
+                          Users(id_User: 0, user_Name: 'No especificado'),
+                    );
+
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsSalidaPage(
+                          salidas: salidas,
+                          almacen: almacen,
+                          junta: junta,
+                          padron: padron,
+                          calle: calle,
+                          colonia: colonia,
+                          user: user!.user_Name!,
+                          userAsignado: userAsig,
+                          userAutoriza: userAutoriza,
+                          ordenServicio: ordenServicio,
+                          userRole: widget.userRole!,
+                        ),
+                      ),
+                    );
+
+                    if (result == true) {
+                      await _reloadData();
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Folio $codFolio',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Folio $codFolio',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              user != null
+                                  ? Text(
+                                      'Realizado por: ${user.user_Name}',
+                                      style: const TextStyle(fontSize: 15),
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  : const Text('Usuario no encontrado'),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Total unidades: $totalUnidades',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Costo: \$${totalCosto.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              // Text(
+                              //   'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
+                              //   overflow: TextOverflow.ellipsis,
+                              //   style: const TextStyle(
+                              //     fontSize: 15,
+                              //   ),
+                              // ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        user != null
-                            ? Text(
-                                'Realizado por: ${user.user_Name}',
-                                style: const TextStyle(fontSize: 15),
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            : const Text('Usuario no encontrado'),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Total unidades: $totalUnidades',
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 82,
+                              child: Text(
+                                salida.salida_Fecha ?? 'Sin Fecha',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Costo: \$${totalCosto.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        // Text(
-                        //   'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
-                        //   overflow: TextOverflow.ellipsis,
-                        //   style: const TextStyle(
-                        //     fontSize: 15,
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 82,
-                        child: Text(
-                          salida.salida_Fecha ?? 'Sin Fecha',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
-        );
-      },
+        ),
+        _buildPaginationControls(),
+      ],
     );
   }
 
