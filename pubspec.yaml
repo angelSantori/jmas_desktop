@@ -30,6 +30,7 @@ dependencies:
   flutter_localization: ^0.3.3
   syncfusion_flutter_datepicker: ^29.2.11
   fl_chart: ^1.0.0 #Graficas
+  file_saver: ^0.3.1 #Guardar
 
 dev_dependencies:
   flutter_test:
