@@ -41,7 +41,7 @@ class ExcelServicios {
       final currentYear = DateTime.now().year;
       final lastDay = DateTime(currentYear, selectedMonth + 1, 0);
 
-      final allSalidas = await salidasController.listSalidas();
+      final allSalidas = await salidasController.listSalidasOptimizado();
 
       // Filtrar salidas de servicios en el periodo seleccionado
       final salidasServicios = allSalidas.where((s) {
@@ -72,7 +72,7 @@ class ExcelServicios {
       }
 
       // Agrupar salidas por servicio y junta
-      final Map<int, Map<int, List<Salidas>>> salidasByServiceAndJunta = {};
+      final Map<int, Map<int, List<SalidaLista>>> salidasByServiceAndJunta = {};
       final Map<int, Map<int, double>> totalCostoByServiceAndJunta = {};
 
       for (var salida in salidasServicios) {
@@ -108,6 +108,81 @@ class ExcelServicios {
       // Crear Excel workbook
       final Workbook workbook = Workbook();
       final Worksheet sheet = workbook.worksheets[0];
+      sheet.name = "Resumen Contable Servicios";
+
+      final Worksheet detallesSheet = workbook.worksheets.add();
+      detallesSheet.name = "Detalles Servicos";
+
+      // ===== HOJA DE DETALLES =====
+      // Configurar anchos de columna para la hoja de detalles
+      detallesSheet.getRangeByName('A1').columnWidth = 15; // Folio
+      detallesSheet.getRangeByName('B1').columnWidth = 10; // Unidades
+      detallesSheet.getRangeByName('C1').columnWidth = 15; // Costo
+      detallesSheet.getRangeByName('D1').columnWidth = 15; // Fecha
+      detallesSheet.getRangeByName('E1').columnWidth = 10; // ID Servicio
+      detallesSheet.getRangeByName('F1').columnWidth =
+          40; // Descripción Servicio
+      detallesSheet.getRangeByName('G1').columnWidth = 10; // ID Junta
+      detallesSheet.getRangeByName('H1').columnWidth = 30; // Nombre Junta
+
+      // Encabezados de la hoja de detalles
+      detallesSheet.getRangeByName('A1').setText('Folio');
+      detallesSheet.getRangeByName('B1').setText('Unidades');
+      detallesSheet.getRangeByName('C1').setText('Costo');
+      detallesSheet.getRangeByName('D1').setText('Fecha');
+      detallesSheet.getRangeByName('E1').setText('ID Servicio');
+      detallesSheet.getRangeByName('F1').setText('Descripción Servicio');
+      detallesSheet.getRangeByName('G1').setText('ID Junta');
+      detallesSheet.getRangeByName('H1').setText('Nombre Junta');
+
+      // Aplicar estilo a los encabezados
+      final rangeHeadersDetalles = detallesSheet.getRangeByName('A1:H1');
+      //rangeHeadersDetalles.cellStyle = pw.grayBgStyle;
+      rangeHeadersDetalles.cellStyle.hAlign = HAlignType.center;
+
+      // Llenar datos en la hoja de detalles
+      int detallesRow = 2;
+      for (var salida in salidasServicios) {
+        final producto = productosServicio.firstWhere(
+            (p) => p.id_Producto == salida.idProducto,
+            orElse: () => Productos());
+        final junta = juntas.firstWhere((j) => j.id_Junta == salida.id_Junta,
+            orElse: () => Juntas());
+
+        detallesSheet
+            .getRangeByName('A$detallesRow')
+            .setText(salida.salida_CodFolio ?? '');
+        detallesSheet
+            .getRangeByName('B$detallesRow')
+            .setNumber(salida.salida_Unidades ?? 0);
+        detallesSheet
+            .getRangeByName('C$detallesRow')
+            .setNumber(salida.salida_Costo ?? 0);
+
+        // Formatear fecha
+        if (salida.salida_Fecha != null) {
+          final fecha = parseFecha(salida.salida_Fecha!);
+          detallesSheet
+              .getRangeByName('D$detallesRow')
+              .setText(DateFormat('dd/MM/yyyy').format(fecha));
+        }
+
+        detallesSheet
+            .getRangeByName('E$detallesRow')
+            .setValue(salida.idProducto ?? 0);
+        detallesSheet
+            .getRangeByName('F$detallesRow')
+            .setText(producto.prodDescripcion ?? '');
+        detallesSheet
+            .getRangeByName('G$detallesRow')
+            .setValue(salida.id_Junta ?? 0);
+        detallesSheet
+            .getRangeByName('H$detallesRow')
+            .setText(junta.junta_Name ?? '');
+
+        detallesRow++;
+      }
+      // ===== HOJA DE DETALLES =====
 
       // Configuración de columnas
       sheet.getRangeByName('A1').columnWidth = 20;
