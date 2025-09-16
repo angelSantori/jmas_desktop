@@ -88,9 +88,6 @@ class ProductosController {
 
   //Lista Productos
   Future<List<Productos>> listProductos() async {
-    if (cacheProductos != null) {
-      return cacheProductos!;
-    }
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiNubeURL}/Productos'),
@@ -109,6 +106,29 @@ class ProductosController {
       }
     } catch (e) {
       print('Error lista de productos: $e');
+      return [];
+    }
+  }
+
+  Future<List<ProductosOptimizado>> listProductosOptimizado() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Productos/noImage'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((p) => ProductosOptimizado.fromMap(p)).toList();
+      } else {
+        print(
+            'Error listProductosOptimizado | Ife | ProductosController: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error listProductosOptimizado | Try | ProductosController: $e');
       return [];
     }
   }
@@ -384,6 +404,184 @@ class Productos {
         prodUMedEntrada.hashCode ^
         prodPrecio.hashCode ^
         prodImgB64.hashCode ^
+        prodEstado.hashCode ^
+        idProveedor.hashCode ^
+        id_Almacen.hashCode;
+  }
+}
+
+class ProductosOptimizado {
+  int? id_Producto;
+  String? prodDescripcion;
+  double? prodExistencia;
+  double? prodMax;
+  double? prodMin;
+  double? prodCosto;
+  String? prodUbFisica;
+  String? prodUMedSalida;
+  String? prodUMedEntrada;
+  double? prodPrecio;
+  String? prodEstado;
+  int? idProveedor;
+  int? id_Almacen;
+  ProductosOptimizado({
+    this.id_Producto,
+    this.prodDescripcion,
+    this.prodExistencia,
+    this.prodMax,
+    this.prodMin,
+    this.prodCosto,
+    this.prodUbFisica,
+    this.prodUMedSalida,
+    this.prodUMedEntrada,
+    this.prodPrecio,
+    this.prodEstado,
+    this.idProveedor,
+    this.id_Almacen,
+  });
+
+  ProductosOptimizado copyWith({
+    int? id_Producto,
+    String? prodDescripcion,
+    double? prodExistencia,
+    double? prodMax,
+    double? prodMin,
+    double? prodCosto,
+    String? prodUbFisica,
+    String? prodUMedSalida,
+    String? prodUMedEntrada,
+    double? prodPrecio,
+    String? prodEstado,
+    int? idProveedor,
+    int? id_Almacen,
+  }) {
+    return ProductosOptimizado(
+      id_Producto: id_Producto ?? this.id_Producto,
+      prodDescripcion: prodDescripcion ?? this.prodDescripcion,
+      prodExistencia: prodExistencia ?? this.prodExistencia,
+      prodMax: prodMax ?? this.prodMax,
+      prodMin: prodMin ?? this.prodMin,
+      prodCosto: prodCosto ?? this.prodCosto,
+      prodUbFisica: prodUbFisica ?? this.prodUbFisica,
+      prodUMedSalida: prodUMedSalida ?? this.prodUMedSalida,
+      prodUMedEntrada: prodUMedEntrada ?? this.prodUMedEntrada,
+      prodPrecio: prodPrecio ?? this.prodPrecio,
+      prodEstado: prodEstado ?? this.prodEstado,
+      idProveedor: idProveedor ?? this.idProveedor,
+      id_Almacen: id_Almacen ?? this.id_Almacen,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id_Producto': id_Producto,
+      'prodDescripcion': prodDescripcion,
+      'prodExistencia': prodExistencia,
+      'prodMax': prodMax,
+      'prodMin': prodMin,
+      'prodCosto': prodCosto,
+      'prodUbFisica': prodUbFisica,
+      'prodUMedSalida': prodUMedSalida,
+      'prodUMedEntrada': prodUMedEntrada,
+      'prodPrecio': prodPrecio,
+      'prodEstado': prodEstado,
+      'idProveedor': idProveedor,
+      'id_Almacen': id_Almacen,
+    };
+  }
+
+  factory ProductosOptimizado.fromMap(Map<String, dynamic> map) {
+    return ProductosOptimizado(
+      id_Producto:
+          map['id_Producto'] != null ? map['id_Producto'] as int : null,
+      prodDescripcion: map['prodDescripcion'] != null
+          ? map['prodDescripcion'] as String
+          : null,
+      prodExistencia: map['prodExistencia'] != null
+          ? map['prodExistencia'] as double
+          : null,
+      prodMax: map['prodMax'] != null ? map['prodMax'] as double : null,
+      prodMin: map['prodMin'] != null ? map['prodMin'] as double : null,
+      prodCosto: map['prodCosto'] != null ? map['prodCosto'] as double : null,
+      prodUbFisica:
+          map['prodUbFisica'] != null ? map['prodUbFisica'] as String : null,
+      prodUMedSalida: map['prodUMedSalida'] != null
+          ? map['prodUMedSalida'] as String
+          : null,
+      prodUMedEntrada: map['prodUMedEntrada'] != null
+          ? map['prodUMedEntrada'] as String
+          : null,
+      prodPrecio:
+          map['prodPrecio'] != null ? map['prodPrecio'] as double : null,
+      prodEstado:
+          map['prodEstado'] != null ? map['prodEstado'] as String : null,
+      idProveedor:
+          map['idProveedor'] != null ? map['idProveedor'] as int : null,
+      id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
+    );
+  }
+
+  Productos toProductos() {
+    return Productos(
+      id_Producto: id_Producto,
+      prodDescripcion: prodDescripcion,
+      prodExistencia: prodExistencia,
+      prodMax: prodMax,
+      prodMin: prodMin,
+      prodCosto: prodCosto,
+      prodUbFisica: prodUbFisica,
+      prodUMedSalida: prodUMedSalida,
+      prodUMedEntrada: prodUMedEntrada,
+      prodPrecio: prodPrecio,
+      prodEstado: prodEstado,
+      idProveedor: idProveedor,
+      id_Almacen: id_Almacen,
+      // prodImgB64 puede ser null ya que ProductosOptimizado no lo tiene
+      prodImgB64: null,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory ProductosOptimizado.fromJson(String source) =>
+      ProductosOptimizado.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  @override
+  String toString() {
+    return 'ProductosOptimizado(id_Producto: $id_Producto, prodDescripcion: $prodDescripcion, prodExistencia: $prodExistencia, prodMax: $prodMax, prodMin: $prodMin, prodCosto: $prodCosto, prodUbFisica: $prodUbFisica, prodUMedSalida: $prodUMedSalida, prodUMedEntrada: $prodUMedEntrada, prodPrecio: $prodPrecio, prodEstado: $prodEstado, idProveedor: $idProveedor, id_Almacen: $id_Almacen)';
+  }
+
+  @override
+  bool operator ==(covariant ProductosOptimizado other) {
+    if (identical(this, other)) return true;
+
+    return other.id_Producto == id_Producto &&
+        other.prodDescripcion == prodDescripcion &&
+        other.prodExistencia == prodExistencia &&
+        other.prodMax == prodMax &&
+        other.prodMin == prodMin &&
+        other.prodCosto == prodCosto &&
+        other.prodUbFisica == prodUbFisica &&
+        other.prodUMedSalida == prodUMedSalida &&
+        other.prodUMedEntrada == prodUMedEntrada &&
+        other.prodPrecio == prodPrecio &&
+        other.prodEstado == prodEstado &&
+        other.idProveedor == idProveedor &&
+        other.id_Almacen == id_Almacen;
+  }
+
+  @override
+  int get hashCode {
+    return id_Producto.hashCode ^
+        prodDescripcion.hashCode ^
+        prodExistencia.hashCode ^
+        prodMax.hashCode ^
+        prodMin.hashCode ^
+        prodCosto.hashCode ^
+        prodUbFisica.hashCode ^
+        prodUMedSalida.hashCode ^
+        prodUMedEntrada.hashCode ^
+        prodPrecio.hashCode ^
         prodEstado.hashCode ^
         idProveedor.hashCode ^
         id_Almacen.hashCode;
