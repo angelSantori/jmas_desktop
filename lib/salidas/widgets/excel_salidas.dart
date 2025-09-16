@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -14,10 +15,11 @@ class ExcelSalidasMes {
   // Nuevo método para generar Excel de juntas especiales
   static Future<void> generateExcelJuntasEspeciales({
     DateTime? selectedMonth,
-    required List<Salidas> allSalidas,
+    required List<SalidaLista> allSalidas,
     required BuildContext context,
     required ProductosController productosController,
     required JuntasController juntasController,
+    required CcontablesController ccontablesController,
   }) async {
     try {
       // Filtrar salidas: solo juntas especiales, activas y del mes seleccionado
@@ -53,6 +55,7 @@ class ExcelSalidasMes {
         selectedMonth: selectedMonth,
         productosController: productosController,
         juntasController: juntasController,
+        ccontablesController: ccontablesController,
       );
     } catch (e) {
       showError(
@@ -64,10 +67,11 @@ class ExcelSalidasMes {
   // Método para generar Excel de juntas regulares con filtrado por mes
   static Future<void> generateExcelJuntasRurales({
     DateTime? selectedMonth,
-    required List<Salidas> allSalidas,
+    required List<SalidaLista> allSalidas,
     required BuildContext context,
     required ProductosController productosController,
     required JuntasController juntasController,
+    required CcontablesController ccontablesController,
   }) async {
     try {
       // Filtrar salidas: juntas no especiales, activas y del mes seleccionado
@@ -103,6 +107,7 @@ class ExcelSalidasMes {
         selectedMonth: selectedMonth,
         productosController: productosController,
         juntasController: juntasController,
+        ccontablesController: ccontablesController,
       );
     } catch (e) {
       showError(context, 'Error al generar el archivo Excel de juntas rurales');
@@ -113,14 +118,16 @@ class ExcelSalidasMes {
   // Método privado para generar el reporte (compartido por ambos tipos)
   static Future<void> _generateExcelReport({
     required BuildContext context,
-    required List<Salidas> filteredSalidas,
+    required List<SalidaLista> filteredSalidas,
     required String reportType,
     DateTime? selectedMonth,
     required ProductosController productosController,
     required JuntasController juntasController,
+    required CcontablesController ccontablesController,
   }) async {
     final allProductos = await productosController.listProductos();
     final allJuntas = await juntasController.listJuntas();
+    final allCuentas = await ccontablesController.listCcontables();
 
     // Filtrar salidas para excluir productos de tipo "Servicio"
     final filteredSalidasSinServicios = filteredSalidas.where((salida) {
@@ -192,7 +199,7 @@ class ExcelSalidasMes {
     // Encabezados de columnas
     final List<String> headers = [
       'Folio',
-      'Referencia',
+      'Código Cuenta',
       'Estado',
       'Unidades',
       'Costo',
@@ -213,9 +220,23 @@ class ExcelSalidasMes {
     int rowIndex = 5;
     for (var salida in filteredSalidasSinServicios) {
       sheet.getRangeByIndex(rowIndex, 1).setText(salida.salida_CodFolio ?? '');
-      sheet
-          .getRangeByIndex(rowIndex, 2)
-          .setText(salida.salida_Referencia ?? '');
+
+      //  CContable
+      String codigoCuenta = '';
+      if (salida.idProducto != null) {
+        final cuenta = allCuentas.firstWhere(
+          (c) => c.idProducto == salida.idProducto,
+          orElse: () => CContables(),
+        );
+
+        //
+        if (cuenta.cC_Detalle != null) {
+          codigoCuenta = '${cuenta.cC_Detalle}';
+        } else {
+          codigoCuenta = '';
+        }
+      }
+      sheet.getRangeByIndex(rowIndex, 2).setText(codigoCuenta);
       sheet
           .getRangeByIndex(rowIndex, 3)
           .setText(salida.salida_Estado ?? false ? 'Activo' : 'Inactivo');
@@ -280,12 +301,14 @@ class ExcelSalidasMes {
 
   static Future<void> generateExcelSalidasMes({
     DateTime? selectedMonth,
-    required List<Salidas> filteredSalidas,
+    required List<SalidaLista> filteredSalidas,
     required JuntasController juntasController,
     required BuildContext context,
+    required CcontablesController ccontablesController,
   }) async {
     try {
       final allJuntas = await juntasController.listJuntas();
+      final allCuentas = await ccontablesController.listCcontables();
 
       // Filtrar salidas por mes si está seleccionado
       final salidasFiltradas = selectedMonth != null
@@ -355,7 +378,7 @@ class ExcelSalidasMes {
       // Encabezados de columnas - SOLUCIÓN PARA PRIMER ERROR
       final List<String> headers = [
         'Folio',
-        'Referencia',
+        'Código Cuenta',
         'Estado',
         'Unidades',
         'Costo',
@@ -378,9 +401,23 @@ class ExcelSalidasMes {
         sheet
             .getRangeByIndex(rowIndex, 1)
             .setText(salida.salida_CodFolio ?? '');
-        sheet
-            .getRangeByIndex(rowIndex, 2)
-            .setText(salida.salida_Referencia ?? '');
+
+        //
+        String codigoCuenta = '';
+        if (salida.idProducto != null) {
+          final cuenta = allCuentas.firstWhere(
+            (c) => c.idProducto == salida.idProducto,
+            orElse: () => CContables(),
+          );
+
+          //
+          if (cuenta.cC_Detalle != null) {
+            codigoCuenta = '${cuenta.cC_Detalle}';
+          } else {
+            codigoCuenta = '';
+          }
+        }
+        sheet.getRangeByIndex(rowIndex, 2).setText(codigoCuenta);
         sheet
             .getRangeByIndex(rowIndex, 3)
             .setText(salida.salida_Estado ?? false ? 'Activo' : 'Inactivo');
