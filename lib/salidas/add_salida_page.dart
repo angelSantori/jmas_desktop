@@ -65,7 +65,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
   String? idUserReporte;
   String? folioTR;
-  String? codFolio;
 
   //Empleados
   List<Users> _empleadosFiltrados = [];
@@ -73,7 +72,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Users? _selectedEmpleado;
 
   //Autotiza
-  TextEditingController _busquedaAutorizaController = TextEditingController();
+  final TextEditingController _busquedaAutorizaController =
+      TextEditingController();
   bool _buscandoAutoriza = false;
   List<Users> _listaAutoriza = [];
   Users? _selectedAutoriza;
@@ -112,7 +112,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   void initState() {
     super.initState();
     _loadDataSalidas();
-    _loadFolioSalida();
     _loadFolioTR();
     _cargarOrdenesAprobadas();
   }
@@ -127,24 +126,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       setState(() {
         _imagenOrden = bytes;
       });
-    }
-  }
-
-  Future<void> _loadFolioSalida() async {
-    try {
-      final fetchedCodFolio = await _salidasController.getNextSalidaCodFolio();
-      if (mounted) {
-        setState(() {
-          codFolio = fetchedCodFolio;
-        });
-      }
-    } catch (e) {
-      print('Error al cargar folio de salida: $e');
-      if (mounted) {
-        setState(() {
-          codFolio = 'SAL-${DateFormat('yyyyMMdd').format(DateTime.now())}-ERR';
-        });
-      }
     }
   }
 
@@ -333,85 +314,139 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           context, 'Debe agregar productos antes de guardar la salida.');
       return;
     }
+
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       bool success = true;
+      List<Salidas>? salidasGuardadas;
+      String? folioGenerado;
 
-      // Obtener el folio actual antes de guardar
-      final currentFolio = codFolio;
-
-      for (var producto in _productosAgregados) {
+      try {
         await _getUserId();
 
-        //Crear salida
-        final nuevaSalida = _crearSalida(producto);
-        bool result = await _salidasController.addSalida(nuevaSalida);
+        // Crear lista de salidas para todos los productos
+        List<Salidas> salidasParaGuardar = [];
+        for (var producto in _productosAgregados) {
+          final nuevaSalida = _crearSalida(producto);
+          salidasParaGuardar.add(nuevaSalida);
+        }
 
-        if (!result) {
+        // Guardar todas las salidas con el mismo folio
+        salidasGuardadas =
+            await _salidasController.addMultipleSalidas(salidasParaGuardar);
+
+        if (salidasGuardadas == null || salidasGuardadas.isEmpty) {
           success = false;
-          break;
+        } else {
+          // Obtener el folio generado (de la primera salida)
+          folioGenerado = salidasGuardadas.first.salida_CodFolio;
+
+          // Actualizar existencias de productos
+          for (int i = 0; i < _productosAgregados.length; i++) {
+            var producto = _productosAgregados[i];
+
+            if (producto['id'] == null) {
+              showAdvertence(context,
+                  'Id nulo: ${producto['id_Producto']}, no se puede continuar');
+              success = false;
+              break;
+            }
+
+            final productoActualizado =
+                await _productosController.getProductoById(producto['id']);
+
+            if (productoActualizado == null) {
+              showAdvertence(context,
+                  'Producto con ID ${producto['id']} no encontrado en la base de datos.');
+              success = false;
+              break;
+            }
+
+            productoActualizado.prodExistencia =
+                (productoActualizado.prodExistencia!) - producto['cantidad'];
+
+            bool editResult =
+                await _productosController.editProducto(productoActualizado);
+
+            if (!editResult) {
+              showAdvertence(context,
+                  'Error al actualizar las existencias del producto con ID ${producto['id_Producto']}');
+              success = false;
+              break;
+            }
+          }
         }
 
-        if (producto['id'] == null) {
-          showAdvertence(context,
-              'Id nulo: ${producto['id_Producto']}, no se puede continuar');
-          success = false;
-          break;
+        if (success && folioGenerado != null) {
+          // Crear trabajo realizado si hay orden de servicio
+          if (_selectedOrdenServicio != null) {
+            final trabajoCreado = await _crearTrabajo();
+            if (!trabajoCreado) {
+              showAdvertence(context, 'Error al crear registro de servicio');
+            }
+            _selectedOrdenServicio!.estadoOS = 'Aprobada - A';
+            final estadoOrden = await _ordenServicioController
+                .editOrdenServicio(_selectedOrdenServicio!);
+            if (!estadoOrden) {
+              showAdvertence(context, 'Error al actualizar estado de la orden');
+            }
+          }
+
+          // Generar PDF con el folio único
+          await _generarPDFConFolio(folioGenerado);
+
+          // Limpiar formulario
+          _limpiarFormulario();
+
+          if (mounted) {
+            showOk(context, 'Salida creada exitosamente.');
+          }
+        } else {
+          if (mounted) {
+            showError(context, 'Error al registrar salida');
+          }
         }
-
-        final productoActualizado =
-            await _productosController.getProductoById(producto['id']);
-
-        if (productoActualizado == null) {
-          showAdvertence(context,
-              'Producto con ID ${producto['id']} no encontrado en la base de datos.');
-          success = false;
-          break;
-        }
-
-        productoActualizado.prodExistencia =
-            (productoActualizado.prodExistencia!) - producto['cantidad'];
-
-        bool editResult =
-            await _productosController.editProducto(productoActualizado);
-
-        if (!editResult) {
-          showAdvertence(context,
-              'Error al actualizar las existencias del producto con ID ${producto['id_Producto']}');
-          success = false;
-          break;
-        }
-      }
-
-      if (success && _selectedOrdenServicio != null) {
-        final trabajoCreado = await _crearTrabajo();
-        if (!trabajoCreado) {
-          showAdvertence(context, 'Error al crear registro de servicio');
-        }
-        _selectedOrdenServicio!.estadoOS = 'Aprobada - A';
-        final estadoOrden = await _ordenServicioController
-            .editOrdenServicio(_selectedOrdenServicio!);
-        if (!estadoOrden) {
-          showAdvertence(context, 'Error al actualizar estado de la orden');
-        }
-      }
-
-      if (success) {
-        // Limpiar y actualizar antes de mostrar el mensaje
-        _limpiarFormulario();
-        await _loadFolioSalida(); // Esperar a que se cargue el nuevo folio
-        await _loadFolioTR();
-
+      } catch (e) {
+        print('Error en _guardarSalida: $e');
         if (mounted) {
-          showOk(context, 'Salida creada exitosamente. Folio: $currentFolio');
+          showError(context, 'Error al procesar la salida');
         }
-      } else {
-        if (mounted) {
-          showError(context, 'Error al registrar salida');
-        }
+        success = false;
       }
 
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _generarPDFConFolio(String folio) async {
+    setState(() => _isGeneratingPDF = true);
+
+    try {
+      await generarPdfSalida(
+        movimiento: 'Salida',
+        fecha: _fechaController.text,
+        folio: folio,
+        userName: widget.userName!,
+        idUser: widget.idUser!,
+        alamcenA: _selectedAlmacen!,
+        userAsignado: _selectedEmpleado!,
+        tipoTrabajo: _selectedTipoTrabajo!,
+        padron: _selectedPadron!,
+        colonia: _selectedColonia!,
+        calle: _selectedCalle!,
+        junta: _selectedJunta!,
+        ordenServicio: _selectedOrdenServicio,
+        userAutoriza: _selectedAutoriza!,
+        comentario: _comentarioController.text,
+        productos: _productosAgregados,
+      );
+    } catch (e) {
+      print('Error al generar PDF: $e');
+      if (mounted) {
+        showError(context, 'Error al generar PDF');
+      }
+    } finally {
+      setState(() => _isGeneratingPDF = false);
     }
   }
 
@@ -429,7 +464,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Salidas _crearSalida(Map<String, dynamic> producto) {
     return Salidas(
       id_Salida: 0,
-      salida_CodFolio: codFolio,
+      salida_CodFolio: '',
       salida_Referencia: null,
       salida_Estado: true,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
@@ -437,6 +472,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Fecha: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()),
       salida_TipoTrabajo: _selectedTipoTrabajo,
       salida_Comentario: _comentarioController.text,
+      salida_DocumentoFirma: false,
+      salida_Pagado: false,
       salida_Imag64Orden:
           _imagenOrden != null ? base64Encode(_imagenOrden!) : null,
       idProducto: producto['id'] ?? 0,
@@ -457,15 +494,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       return false;
     try {
       final trabajo = TrabajoRealizado(
-          idTrabajoRealizado: 0,
-          folioTR: folioTR,
-          idUserTR: _selectedEmpleado?.id_User,
-          idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
-          folioOS: _selectedOrdenServicio!.folioOS,
-          padronDireccion: _selectedPadron!.padronDireccion,
-          padronNombre: _selectedPadron!.padronNombre,
-          problemaNombre: _selectedTipoTrabajo,
-          folioSalida: codFolio);
+        idTrabajoRealizado: 0,
+        folioTR: folioTR,
+        idUserTR: _selectedEmpleado?.id_User,
+        idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
+        folioOS: _selectedOrdenServicio!.folioOS,
+        padronDireccion: _selectedPadron!.padronDireccion,
+        padronNombre: _selectedPadron!.padronNombre,
+        problemaNombre: _selectedTipoTrabajo,
+      );
 
       return await _trabajoRealizadoController.addTrabajoRealizado(trabajo);
     } catch (e) {
@@ -522,10 +559,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Expanded(
-                            child: buildCabeceraItem(
-                                'Movimiento', codFolio ?? 'Cargando...'),
-                          ),
                           Expanded(
                               child: buildCabeceraItem('Fecha', _showDate)),
                           Expanded(
@@ -1059,29 +1092,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           return;
                                         }
 
-                                        //2. Generar PDF
-                                        await generarPdfSalida(
-                                          movimiento: 'Salida',
-                                          fecha: _fechaController.text,
-                                          folio: codFolio!,
-                                          //referencia: _referenciaController.text,
-                                          userName: widget.userName!,
-                                          idUser: widget.idUser!,
-                                          alamcenA: _selectedAlmacen!,
-                                          userAsignado: _selectedEmpleado!,
-                                          tipoTrabajo: _selectedTipoTrabajo!,
-                                          padron: _selectedPadron!,
-                                          colonia: _selectedColonia!,
-                                          calle: _selectedCalle!,
-                                          junta: _selectedJunta!,
-                                          ordenServicio: _selectedOrdenServicio,
-                                          userAutoriza: _selectedAutoriza!,
-                                          comentario:
-                                              _comentarioController.text,
-                                          productos: _productosAgregados,
-                                        );
-
-                                        //3. Guardar registro
+                                        //2. Guardar registro
                                         await _guardarSalida();
                                       } catch (e) {
                                         showError(
