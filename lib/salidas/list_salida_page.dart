@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
+import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
@@ -18,7 +19,8 @@ import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListSalidaPage extends StatefulWidget {
   final String? userRole;
-  const ListSalidaPage({super.key, this.userRole});
+  final String? userName;
+  const ListSalidaPage({super.key, this.userRole, this.userName});
 
   @override
   State<ListSalidaPage> createState() => _ListSalidaPageState();
@@ -27,6 +29,7 @@ class ListSalidaPage extends StatefulWidget {
 class _ListSalidaPageState extends State<ListSalidaPage> {
   //final AuthService _authService = AuthService();
   final SalidasController _salidasController = SalidasController();
+  final CcontablesController _ccontablesController = CcontablesController();
   final ProductosController _productosController = ProductosController();
   final JuntasController _juntasController = JuntasController();
   final AlmacenesController _almacenesController = AlmacenesController();
@@ -38,8 +41,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       OrdenServicioController();
 
   final TextEditingController _searchController = TextEditingController();
-  List<Salidas> _allSalidas = [];
-  List<Salidas> _filteredSalidas = [];
+  List<SalidaLista> _allSalidas = [];
+  List<SalidaLista> _filteredSalidas = [];
 
   DateTime? _startDate;
   DateTime? _endDate;
@@ -88,9 +91,9 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     _searchController.addListener(_filterSalidas);
   }
 
-  Map<String, List<Salidas>> get _paginatedGroupedSalidas {
+  Map<String, List<SalidaLista>> get _paginatedGroupedSalidas {
     // Primero agrupar todas las salidas filtradas
-    Map<String, List<Salidas>> groupedSalidas = {};
+    Map<String, List<SalidaLista>> groupedSalidas = {};
     for (var salida in _filteredSalidas) {
       groupedSalidas.putIfAbsent(
         salida.salida_CodFolio!,
@@ -113,8 +116,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     return Map.fromEntries(paginatedGroups);
   }
 
-  Map<String, List<Salidas>> get _filteredSalidasGrouped {
-    Map<String, List<Salidas>> grouped = {};
+  Map<String, List<SalidaLista>> get _filteredSalidasGrouped {
+    Map<String, List<SalidaLista>> grouped = {};
     for (var salida in _filteredSalidas) {
       grouped.putIfAbsent(
         salida.salida_CodFolio!,
@@ -128,7 +131,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   Future<void> _reloadData() async {
     setState(() => _isLoading = true);
     try {
-      final salidas = await _salidasController.listSalidas();
+      final salidas = await _salidasController.listSalidasOptimizado();
       setState(() {
         _allSalidas = salidas;
         _filterSalidas(); // Esto aplicará los filtros actuales a los nuevos datos
@@ -143,7 +146,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   Future<void> _loadData() async {
     try {
       // Cargar salidas
-      final salidas = await _salidasController.listSalidas();
+      final salidas = await _salidasController.listSalidasOptimizado();
       final productos = await _productosController.listProductos();
       final users = await _usersController.listUsers();
       final juntas = await _juntasController.listJuntas();
@@ -453,6 +456,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         filteredSalidas: _filteredSalidas,
         juntasController: _juntasController,
         context: context,
+        ccontablesController: _ccontablesController,
       );
     } catch (e) {
       print('_generateExcel | ListSalidaPage: $e');
@@ -838,7 +842,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                 return const SizedBox.shrink();
               }
               String codFolio = groupedSalidas.keys.elementAt(index);
-              List<Salidas> salidas = groupedSalidas[codFolio]!;
+              List<SalidaLista> salidas = groupedSalidas[codFolio]!;
 
               double totalUnidades = salidas.fold(
                   0, (sum, item) => sum + (item.salida_Unidades ?? 0));
@@ -866,74 +870,81 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     borderRadius: BorderRadius.circular(12)),
                 child: InkWell(
                   onTap: () async {
-                    final almacen = _almacenes.firstWhere(
-                      (alm) => alm.id_Almacen == salida.id_Almacen,
-                      orElse: () => Almacenes(
-                          id_Almacen: 0, almacen_Nombre: 'Desconocido'),
-                    );
+                    final todasSalidasFolio =
+                        await SalidasController().getSalidaByFolio(codFolio);
+                    if (todasSalidasFolio.isNotEmpty) {
+                      final almacen = _almacenes.firstWhere(
+                        (alm) => alm.id_Almacen == salida.id_Almacen,
+                        orElse: () => Almacenes(
+                            id_Almacen: 0, almacen_Nombre: 'Desconocido'),
+                      );
 
-                    final junta = _juntas.firstWhere(
-                      (jnt) => jnt.id_Junta == salida.id_Junta,
-                      orElse: () =>
-                          Juntas(id_Junta: 0, junta_Name: 'Deconocido'),
-                    );
+                      final junta = _juntas.firstWhere(
+                        (jnt) => jnt.id_Junta == salida.id_Junta,
+                        orElse: () =>
+                            Juntas(id_Junta: 0, junta_Name: 'Deconocido'),
+                      );
 
-                    final padron = _padrones.firstWhere(
-                      (pdr) => pdr.idPadron == salida.idPadron,
-                      orElse: () =>
-                          Padron(idPadron: 0, padronNombre: 'Desconocido'),
-                    );
+                      final padron = _padrones.firstWhere(
+                        (pdr) => pdr.idPadron == salida.idPadron,
+                        orElse: () =>
+                            Padron(idPadron: 0, padronNombre: 'Desconocido'),
+                      );
 
-                    final ordenServicio = _ordenesServicios.firstWhere(
-                      (ordenS) =>
-                          ordenS.idOrdenServicio == salida.idOrdenServicio,
-                      orElse: () => OrdenServicio(folioOS: 'Sin folio OS'),
-                    );
+                      final ordenServicio = _ordenesServicios.firstWhere(
+                        (ordenS) =>
+                            ordenS.idOrdenServicio == salida.idOrdenServicio,
+                        orElse: () => OrdenServicio(folioOS: 'Sin folio OS'),
+                      );
 
-                    final colonia = _colonias.firstWhere(
-                      (colonia) => colonia.idColonia == salida.idColonia,
-                      orElse: () =>
-                          Colonias(idColonia: 0, nombreColonia: 'Desconocido'),
-                    );
+                      final colonia = _colonias.firstWhere(
+                        (colonia) => colonia.idColonia == salida.idColonia,
+                        orElse: () => Colonias(
+                            idColonia: 0, nombreColonia: 'Desconocido'),
+                      );
 
-                    final calle = _calles.firstWhere(
-                      (calles) => calles.idCalle == salida.idCalle,
-                      orElse: () =>
-                          Calles(idCalle: 0, calleNombre: 'Desconocida'),
-                    );
+                      final calle = _calles.firstWhere(
+                        (calles) => calles.idCalle == salida.idCalle,
+                        orElse: () =>
+                            Calles(idCalle: 0, calleNombre: 'Desconocida'),
+                      );
 
-                    final userAsig = _userAsignado.firstWhere(
-                      (uas) => uas.id_User == salida.id_User_Asignado,
-                      orElse: () => Users(id_User: 0, user_Name: 'Desconocido'),
-                    );
+                      final userAsig = _userAsignado.firstWhere(
+                        (uas) => uas.id_User == salida.id_User_Asignado,
+                        orElse: () =>
+                            Users(id_User: 0, user_Name: 'Desconocido'),
+                      );
 
-                    final userAutoriza = _userAutoriza.firstWhere(
-                      (usAu) => usAu.id_User == salida.idUserAutoriza,
-                      orElse: () =>
-                          Users(id_User: 0, user_Name: 'No especificado'),
-                    );
+                      final userAutoriza = _userAutoriza.firstWhere(
+                        (usAu) => usAu.id_User == salida.idUserAutoriza,
+                        orElse: () =>
+                            Users(id_User: 0, user_Name: 'No especificado'),
+                      );
 
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailsSalidaPage(
-                          salidas: salidas,
-                          almacen: almacen,
-                          junta: junta,
-                          padron: padron,
-                          calle: calle,
-                          colonia: colonia,
-                          user: user!.user_Name!,
-                          userAsignado: userAsig,
-                          userAutoriza: userAutoriza,
-                          ordenServicio: ordenServicio,
-                          userRole: widget.userRole!,
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailsSalidaPage(
+                            salidas: todasSalidasFolio,
+                            almacen: almacen,
+                            junta: junta,
+                            padron: padron,
+                            calle: calle,
+                            colonia: colonia,
+                            user: widget.userName!,
+                            userAsignado: userAsig,
+                            userAutoriza: userAutoriza,
+                            ordenServicio: ordenServicio,
+                            userRole: widget.userRole!,
+                            onDocumentUploaded: () async {
+                              await _reloadData();
+                            },
+                          ),
                         ),
-                      ),
-                    );
-
-                    if (result == true) {
-                      await _reloadData();
+                      );
+                      if (result == true) {
+                        await _reloadData();
+                      }
                     }
                   },
                   child: Padding(
@@ -986,19 +997,52 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             ],
                           ),
                         ),
+                        // En el Card de cada salida, agrega este icono:
+
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              width: 82,
-                              child: Text(
-                                salida.salida_Fecha ?? 'Sin Fecha',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: SizedBox(
+                                width: 82,
+                                child: Text(
+                                  salida.salida_Fecha ?? 'Sin Fecha',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 20),
+                            if (_tieneDocumentoFirmas(salidas))
+                              const Column(
+                                children: [
+                                  Icon(Icons.description,
+                                      color: Colors.green, size: 30),
+                                ],
+                              )
+                            else
+                              const Column(
+                                children: [
+                                  Icon(Icons.description,
+                                      color: Colors.red, size: 30),
+                                ],
+                              ),
+                            const SizedBox(height: 20),
+                            if (salida.salida_Pagado == true)
+                              const Icon(
+                                Icons.attach_money,
+                                color: Colors.green,
+                                size: 30,
+                              )
+                            else
+                              const Icon(
+                                Icons.money_off,
+                                color: Colors.red,
+                                size: 30,
+                              )
                           ],
                         ),
                       ],
@@ -1012,6 +1056,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _buildPaginationControls(),
       ],
     );
+  }
+
+  bool _tieneDocumentoFirmas(List<SalidaLista> salidasDelFolio) {
+    return salidasDelFolio.any((s) => s.salida_DocumentoFirma == true);
   }
 
   String? idUserDelete;
@@ -1232,12 +1280,12 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     setState(() => _isGeneratingExcel = true);
     try {
       await ExcelSalidasMes.generateExcelJuntasEspeciales(
-        selectedMonth: _selectedMonth,
-        juntasController: _juntasController,
-        allSalidas: _allSalidas,
-        productosController: _productosController,
-        context: context,
-      );
+          selectedMonth: _selectedMonth,
+          juntasController: _juntasController,
+          allSalidas: _allSalidas,
+          productosController: _productosController,
+          context: context,
+          ccontablesController: _ccontablesController);
     } catch (e) {
       print('Error al generar Excel Juntas Especiales: $e');
     } finally {
@@ -1252,12 +1300,12 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     setState(() => _isGeneratingExcel = true);
     try {
       await ExcelSalidasMes.generateExcelJuntasRurales(
-        productosController: _productosController,
-        juntasController: _juntasController,
-        selectedMonth: _selectedMonth,
-        allSalidas: _allSalidas,
-        context: context,
-      );
+          productosController: _productosController,
+          juntasController: _juntasController,
+          selectedMonth: _selectedMonth,
+          allSalidas: _allSalidas,
+          context: context,
+          ccontablesController: _ccontablesController);
     } catch (e) {
       print('Error al generar Excel Juntas Regulares: $e');
     } finally {
