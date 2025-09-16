@@ -13,7 +13,7 @@ class EntradasController {
   Future<List<Entradas>> listEntradas() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Entradas'),
+        Uri.parse('${_authService.apiURL}/Entradas'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
