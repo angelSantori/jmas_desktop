@@ -203,16 +203,6 @@ class _ListPadronPageState extends State<ListPadronPage> {
       appBar: AppBar(
         title: const Text('Lista de Padrón'),
         centerTitle: true,
-        actions: [
-          PermissionWidget(
-            permission: 'edit',
-            child: IconButton(
-              icon: Icon(Icons.upload_file),
-              onPressed: _importFromExcel,
-              tooltip: 'Importar desde Excel',
-            ),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -220,10 +210,27 @@ class _ListPadronPageState extends State<ListPadronPage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
-              child: CustomTextFielTexto(
-                controller: _searchController,
-                labelText: 'Busqueda por Nombre, Dirección o ID',
-                prefixIcon: Icons.search,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                //crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CustomTextFielTexto(
+                    controller: _searchController,
+                    labelText: 'Busqueda por Nombre, Dirección o ID',
+                    prefixIcon: Icons.search,
+                  ),
+                  const SizedBox(width: 20),
+                  PermissionWidget(
+                    permission: 'edit',
+                    child: IconButton(
+                      icon: const Icon(Icons.upload_file),
+                      onPressed: _importFromExcel,
+                      iconSize: 30,
+                      color: Colors.blue.shade800,
+                      tooltip: 'Importar desde Excel',
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
