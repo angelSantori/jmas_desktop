@@ -19,6 +19,7 @@ import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/inventory_dashboard_page.dart';
+import 'package:jmas_desktop/general/login2.dart';
 import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/general/widgets/excel_validar_captura.dart';
 import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
@@ -351,7 +352,10 @@ class _HomePageState extends State<HomePage>
 
       //Salidas
       'addSalida': () => AddSalidaPage(userName: userName, idUser: idUser),
-      'listSalidas': () => ListSalidaPage(userRole: userRole),
+      'listSalidas': () => ListSalidaPage(
+            userRole: userRole,
+            userName: userName,
+          ),
       'listCanceladosSalida': () => const ListCancelacioensSalidaPage(),
 
       //Alamcen
@@ -442,7 +446,7 @@ class _HomePageState extends State<HomePage>
                 //3. Navegar al login limpiando toda la pila
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  MaterialPageRoute(builder: (context) => const LoginWidget()),
                   (Route<dynamic> route) => false,
                 );
               },
@@ -488,7 +492,7 @@ class _HomePageState extends State<HomePage>
                 children: [
                   // Encabezado del menú
                   Container(
-                    height: 150,
+                    height: 170,
                     alignment: Alignment.center,
                     decoration: const BoxDecoration(
                       borderRadius: BorderRadius.only(
@@ -515,6 +519,12 @@ class _HomePageState extends State<HomePage>
                             overflow: TextOverflow.ellipsis,
                             softWrap: false,
                           ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'v. 12092025',
+                          style: TextStyle(
+                              color: Colors.grey, fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   ),
