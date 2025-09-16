@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 
@@ -152,6 +153,48 @@ class PadronController {
     } catch (e) {
       print('Error al buscar Try | Controller: $e');
       return [];
+    }
+  }
+
+  //  Importar padrones desde EXCEL
+  Future<Map<String, dynamic>> importPadronesExcel(Uint8List fileBytes,
+      {bool updateExisting = true}) async {
+    try {
+      //  Crear una solicitud multipart
+      var request = http.MultipartRequest(
+          'POST',
+          Uri.parse(
+              '${_authService.apiURL}/Padrons/ImportExcel?updateExisting=$updateExisting'));
+
+      //  Agregar el archivo a la solicutd
+      request.files.add(http.MultipartFile.fromBytes('file', fileBytes,
+          filename: 'padrones_import.xlsx'));
+
+      //  Agregar headers
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> result = json.decode(responseData);
+        cachePadron = null;
+        return {
+          'success': true,
+          'imported': result['imported'],
+          'updated': result['updated'],
+          'errors': result['errors']
+        };
+      } else {
+        print(
+            'Error importPadronesExcel | Ife | PadronController: ${response.statusCode} - $responseData');
+        return {
+          'success': false,
+          'error': 'Error del servidor: ${response.statusCode}',
+          'details': responseData
+        };
+      }
+    } catch (e) {
+      print('Error importPadronesExcel | Try | PadronController: $e');
+      return {'success': false, 'error': 'Error de conexión: $e'};
     }
   }
 }
