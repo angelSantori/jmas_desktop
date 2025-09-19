@@ -30,6 +30,7 @@ class DetailsSalidaPage extends StatefulWidget {
   final Calles calle;
   final Users userAsignado;
   final Users userAutoriza;
+  final Users userCreoSalida;
   final OrdenServicio? ordenServicio;
   final String user;
   final VoidCallback? onDocumentUploaded;
@@ -48,6 +49,7 @@ class DetailsSalidaPage extends StatefulWidget {
     required this.userAutoriza,
     this.ordenServicio,
     this.onDocumentUploaded,
+    required this.userCreoSalida,
   });
 
   @override
@@ -283,8 +285,8 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         movimiento: 'SALIDA',
         fecha: widget.salidas.first.salida_Fecha ?? '',
         folio: widget.salidas.first.salida_CodFolio ?? '',
-        userName: widget.user,
-        idUser: _currentUserId ?? '0',
+        userName: widget.userCreoSalida.user_Name!,
+        idUser: widget.userCreoSalida.id_User.toString(),
         almacen: widget.almacen,
         userAutoriza: widget.userAutoriza,
         junta: widget.junta,

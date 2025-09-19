@@ -57,6 +57,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   Map<int, Users> _userAsignadoCache = {};
   // ignore: unused_field
   Map<int, Users> _userAutorizaCache = {};
+  // ignore: unused_field
+  Map<int, Users> _userCreoSalidaCache = {};
 
   List<Juntas> _juntas = [];
   List<Almacenes> _almacenes = [];
@@ -66,6 +68,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   List<Calles> _calles = [];
   List<Users> _userAsignado = [];
   List<Users> _userAutoriza = [];
+  List<Users> _userCreoSalida = [];
 
   String? _selectedJunta;
   String? _selectedColonia;
@@ -158,6 +161,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
       final calles = await _callesController.listCalles();
       final userAsignado = await _usersController.listUsers();
       final userAutoriza = await _usersController.listUsers();
+      final userCreoSalida = await _usersController.listUsers();
 
       setState(() {
         _allSalidas = salidas;
@@ -167,6 +171,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _usersCache = {for (var us in users) us.id_User!: us};
         _userAsignadoCache = {for (var usAs in users) usAs.id_User!: usAs};
         _userAutorizaCache = {for (var usAu in users) usAu.id_User!: usAu};
+        _userCreoSalidaCache = {for (var usCS in users) usCS.id_User!: usCS};
         _juntasCache = {for (var jn in juntas) jn.id_Junta!: jn};
         _almacenCache = {for (var alm in almacen) alm.id_Almacen!: alm};
 
@@ -178,6 +183,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _calles = calles;
         _userAsignado = userAsignado;
         _userAutoriza = userAutoriza;
+        _userCreoSalida = userCreoSalida;
 
         _isLoading = false;
       });
@@ -921,6 +927,11 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             Users(id_User: 0, user_Name: 'No especificado'),
                       );
 
+                      final userSalida = _userCreoSalida.firstWhere(
+                        (usCS) => usCS.id_User == salida.id_User,
+                        orElse: () => Users(id_User: 0, user_Name: 'N/A'),
+                      );
+
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -934,6 +945,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             user: widget.userName!,
                             userAsignado: userAsig,
                             userAutoriza: userAutoriza,
+                            userCreoSalida: userSalida,
                             ordenServicio: ordenServicio,
                             userRole: widget.userRole!,
                             onDocumentUploaded: () async {
