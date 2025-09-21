@@ -15,6 +15,7 @@ import 'package:jmas_desktop/salidas/details_salida_page.dart';
 import 'package:jmas_desktop/salidas/widgets/excel_salidas.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/formularios/custom_autocomplete_field.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListSalidaPage extends StatefulWidget {
@@ -317,27 +318,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
     }
   }
 
-  void _clearJuntaFilter() {
-    setState(() {
-      _selectedJunta = null;
-      _filterSalidas();
-    });
-  }
-
-  void _clearColoniaFilter() {
-    setState(() {
-      _selectedColonia = null;
-      _filterSalidas();
-    });
-  }
-
-  void _clearCalleFilter() {
-    setState(() {
-      _selectedCalle = null;
-      _filterSalidas();
-    });
-  }
-
   void _clearAlmacenFilter() {
     setState(() {
       _selectedAlmacen = null;
@@ -593,14 +573,19 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      //Juntas
+                      //  Juntas
                       Expanded(
-                        child: CustomListaDesplegableTipo<Juntas>(
+                        child: CustomAutocompleteField<Juntas>(
                           value: _selectedJunta != null
-                              ? _juntas.firstWhere((junta) =>
-                                  junta.id_Junta.toString() == _selectedJunta)
+                              ? _juntas.firstWhere(
+                                  (junta) =>
+                                      junta.id_Junta.toString() ==
+                                      _selectedJunta,
+                                  orElse: () =>
+                                      Juntas(id_Junta: 0, junta_Name: 'N/A'),
+                                )
                               : null,
-                          labelText: 'Seleccionar Junta',
+                          labelText: 'Buscar Junta',
                           items: _juntas,
                           onChanged: (Juntas? newValue) {
                             setState(() {
@@ -608,17 +593,16 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             });
                             _filterSalidas();
                           },
-                          itemLabelBuilder: (junta) => junta.junta_Name ?? '',
+                          itemLabelBuilder: (junta) =>
+                              '${junta.id_Junta ?? 0} - ${junta.junta_Name ?? 'N/A'}',
+                          itemValueBuilder: (junta) =>
+                              junta.id_Junta.toString(),
+                          prefixIcon: Icons.search,
                         ),
                       ),
-                      if (_selectedJunta != null)
-                        IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: _clearJuntaFilter,
-                        ),
                       const SizedBox(width: 20),
 
-                      //Almacenes
+                      //  Almacenes
                       Expanded(
                         child: CustomListaDesplegableTipo<Almacenes>(
                           value: _selectedAlmacen != null
@@ -646,15 +630,19 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         ),
                       const SizedBox(width: 20),
 
-                      //Colonias
+                      //  Colonias
                       Expanded(
-                        child: CustomListaDesplegableTipo<Colonias>(
+                        child: CustomAutocompleteField<Colonias>(
                           value: _selectedColonia != null
-                              ? _colonias.firstWhere((colonia) =>
-                                  colonia.idColonia.toString() ==
-                                  _selectedColonia)
+                              ? _colonias.firstWhere(
+                                  (colonia) =>
+                                      colonia.idColonia.toString() ==
+                                      _selectedColonia,
+                                  orElse: () => Colonias(
+                                      idColonia: 0, nombreColonia: 'N/A'),
+                                )
                               : null,
-                          labelText: 'Seleccionar Colonia',
+                          labelText: 'Buscar Colonia',
                           items: _colonias,
                           onChanged: (Colonias? newValue) {
                             setState(() {
@@ -663,22 +651,27 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             _filterSalidas();
                           },
                           itemLabelBuilder: (colonia) =>
-                              colonia.nombreColonia ?? 'Desconocido',
+                              '${colonia.idColonia ?? 0} - ${colonia.nombreColonia ?? 'N/A'}',
+                          itemValueBuilder: (colonia) =>
+                              colonia.idColonia.toString(),
+                          prefixIcon: Icons.search,
                         ),
                       ),
-                      if (_selectedColonia != null)
-                        IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: _clearColoniaFilter,
-                        ),
                       const SizedBox(width: 20),
+
+                      //  Calles
                       Expanded(
-                        child: CustomListaDesplegableTipo<Calles>(
+                        child: CustomAutocompleteField<Calles>(
                           value: _selectedCalle != null
-                              ? _calles.firstWhere((calle) =>
-                                  calle.idCalle.toString() == _selectedCalle)
+                              ? _calles.firstWhere(
+                                  (calle) =>
+                                      calle.idCalle.toString() ==
+                                      _selectedCalle,
+                                  orElse: () =>
+                                      Calles(idCalle: 0, calleNombre: 'N/A'),
+                                )
                               : null,
-                          labelText: 'Seleccionar Calle',
+                          labelText: 'Buscar Calle',
                           items: _calles,
                           onChanged: (Calles? newValue) {
                             setState(() {
@@ -687,14 +680,11 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             _filterSalidas();
                           },
                           itemLabelBuilder: (calle) =>
-                              calle.calleNombre ?? 'Desconocido',
+                              '${calle.idCalle ?? 0} - ${calle.calleNombre ?? 'N/A'}',
+                          itemValueBuilder: (calle) => calle.idCalle.toString(),
+                          prefixIcon: Icons.search,
                         ),
                       ),
-                      if (_selectedCalle != null)
-                        IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: _clearCalleFilter,
-                        ),
                     ],
                   ),
                 ),
