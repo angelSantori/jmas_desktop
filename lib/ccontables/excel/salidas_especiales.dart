@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
-import 'package:jmas_desktop/ccontables/widgets_ccontables.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -32,6 +31,12 @@ class ExcelSalidasEspeciales {
         return;
       }
 
+      // Obtener salidas para todas las juntas especiales en el mes seleccionado
+      final currentYear = DateTime.now().year;
+      final lastDay = DateTime(currentYear, selectedMonth + 1, 0);
+
+      final allSalidas = await salidasController.listSalidas();
+
       // Obtener todos los productos
       final allProductos = await productosController.listProductos();
       final productos = allProductos
@@ -40,17 +45,9 @@ class ExcelSalidasEspeciales {
               p.prodUMedEntrada?.toLowerCase() != "servicio")
           .toList();
 
-      // Obtener salidas para todas las juntas especiales en el mes seleccionado
-      final currentYear = DateTime.now().year;
-      final lastDay = DateTime(currentYear, selectedMonth + 1, 0);
-
-      final allSalidas = await salidasController.listSalidas();
-
       // Filtrar salidas para juntas especiales en el periodo seleccionado
       final salidasInPeriod = allSalidas.where((s) {
-        if (s.salida_Fecha == null ||
-            s.salida_Estado != true ||
-            s.id_Junta == null) {
+        if (s.salida_Fecha == null || s.id_Junta == null) {
           return false;
         }
 
@@ -63,11 +60,19 @@ class ExcelSalidasEspeciales {
             salidaDate.month == selectedMonth;
       }).toList();
 
-      // Agrupar salidas por producto (sin importar la junta)
+      // Obtener salidas activas (estado = true)
+      final salidasActivas =
+          salidasInPeriod.where((s) => s.salida_Estado == true).toList();
+
+      // Obtener salidas canceladas (estado = false)
+      // final salidasCanceladas =
+      //     salidasInPeriod.where((s) => s.salida_Estado == false).toList();
+
+      // Agrupar salidas por producto (sin importar la junta) - solo para la hoja contable
       final Map<int, List<Salidas>> salidasByProduct = {};
       final Map<int, double> totalCostoByProduct = {};
 
-      for (var salida in salidasInPeriod) {
+      for (var salida in salidasActivas) {
         if (salida.idProducto == null) continue;
 
         // Verificar si el producto existe en la lista filtrada
@@ -102,17 +107,29 @@ class ExcelSalidasEspeciales {
 
       // Crear Excel workbook
       final Workbook workbook = Workbook();
-      final Worksheet sheet = workbook.worksheets[0];
 
-      // Configuración de columnas y estilos (igual que en _generateExcelSalidas)
-      sheet.getRangeByName('A1').columnWidth = 20;
-      sheet.getRangeByName('B1').columnWidth = 15;
-      sheet.getRangeByName('C1').columnWidth = 15;
-      sheet.getRangeByName('D1').columnWidth = 50;
-      sheet.getRangeByName('E1').columnWidth = 25;
-      sheet.getRangeByName('F1').columnWidth = 25;
-      sheet.getRangeByName('G1').columnWidth = 25;
-      sheet.getRangeByName('H1').columnWidth = 25;
+      // Hoja 1: Reporte Salidas Especiales (formato contable)
+      final Worksheet sheet1 = workbook.worksheets[0];
+      sheet1.name = 'Reporte Salidas Especiales';
+
+      // Hoja 2: Salidas Especiales Activas
+      final Worksheet sheet2 = workbook.worksheets.add();
+      sheet2.name = 'Salidas Especiales Activas';
+
+      // Hoja 3: Salidas Especiales Completas
+      final Worksheet sheet3 = workbook.worksheets.add();
+      sheet3.name = 'Salidas Especiales Completas';
+
+      // ===== HOJA 1: Reporte Salidas Especiales =====
+      // Configuración de columnas y estilos
+      sheet1.getRangeByName('A1').columnWidth = 20;
+      sheet1.getRangeByName('B1').columnWidth = 15;
+      sheet1.getRangeByName('C1').columnWidth = 15;
+      sheet1.getRangeByName('D1').columnWidth = 50;
+      sheet1.getRangeByName('E1').columnWidth = 25;
+      sheet1.getRangeByName('F1').columnWidth = 25;
+      sheet1.getRangeByName('G1').columnWidth = 25;
+      sheet1.getRangeByName('H1').columnWidth = 25;
 
       // Estilos
       final Style headerStyle = workbook.styles.add('headerStyle');
@@ -157,87 +174,87 @@ class ExcelSalidasEspeciales {
       styleSuma.numberFormat = '0.00';
 
       // Header row
-      sheet.getRangeByName('A1:E1').merge();
-      sheet.getRangeByName('A1').setText(
+      sheet1.getRangeByName('A1:E1').merge();
+      sheet1.getRangeByName('A1').setText(
           'SISTEMA AUTOMATIZADO DE ADMINISTRACIÓN Y CONTABILIDAD GUBERNAMENTAL SAACG.NET');
-      sheet.getRangeByName('A1').cellStyle = headerStyle;
+      sheet1.getRangeByName('A1').cellStyle = headerStyle;
 
       // Fecha
-      sheet.getRangeByName('A2').setText('FECHA:');
-      sheet.getRangeByName('A2').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A2').cellStyle.hAlign = HAlignType.right;
-      sheet.getRangeByName('B2').setText(
+      sheet1.getRangeByName('A2').setText('FECHA:');
+      sheet1.getRangeByName('A2').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('A2').cellStyle.hAlign = HAlignType.right;
+      sheet1.getRangeByName('B2').setText(
           '${lastDay.day.toString().padLeft(2, '0')}/${selectedMonth.toString().padLeft(2, '0')}/$currentYear');
-      sheet.getRangeByName('B2').cellStyle = dataStyle;
-      sheet.getRangeByName('B2').cellStyle.hAlign = HAlignType.right;
+      sheet1.getRangeByName('B2').cellStyle = dataStyle;
+      sheet1.getRangeByName('B2').cellStyle.hAlign = HAlignType.right;
 
       // Tipo de Poliza
-      sheet.getRangeByName('A3').setText('TIPO DE POLIZA:');
-      sheet.getRangeByName('A3').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A3').cellStyle.hAlign = HAlignType.right;
-      sheet.getRangeByName('B3').setText('D');
-      sheet.getRangeByName('B3').cellStyle = dataStyle;
-      sheet.getRangeByName('B3').cellStyle.hAlign = HAlignType.left;
+      sheet1.getRangeByName('A3').setText('TIPO DE POLIZA:');
+      sheet1.getRangeByName('A3').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('A3').cellStyle.hAlign = HAlignType.right;
+      sheet1.getRangeByName('B3').setText('D');
+      sheet1.getRangeByName('B3').cellStyle = dataStyle;
+      sheet1.getRangeByName('B3').cellStyle.hAlign = HAlignType.left;
 
       // No. Cheque
-      sheet.getRangeByName('A4').setText('NO. CHEQUE:');
-      sheet.getRangeByName('A4').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A4').cellStyle.hAlign = HAlignType.right;
-      sheet.getRangeByName('B4').setText(''); // Queda en blanco
-      sheet.getRangeByName('B4').cellStyle = dataStyle;
-      sheet.getRangeByName('B4').cellStyle.hAlign = HAlignType.left;
+      sheet1.getRangeByName('A4').setText('NO. CHEQUE:');
+      sheet1.getRangeByName('A4').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('A4').cellStyle.hAlign = HAlignType.right;
+      sheet1.getRangeByName('B4').setText(''); // Queda en blanco
+      sheet1.getRangeByName('B4').cellStyle = dataStyle;
+      sheet1.getRangeByName('B4').cellStyle.hAlign = HAlignType.left;
 
       // Concepto (modificado para juntas especiales)
-      sheet.getRangeByName('A5').setText('CONCEPTO:');
-      sheet.getRangeByName('A5').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A5').cellStyle.hAlign = HAlignType.right;
+      sheet1.getRangeByName('A5').setText('CONCEPTO:');
+      sheet1.getRangeByName('A5').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('A5').cellStyle.hAlign = HAlignType.right;
       final concepto =
           'SALIDAS DE ALMACÉN DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear';
-      sheet.getRangeByName('B5:D5').merge();
-      sheet.getRangeByName('B5').setText(concepto);
-      sheet.getRangeByName('B5').cellStyle = dataStyle;
+      sheet1.getRangeByName('B5:D5').merge();
+      sheet1.getRangeByName('B5').setText(concepto);
+      sheet1.getRangeByName('B5').cellStyle = dataStyle;
 
       // Beneficiario (nuevo campo)
-      sheet.getRangeByName('A6').setText('BENEFICIARIO:');
-      sheet.getRangeByName('A6').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A6').cellStyle.hAlign = HAlignType.right;
-      sheet.getRangeByName('B6:D6').merge();
-      sheet.getRangeByName('B6').setText(''); // Queda en blanco
-      sheet.getRangeByName('B6').cellStyle = dataStyle;
+      sheet1.getRangeByName('A6').setText('BENEFICIARIO:');
+      sheet1.getRangeByName('A6').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('A6').cellStyle.hAlign = HAlignType.right;
+      sheet1.getRangeByName('B6:D6').merge();
+      sheet1.getRangeByName('B6').setText(''); // Queda en blanco
+      sheet1.getRangeByName('B6').cellStyle = dataStyle;
 
       // SUMAS IGUALES
       int sumasIgualesRow = 7;
-      sheet.getRangeByName('A$sumasIgualesRow').setText('SUMAS IGUALES');
-      sheet.getRangeByName('A$sumasIgualesRow').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A$sumasIgualesRow').cellStyle.hAlign =
+      sheet1.getRangeByName('A$sumasIgualesRow').setText('SUMAS IGUALES');
+      sheet1.getRangeByName('A$sumasIgualesRow').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('A$sumasIgualesRow').cellStyle.hAlign =
           HAlignType.right;
 
-      sheet.getRangeByName('B$sumasIgualesRow').setNumber(totalCargo);
-      sheet.getRangeByName('B$sumasIgualesRow').cellStyle = styleSuma;
-      sheet.getRangeByName('B$sumasIgualesRow').cellStyle.hAlign =
+      sheet1.getRangeByName('B$sumasIgualesRow').setNumber(totalCargo);
+      sheet1.getRangeByName('B$sumasIgualesRow').cellStyle = styleSuma;
+      sheet1.getRangeByName('B$sumasIgualesRow').cellStyle.hAlign =
           HAlignType.center;
 
-      sheet.getRangeByName('C$sumasIgualesRow').setNumber(totalCargo);
-      sheet.getRangeByName('C$sumasIgualesRow').cellStyle = styleSuma;
-      sheet.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
+      sheet1.getRangeByName('C$sumasIgualesRow').setNumber(totalCargo);
+      sheet1.getRangeByName('C$sumasIgualesRow').cellStyle = styleSuma;
+      sheet1.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
           HAlignType.center;
 
       // Encabezados de tabla
-      sheet.getRangeByName('A8').setText('Cuenta');
-      sheet.getRangeByName('A8').cellStyle = grayBgStyle;
-      sheet.getRangeByName('A8').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('B8').setText('Cargo');
-      sheet.getRangeByName('B8').cellStyle = grayBgStyle;
-      sheet.getRangeByName('B8').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('C8').setText('Abono');
-      sheet.getRangeByName('C8').cellStyle = grayBgStyle;
-      sheet.getRangeByName('C8').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('D8').setText('Concepto por Movimiento');
-      sheet.getRangeByName('D8').cellStyle = grayBgStyle;
-      sheet.getRangeByName('D8').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('E8').setText('Fuente Financiamiento');
-      sheet.getRangeByName('E8').cellStyle = grayBgStyle;
-      sheet.getRangeByName('E8').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('A8').setText('Cuenta');
+      sheet1.getRangeByName('A8').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('A8').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('B8').setText('Cargo');
+      sheet1.getRangeByName('B8').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('B8').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('C8').setText('Abono');
+      sheet1.getRangeByName('C8').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('C8').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('D8').setText('Concepto por Movimiento');
+      sheet1.getRangeByName('D8').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('D8').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('E8').setText('Fuente Financiamiento');
+      sheet1.getRangeByName('E8').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('E8').cellStyle.hAlign = HAlignType.center;
 
       // Datos
       int currentRow = 9;
@@ -249,43 +266,68 @@ class ExcelSalidasEspeciales {
         final cc = ccByProduct[productId];
         final totalCosto = totalCostoByProduct[productId] ?? 0;
 
-        sheet
+        sheet1
             .getRangeByName('A$currentRow')
             .setText(cc?.cC_Detalle?.toString() ?? '0');
-        sheet.getRangeByName('A$currentRow').cellStyle = styleInfoData;
+        sheet1.getRangeByName('A$currentRow').cellStyle = styleInfoData;
 
-        sheet.getRangeByName('B$currentRow').setNumber(totalCosto);
-        sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
+        sheet1.getRangeByName('B$currentRow').setNumber(totalCosto);
+        sheet1.getRangeByName('B$currentRow').cellStyle.hAlign =
             HAlignType.right;
-        sheet.getRangeByName('B$currentRow').cellStyle = styleInfoData;
+        sheet1.getRangeByName('B$currentRow').cellStyle = styleInfoData;
 
-        sheet.getRangeByName('C$currentRow').setNumber(0);
-        sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
+        sheet1.getRangeByName('C$currentRow').setNumber(0);
+        sheet1.getRangeByName('C$currentRow').cellStyle.hAlign =
             HAlignType.right;
-        sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
+        sheet1.getRangeByName('C$currentRow').cellStyle = styleInfoData;
 
-        sheet
+        sheet1
             .getRangeByName('D$currentRow')
             .setText('${product.prodDescripcion?.toUpperCase()}');
-        sheet.getRangeByName('D$currentRow').cellStyle = styleInfoData;
+        sheet1.getRangeByName('D$currentRow').cellStyle = styleInfoData;
 
-        sheet.getRangeByName('E$currentRow').setText('149825');
-        sheet.getRangeByName('E$currentRow').cellStyle = styleSuma;
-        sheet.getRangeByName('E$currentRow').cellStyle.hAlign =
+        sheet1.getRangeByName('E$currentRow').setText('149825');
+        sheet1.getRangeByName('E$currentRow').cellStyle = styleSuma;
+        sheet1.getRangeByName('E$currentRow').cellStyle.hAlign =
             HAlignType.center;
 
         currentRow++;
       }
 
       // Fila final con el resumen
-      sheet.getRangeByName('A$currentRow').setText('1151-8-004');
-      sheet.getRangeByName('B$currentRow').setText('');
-      sheet.getRangeByName('C$currentRow').setNumber(totalCargo);
-      sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
-      sheet.getRangeByName('D$currentRow').setText(
+      sheet1.getRangeByName('A$currentRow').setText('1151-8-004');
+      sheet1.getRangeByName('B$currentRow').setText('');
+      sheet1.getRangeByName('C$currentRow').setNumber(totalCargo);
+      sheet1.getRangeByName('C$currentRow').cellStyle = styleInfoData;
+      sheet1.getRangeByName('D$currentRow').setText(
           'SALIDAS DE ALMACÉN DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear');
-      sheet.getRangeByName('E$currentRow').setText('149825');
-      sheet.getRangeByName('E$currentRow').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('E$currentRow').setText('149825');
+      sheet1.getRangeByName('E$currentRow').cellStyle.hAlign =
+          HAlignType.center;
+
+      // ===== HOJA 2: Salidas Especiales Activas =====
+      await _generateDetailedSheet(
+        sheet: sheet2,
+        salidas: salidasActivas,
+        juntas: juntasEspeciales,
+        allProductos: productos,
+        allCuentas: await ccontablesController.listCcontables(),
+        title:
+            'SALIDAS ESPECIALES ACTIVAS - ${getMonthName(selectedMonth).toUpperCase()} $currentYear',
+        isComplete: false,
+      );
+
+      // ===== HOJA 3: Salidas Especiales Completas =====
+      await _generateDetailedSheet(
+        sheet: sheet3,
+        salidas: salidasInPeriod, // Todas las salidas (activas + canceladas)
+        juntas: juntasEspeciales,
+        allProductos: productos,
+        allCuentas: await ccontablesController.listCcontables(),
+        title:
+            'SALIDAS ESPECIALES COMPLETAS - ${getMonthName(selectedMonth).toUpperCase()} $currentYear',
+        isComplete: true,
+      );
 
       // Guardar y descargar
       final List<int> bytes = workbook.saveAsStream();
@@ -309,5 +351,194 @@ class ExcelSalidasEspeciales {
       showError(context, 'Error al generar el archivo: $e');
       print('Error al generar el archivo: $e');
     }
+  }
+
+  // Método auxiliar para generar hojas detalladas
+  static Future<void> _generateDetailedSheet({
+    required Worksheet sheet,
+    required List<Salidas> salidas,
+    required List<Juntas> juntas,
+    required List<Productos> allProductos,
+    required List<CContables> allCuentas,
+    required String title,
+    required bool isComplete, // Si es true, marca las canceladas en rojo
+  }) async {
+    // Configuración de columnas
+    sheet.getRangeByName('A1').columnWidth = 20;
+    sheet.getRangeByName('B1').columnWidth = 30;
+    sheet.getRangeByName('C1').columnWidth = 15;
+    sheet.getRangeByName('D1').columnWidth = 15;
+    sheet.getRangeByName('E1').columnWidth = 20;
+    sheet.getRangeByName('F1').columnWidth = 20;
+    sheet.getRangeByName('G1').columnWidth = 20;
+    sheet.getRangeByName('H1').columnWidth = 20;
+    sheet.getRangeByName('I1').columnWidth = 20;
+    sheet.getRangeByName('J1').columnWidth = 20;
+
+    // Estilos
+    final Workbook workbook = sheet.workbook;
+    final Style headerStyle = workbook.styles.add('headerStyle${sheet.index}');
+    headerStyle.backColor = '#000000';
+    headerStyle.fontColor = '#FFFFFF';
+    headerStyle.fontName = 'Arial';
+    headerStyle.fontSize = 12;
+    headerStyle.bold = true;
+    headerStyle.hAlign = HAlignType.center;
+    headerStyle.vAlign = VAlignType.center;
+
+    final Style normalStyle = workbook.styles.add('normalStyle${sheet.index}');
+    normalStyle.fontName = 'Arial';
+    normalStyle.fontSize = 11;
+
+    final Style canceledStyle =
+        workbook.styles.add('canceledStyle${sheet.index}');
+    canceledStyle.fontName = 'Arial';
+    canceledStyle.fontSize = 11;
+    canceledStyle.fontColor = '#FF0000'; // Rojo para salidas canceladas
+    canceledStyle.italic = true;
+
+    // Título
+    sheet.getRangeByName('A1:J1').merge();
+    sheet.getRangeByName('A1').setText(title);
+    sheet.getRangeByName('A1').cellStyle = headerStyle;
+
+    // Fecha de generación
+    sheet.getRangeByName('A2').setText('Fecha de generación:');
+    sheet
+        .getRangeByName('B2')
+        .setText(DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
+
+    // Encabezados de columnas
+    final List<String> headers = [
+      'Folio',
+      'Código Cuenta',
+      'Estado',
+      'Unidades',
+      'Costo',
+      'Fecha',
+      'ID Producto',
+      'ID Almacén',
+      'ID Padron',
+      'ID Junta - Nombre'
+    ];
+
+    // Escribir encabezados
+    for (int i = 0; i < headers.length; i++) {
+      sheet.getRangeByIndex(4, i + 1).setText(headers[i]);
+      sheet.getRangeByIndex(4, i + 1).cellStyle = headerStyle;
+    }
+
+    // Datos
+    int rowIndex = 5;
+    for (var salida in salidas) {
+      final isCanceled = !(salida.salida_Estado ?? false);
+      final currentStyle = isCanceled ? canceledStyle : normalStyle;
+
+      sheet.getRangeByIndex(rowIndex, 1).setText(salida.salida_CodFolio ?? '');
+      sheet.getRangeByIndex(rowIndex, 1).cellStyle = currentStyle;
+
+      // Código de cuenta
+      String codigoCuenta = '';
+      if (salida.idProducto != null) {
+        final cuenta = allCuentas.firstWhere(
+          (c) => c.idProducto == salida.idProducto,
+          orElse: () => CContables(),
+        );
+
+        if (cuenta.cC_Detalle != null) {
+          codigoCuenta = '${cuenta.cC_Detalle}';
+        }
+      }
+      sheet.getRangeByIndex(rowIndex, 2).setText(codigoCuenta);
+      sheet.getRangeByIndex(rowIndex, 2).cellStyle = currentStyle;
+
+      // Estado
+      sheet
+          .getRangeByIndex(rowIndex, 3)
+          .setText(isCanceled ? 'Cancelado' : 'Activo');
+      sheet.getRangeByIndex(rowIndex, 3).cellStyle = currentStyle;
+
+      // Unidades
+      sheet.getRangeByIndex(rowIndex, 4).setNumber(salida.salida_Unidades ?? 0);
+      sheet.getRangeByIndex(rowIndex, 4).cellStyle = currentStyle;
+
+      // Costo
+      sheet.getRangeByIndex(rowIndex, 5).setNumber(salida.salida_Costo ?? 0);
+      sheet.getRangeByIndex(rowIndex, 5).cellStyle = currentStyle;
+
+      // Fecha
+      sheet.getRangeByIndex(rowIndex, 6).setText(salida.salida_Fecha ?? '');
+      sheet.getRangeByIndex(rowIndex, 6).cellStyle = currentStyle;
+
+      // IDs
+      sheet
+          .getRangeByIndex(rowIndex, 7)
+          .setNumber((salida.idProducto ?? 0).toDouble());
+      sheet.getRangeByIndex(rowIndex, 7).cellStyle = currentStyle;
+
+      sheet
+          .getRangeByIndex(rowIndex, 8)
+          .setNumber((salida.id_Almacen ?? 0).toDouble());
+      sheet.getRangeByIndex(rowIndex, 8).cellStyle = currentStyle;
+
+      sheet
+          .getRangeByIndex(rowIndex, 9)
+          .setNumber((salida.idPadron ?? 0).toDouble());
+      sheet.getRangeByIndex(rowIndex, 9).cellStyle = currentStyle;
+
+      // Junta (ID - Nombre)
+      final juntaID = salida.id_Junta ?? 0;
+      final junta = juntas.firstWhere(
+        (j) => j.id_Junta == juntaID,
+        orElse: () => Juntas(junta_Name: 'Desconocido'),
+      );
+      sheet
+          .getRangeByIndex(rowIndex, 10)
+          .setText('$juntaID - ${junta.junta_Name}');
+      sheet.getRangeByIndex(rowIndex, 10).cellStyle = currentStyle;
+
+      rowIndex++;
+    }
+
+    // Totales (solo para salidas activas si es la hoja completa)
+    if (!isComplete) {
+      final double totalUnidades =
+          salidas.fold(0, (sum, item) => sum + (item.salida_Unidades ?? 0));
+      final double totalCosto =
+          salidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
+
+      sheet.getRangeByIndex(rowIndex, 3).setText('TOTALES:');
+      sheet.getRangeByIndex(rowIndex, 3).cellStyle.bold = true;
+      sheet.getRangeByIndex(rowIndex, 4).setNumber(totalUnidades);
+      sheet.getRangeByIndex(rowIndex, 5).setNumber(totalCosto);
+    }
+  }
+
+  // Función auxiliar para parsear fechas
+  static DateTime parseFecha(String fechaStr) {
+    try {
+      return DateFormat('dd/MM/yyyy HH:mm:ss').parse(fechaStr);
+    } catch (e) {
+      return DateTime.now();
+    }
+  }
+
+  // Función auxiliar para obtener nombre del mes
+  static String getMonthName(int month) {
+    final months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre'
+    ];
+    return months[month - 1];
   }
 }
