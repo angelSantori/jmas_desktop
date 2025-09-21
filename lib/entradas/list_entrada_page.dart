@@ -9,6 +9,7 @@ import 'package:jmas_desktop/entradas/details_entrada_page.dart';
 import 'package:jmas_desktop/entradas/excel/excel_entradas.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/formularios/custom_autocomplete_field.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListEntradaPage extends StatefulWidget {
@@ -355,13 +356,6 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     });
   }
 
-  void _clearProveedorFilter() {
-    setState(() {
-      _selectedProveedor = null;
-      _filterEntradas();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -481,31 +475,32 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
                       //Proveedores
                       Expanded(
-                        child: CustomListaDesplegableTipo<Proveedores>(
+                        child: CustomAutocompleteField(
                           value: _selectedProveedor != null
-                              ? _proveedor.firstWhere((proveedor) =>
-                                  proveedor.id_Proveedor.toString() ==
-                                  _selectedProveedor)
+                              ? _proveedor.firstWhere(
+                                  (proveedor) =>
+                                      proveedor.id_Proveedor.toString() ==
+                                      _selectedProveedor,
+                                  orElse: () => Proveedores(
+                                      id_Proveedor: 0, proveedor_Name: 'N/A'),
+                                )
                               : null,
-                          labelText: 'Filtrar por Proveedor',
+                          labelText: 'Buscar Proveedor',
                           items: _proveedor,
-                          onChanged: (Proveedores? newProveedor) {
+                          onChanged: (Proveedores? newValue) {
                             setState(() {
                               _selectedProveedor =
-                                  newProveedor?.id_Proveedor.toString();
+                                  newValue?.id_Proveedor.toString();
                             });
                             _filterEntradas();
                           },
                           itemLabelBuilder: (proveedor) =>
-                              proveedor.proveedor_Name ?? 'N/A',
+                              '${proveedor.id_Proveedor ?? 0} - ${proveedor.proveedor_Name ?? 'N/A'}',
+                          itemValueBuilder: (proveedor) =>
+                              proveedor.id_Proveedor.toString(),
+                          prefixIcon: Icons.search,
                         ),
                       ),
-                      if (_selectedProveedor != null) ...[
-                        IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.red),
-                          onPressed: _clearProveedorFilter,
-                        ),
-                      ],
                       const SizedBox(width: 20),
 
                       //Excel
