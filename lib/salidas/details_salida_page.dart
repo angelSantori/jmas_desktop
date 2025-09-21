@@ -278,6 +278,9 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
           'costo': total / cantidad,
           'precio': total,
           'estado': tieneActivos ? 'Activo' : 'Cancelado',
+          // AÑADIR ESTOS CAMPOS CRUCIALES:
+          'prodUMedEntrada': producto?.prodUMedEntrada ?? '',
+          'prodUMedSalida': producto?.prodUMedSalida ?? '',
         });
       }
 
