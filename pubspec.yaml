@@ -31,6 +31,7 @@ dependencies:
   syncfusion_flutter_datepicker: ^29.2.11
   fl_chart: ^1.0.0 #Graficas
   file_saver: ^0.3.1 #Guardar
+  flutter_typeahead: ^5.2.0 #Autocomplete
 
 dev_dependencies:
   flutter_test:
