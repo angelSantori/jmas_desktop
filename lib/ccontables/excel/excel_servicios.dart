@@ -37,13 +37,18 @@ class ExcelServicios {
         return;
       }
 
+      // Filtrar juntas: TODAS menos las especiales
+      // final juntasNoEspeciales = juntas
+      //     .where((j) => j.id_Junta != null && !juntasEsp.contains(j.id_Junta))
+      //     .toList();
+
       // Obtener salidas para todos los servicios en el mes seleccionado
       final currentYear = DateTime.now().year;
       final lastDay = DateTime(currentYear, selectedMonth + 1, 0);
 
       final allSalidas = await salidasController.listSalidasOptimizado();
 
-      // Filtrar salidas de servicios en el periodo seleccionado
+      // Filtrar salidas de servicios en el periodo seleccionado y solo de juntas no especiales
       final salidasServicios = allSalidas.where((s) {
         if (s.salida_Fecha == null ||
             s.salida_Estado != true ||
@@ -57,6 +62,11 @@ class ExcelServicios {
             (p) => p.id_Producto == s.idProducto,
             orElse: () => Productos());
         if (producto.id_Producto == null) {
+          return false;
+        }
+
+        // Verificar que la junta NO sea especial
+        if (juntasEsp.contains(s.id_Junta)) {
           return false;
         }
 
@@ -137,7 +147,6 @@ class ExcelServicios {
 
       // Aplicar estilo a los encabezados
       final rangeHeadersDetalles = detallesSheet.getRangeByName('A1:H1');
-      //rangeHeadersDetalles.cellStyle = pw.grayBgStyle;
       rangeHeadersDetalles.cellStyle.hAlign = HAlignType.center;
 
       // Llenar datos en la hoja de detalles
@@ -188,13 +197,11 @@ class ExcelServicios {
       sheet.getRangeByName('A1').columnWidth = 20;
       sheet.getRangeByName('B1').columnWidth = 15;
       sheet.getRangeByName('C1').columnWidth = 15;
-      sheet.getRangeByName('D1').columnWidth = 50;
+      sheet.getRangeByName('D1').columnWidth = 60; // Aumentado para concepto
       sheet.getRangeByName('E1').columnWidth = 25;
       sheet.getRangeByName('F1').columnWidth = 25;
-      sheet.getRangeByName('G1').columnWidth = 25;
-      sheet.getRangeByName('H1').columnWidth = 25;
 
-      // Estilos (los mismos que en los otros archivos)
+      // Estilos
       final Style headerStyle = workbook.styles.add('headerStyle');
       headerStyle.backColor = '#244062';
       headerStyle.fontColor = '#FFFFFF';
@@ -234,7 +241,7 @@ class ExcelServicios {
       final Style styleInfoData = workbook.styles.add('styleInfoData');
       styleInfoData.fontName = 'Arial';
       styleInfoData.fontSize = 10;
-      styleSuma.numberFormat = '0.00';
+      styleInfoData.numberFormat = '0.00';
 
       // Header row
       sheet.getRangeByName('A1:E1').merge();
@@ -267,7 +274,7 @@ class ExcelServicios {
       sheet.getRangeByName('B4').cellStyle = dataStyle;
       sheet.getRangeByName('B4').cellStyle.hAlign = HAlignType.left;
 
-      // Concepto (modificado para servicios)
+      // Concepto
       sheet.getRangeByName('A5').setText('CONCEPTO:');
       sheet.getRangeByName('A5').cellStyle = grayBgStyle;
       sheet.getRangeByName('A5').cellStyle.hAlign = HAlignType.right;
@@ -302,7 +309,7 @@ class ExcelServicios {
       sheet.getRangeByName('C$sumasIgualesRow').cellStyle.hAlign =
           HAlignType.center;
 
-      // Encabezados de tabla (modificados para incluir junta)
+      // Encabezados de tabla (modificados)
       sheet.getRangeByName('A8').setText('Cuenta');
       sheet.getRangeByName('A8').cellStyle = grayBgStyle;
       sheet.getRangeByName('A8').cellStyle.hAlign = HAlignType.center;
@@ -312,19 +319,17 @@ class ExcelServicios {
       sheet.getRangeByName('C8').setText('Abono');
       sheet.getRangeByName('C8').cellStyle = grayBgStyle;
       sheet.getRangeByName('C8').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('D8').setText('Servicio');
+      sheet.getRangeByName('D8').setText('Concepto por Movimiento');
       sheet.getRangeByName('D8').cellStyle = grayBgStyle;
       sheet.getRangeByName('D8').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('E8').setText('Junta');
+      sheet.getRangeByName('E8').setText('Fuente Financiamiento');
       sheet.getRangeByName('E8').cellStyle = grayBgStyle;
       sheet.getRangeByName('E8').cellStyle.hAlign = HAlignType.center;
-      sheet.getRangeByName('F8').setText('Fuente Financiamiento');
-      sheet.getRangeByName('F8').cellStyle = grayBgStyle;
-      sheet.getRangeByName('F8').cellStyle.hAlign = HAlignType.center;
 
-      // Datos - ahora mostrando servicio y junta
+      // Datos - ahora mostrando junta_Cuenta y concepto combinado
       int currentRow = 9;
 
+      // Primero: Filas de juntas con sus servicios (cargo)
       for (var productId in salidasByServiceAndJunta.keys) {
         final product = productosServicio.firstWhere(
             (p) => p.id_Producto == productId,
@@ -337,13 +342,10 @@ class ExcelServicios {
           final totalCosto =
               totalCostoByServiceAndJunta[productId]![juntaId] ?? 0;
 
-          // Obtener detalles contables para el producto
-          final ccList = await ccontablesController.listCCxProducto(productId);
-          final cc = ccList.isNotEmpty ? ccList.first : null;
-
+          // Usar junta_Cuenta en lugar del código contable del producto
           sheet
               .getRangeByName('A$currentRow')
-              .setText(cc?.cC_Detalle?.toString() ?? '0');
+              .setText(junta.junta_Cuenta ?? '0');
           sheet.getRangeByName('A$currentRow').cellStyle = styleInfoData;
 
           sheet.getRangeByName('B$currentRow').setNumber(totalCosto);
@@ -356,35 +358,74 @@ class ExcelServicios {
               HAlignType.right;
           sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
 
-          sheet
-              .getRangeByName('D$currentRow')
-              .setText(product.prodDescripcion?.toUpperCase() ?? '');
+          // Concepto combinado: servicio + junta
+          final conceptoMovimiento =
+              '${product.prodDescripcion?.toUpperCase() ?? ''} - ${junta.junta_Name?.toUpperCase() ?? ''}';
+          sheet.getRangeByName('D$currentRow').setText(conceptoMovimiento);
           sheet.getRangeByName('D$currentRow').cellStyle = styleInfoData;
 
-          sheet
-              .getRangeByName('E$currentRow')
-              .setText(junta.junta_Name?.toUpperCase() ?? '');
-          sheet.getRangeByName('E$currentRow').cellStyle = styleInfoData;
-
-          sheet.getRangeByName('F$currentRow').setText('149825');
-          sheet.getRangeByName('F$currentRow').cellStyle = styleSuma;
-          sheet.getRangeByName('F$currentRow').cellStyle.hAlign =
+          sheet.getRangeByName('E$currentRow').setText('149825');
+          sheet.getRangeByName('E$currentRow').cellStyle = styleSuma;
+          sheet.getRangeByName('E$currentRow').cellStyle.hAlign =
               HAlignType.center;
 
           currentRow++;
         }
       }
 
-      // Fila final con el resumen
-      sheet.getRangeByName('A$currentRow').setText('');
-      sheet.getRangeByName('B$currentRow').setText('');
-      sheet.getRangeByName('C$currentRow').setNumber(totalCargo);
-      sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
-      sheet.getRangeByName('D$currentRow').setText(
-          'SERVICIOS DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear');
-      sheet.getRangeByName('E$currentRow').setText('');
-      sheet.getRangeByName('F$currentRow').setText('149825');
-      sheet.getRangeByName('F$currentRow').cellStyle.hAlign = HAlignType.center;
+      // Segundo: Filas de resumen por servicio (abono)
+      // Calcular totales por servicio
+      final Map<int, double> totalPorServicio = {};
+      for (var productId in salidasByServiceAndJunta.keys) {
+        double totalServicio = 0;
+        for (var juntaId in salidasByServiceAndJunta[productId]!.keys) {
+          totalServicio +=
+              totalCostoByServiceAndJunta[productId]![juntaId] ?? 0;
+        }
+        totalPorServicio[productId] = totalServicio;
+      }
+
+      // Agregar filas de abono para cada servicio
+      for (var productId in totalPorServicio.keys) {
+        final product = productosServicio.firstWhere(
+            (p) => p.id_Producto == productId,
+            orElse: () => Productos());
+        if (product.id_Producto == null) continue;
+
+        // Obtener detalles contables para el producto (para el abono)
+        final ccList = await ccontablesController.listCCxProducto(productId);
+        final cc = ccList.isNotEmpty ? ccList.first : null;
+
+        sheet
+            .getRangeByName('A$currentRow')
+            .setText(cc?.cC_Detalle?.toString() ?? '0');
+        sheet.getRangeByName('A$currentRow').cellStyle = styleInfoData;
+
+        sheet.getRangeByName('B$currentRow').setNumber(0);
+        sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+        sheet.getRangeByName('B$currentRow').cellStyle = styleInfoData;
+
+        sheet
+            .getRangeByName('C$currentRow')
+            .setNumber(totalPorServicio[productId] ?? 0);
+        sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
+            HAlignType.right;
+        sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
+
+        // Solo el nombre del servicio en el concepto
+        sheet
+            .getRangeByName('D$currentRow')
+            .setText(product.prodDescripcion?.toUpperCase() ?? '');
+        sheet.getRangeByName('D$currentRow').cellStyle = styleInfoData;
+
+        sheet.getRangeByName('E$currentRow').setText('149825');
+        sheet.getRangeByName('E$currentRow').cellStyle = styleSuma;
+        sheet.getRangeByName('E$currentRow').cellStyle.hAlign =
+            HAlignType.center;
+
+        currentRow++;
+      }
 
       // Guardar y descargar
       final List<int> bytes = workbook.saveAsStream();
