@@ -618,6 +618,8 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
       );
     }
 
+    // ... código anterior ...
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -632,404 +634,433 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(color: Colors.blue.shade900))
-          : Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: LayoutBuilder(builder: (context, constraints) {
-                  return SizedBox(
-                    width: constraints.maxWidth > 800
-                        ? 1500
-                        : constraints.maxWidth,
-                    child: Card(
-                      elevation: 4,
-                      color: widget.salidas.first.salida_Estado == false
-                          ? const Color.fromARGB(188, 255, 205, 210)
-                          : Colors.blue.shade100,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      margin: const EdgeInsets.all(100),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  if ((isAdmin || isGestion) &&
-                                      tieneActivos) ...[
-                                    IconButton(
-                                      icon: Icon(Icons.delete,
-                                          color: Colors.red.shade800),
-                                      onPressed: _cancelarTodaLaSalida,
-                                      tooltip: 'Cancelar toda la salida',
-                                    ),
-                                  ],
+          : SingleChildScrollView(
+              // Cambio principal: Scroll en toda la página
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Card(
+                    elevation: 4,
+                    color: widget.salidas.first.salida_Estado == false
+                        ? const Color.fromARGB(188, 255, 205, 210)
+                        : Colors.blue.shade100,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.all(20), // Reducir margen
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min, // Importante
+                        children: [
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if ((isAdmin || isGestion) && tieneActivos) ...[
                                   IconButton(
-                                    icon: Icon(Icons.print,
-                                        color: Colors.blue.shade800),
-                                    onPressed: _imprimirSalida,
-                                    tooltip: 'Reimprimir salida',
+                                    icon: Icon(Icons.delete,
+                                        color: Colors.red.shade800),
+                                    onPressed: _cancelarTodaLaSalida,
+                                    tooltip: 'Cancelar toda la salida',
                                   ),
-                                  if (_isAuthorizedUser) ...[
-                                    _isUpdatingPayment
-                                        ? Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Colors.blue.shade900,
-                                              ),
+                                ],
+                                IconButton(
+                                  icon: Icon(Icons.print,
+                                      color: Colors.blue.shade800),
+                                  onPressed: _imprimirSalida,
+                                  tooltip: 'Reimprimir salida',
+                                ),
+                                if (_isAuthorizedUser) ...[
+                                  _isUpdatingPayment
+                                      ? Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.blue.shade900,
                                             ),
-                                          )
-                                        : IconButton(
-                                            icon: Icon(
-                                              widget.salidas.first
-                                                          .salida_Pagado ==
-                                                      true
-                                                  ? Icons.attach_money
-                                                  : Icons.money_off,
-                                              color: widget.salidas.first
-                                                          .salida_Pagado ==
-                                                      true
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                            ),
-                                            onPressed: _togglePagoStatus,
-                                            tooltip: widget.salidas.first
+                                          ),
+                                        )
+                                      : IconButton(
+                                          icon: Icon(
+                                            widget.salidas.first
                                                         .salida_Pagado ==
                                                     true
-                                                ? 'Marcar como no pagado'
-                                                : 'Marcar como pagado',
+                                                ? Icons.attach_money
+                                                : Icons.money_off,
+                                            color: widget.salidas.first
+                                                        .salida_Pagado ==
+                                                    true
+                                                ? Colors.green
+                                                : Colors.red,
                                           ),
-                                  ],
-                                ]),
-                            const SizedBox(height: 15),
-                            const Divider(),
-                            //Columnas
-                            //Columna 1
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            'Almacen: ${widget.almacen.almacen_Nombre}'),
-                                        Row(
-                                          children: [
-                                            const Text('Junta: '),
-                                            GestureDetector(
-                                              onTap: () {
-                                                if (widget.userRole ==
-                                                    "Admin") {
-                                                  _editarJuntaSalida();
-                                                }
-                                              },
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text(
-                                                    widget.junta.junta_Name ??
-                                                        '',
-                                                    style: TextStyle(
-                                                      color: (widget.userRole ==
-                                                                  "Admin" ||
-                                                              widget.userRole ==
-                                                                  "Gestion")
-                                                          ? Colors.blue.shade800
-                                                          : Colors.black,
-                                                      decoration: (widget
-                                                                      .userRole ==
-                                                                  "Admin" ||
-                                                              widget.userRole ==
-                                                                  "Gestion")
-                                                          ? TextDecoration
-                                                              .underline
-                                                          : null,
-                                                    ),
-                                                  ),
-                                                  if (widget.userRole ==
-                                                          "Admin" ||
-                                                      widget.userRole ==
-                                                          "Gestion")
-                                                    const Icon(Icons.edit,
-                                                        size: 16,
-                                                        color: Colors.blue),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
+                                          onPressed: _togglePagoStatus,
+                                          tooltip: widget.salidas.first
+                                                      .salida_Pagado ==
+                                                  true
+                                              ? 'Marcar como no pagado'
+                                              : 'Marcar como pagado',
                                         ),
-                                        Text(
-                                            'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
-                                        if (widget.ordenServicio?.prioridadOS !=
-                                            null) ...[
-                                          Text(
-                                              'Orden Trabajo: ${widget.ordenServicio?.folioOS} - ${widget.ordenServicio?.prioridadOS}'),
-                                        ]
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                ],
+                              ]),
+                          const SizedBox(height: 15),
+                          const Divider(),
 
-                                //Columna 2
-                                Expanded(
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            'Colonia: ${widget.colonia.idColonia} - ${widget.colonia.nombreColonia}'),
-                                        Text(
-                                            'Calle: ${widget.calle.idCalle} - ${widget.calle.calleNombre}'),
-                                        Text('Realizado por: ${widget.user}'),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                //Columna 3
-                                Expanded(
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            'Asignado a: ${widget.userAsignado.user_Name}'),
-                                        Text(
-                                            'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo ?? 'N/A'}'),
-                                        Text(
-                                            'Fecha: ${widget.salidas.first.salida_Fecha}'),
-                                        Text(
-                                            'Autoriza: ${widget.userAutoriza.user_Name ?? 'No especificado'}'),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            const Divider(),
-                            const SizedBox(height: 20),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    FutureBuilder<
-                                        Map<int, ProductosOptimizado>>(
-                                      future: _productosFuture,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Center(
-                                            child: CircularProgressIndicator(
-                                                color: Colors.blue.shade900),
-                                          );
-                                        } else if (snapshot.hasError) {
-                                          return Center(
-                                              child: Text(
-                                                  'Error al cargar productos: ${snapshot.error}',
-                                                  style: const TextStyle(
-                                                      color: Colors.red)));
-                                        }
-                                        final productosCache =
-                                            snapshot.data ?? {};
-
-                                        return SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: DataTable(
-                                            columns: const [
-                                              DataColumn(
-                                                  label: Text('Id Producto')),
-                                              DataColumn(label: Text('Nombre')),
-                                              DataColumn(
-                                                  label: Text('Cantidad')),
-                                              DataColumn(
-                                                  label:
-                                                      Text('Precio unitario')),
-                                              DataColumn(
-                                                  label: Text('Total (\$)')),
-                                              DataColumn(label: Text('Estado')),
-                                            ],
-                                            rows: groupProductos.entries
-                                                .map((entry) {
-                                              final idProducto = entry.key;
-                                              final cantidad =
-                                                  entry.value['cantidad'];
-                                              final total =
-                                                  entry.value['total'];
-                                              final nombreProducto =
-                                                  productosCache[idProducto]
-                                                          ?.prodDescripcion ??
-                                                      'Desconocido';
-                                              final salidasProducto =
-                                                  salidasPorProducto[
-                                                          idProducto] ??
-                                                      [];
-                                              final tieneActivos =
-                                                  salidasProducto.any((s) =>
-                                                      s.salida_Estado == true);
-
-                                              return DataRow(cells: [
-                                                DataCell(Text(
-                                                    idProducto.toString())),
-                                                DataCell(Text(nombreProducto)),
-                                                DataCell(
-                                                    Text(cantidad.toString())),
-                                                DataCell(Text(
-                                                    '\$${(total / cantidad).toStringAsFixed(2)}')),
-                                                DataCell(Text(
-                                                    '\$${total.toStringAsFixed(2)}')),
-                                                DataCell(Text(
-                                                    tieneActivos
-                                                        ? 'Activo'
-                                                        : 'Cancelado',
-                                                    style: TextStyle(
-                                                        color: tieneActivos
-                                                            ? Colors.green
-                                                            : Colors.red))),
-                                              ]);
-                                            }).toList(),
+                          //Columnas de información
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'Almacen: ${widget.almacen.almacen_Nombre}'),
+                                      Row(
+                                        children: [
+                                          const Text('Junta: '),
+                                          GestureDetector(
+                                            onTap: () {
+                                              if (widget.userRole == "Admin") {
+                                                _editarJuntaSalida();
+                                              }
+                                            },
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  widget.junta.junta_Name ?? '',
+                                                  style: TextStyle(
+                                                    color: (widget.userRole ==
+                                                                "Admin" ||
+                                                            widget.userRole ==
+                                                                "Gestion")
+                                                        ? Colors.blue.shade800
+                                                        : Colors.black,
+                                                    decoration: (widget
+                                                                    .userRole ==
+                                                                "Admin" ||
+                                                            widget.userRole ==
+                                                                "Gestion")
+                                                        ? TextDecoration
+                                                            .underline
+                                                        : null,
+                                                  ),
+                                                ),
+                                                if (widget.userRole ==
+                                                        "Admin" ||
+                                                    widget.userRole ==
+                                                        "Gestion")
+                                                  const Icon(Icons.edit,
+                                                      size: 16,
+                                                      color: Colors.blue),
+                                              ],
+                                            ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                      Text(
+                                          'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
+                                      if (widget.ordenServicio?.prioridadOS !=
+                                          null) ...[
+                                        Text(
+                                            'Orden Trabajo: ${widget.ordenServicio?.folioOS} - ${widget.ordenServicio?.prioridadOS}'),
+                                      ]
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
 
-                            //  Comentario
-                            if (widget.salidas.first.salida_Comentario !=
-                                    null &&
-                                widget.salidas.first.salida_Comentario!
-                                    .isNotEmpty) ...[
-                              const SizedBox(height: 30),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
-                                margin: const EdgeInsets.only(bottom: 20),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey[300]!),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.1),
-                                      spreadRadius: 1,
-                                      blurRadius: 3,
-                                      offset: const Offset(0, 1),
-                                    ),
-                                  ],
+                              //Columna 2
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'Colonia: ${widget.colonia.idColonia} - ${widget.colonia.nombreColonia}'),
+                                      Text(
+                                          'Calle: ${widget.calle.idCalle} - ${widget.calle.calleNombre}'),
+                                      Text('Realizado por: ${widget.user}'),
+                                    ],
+                                  ),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.comment,
-                                            size: 18, color: Colors.blueGrey),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Comentarios:',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: Colors.blueGrey[800],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      widget.salidas.first.salida_Comentario!,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  ],
+                              ),
+
+                              //Columna 3
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'Asignado a: ${widget.userAsignado.user_Name}'),
+                                      Text(
+                                          'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo ?? 'N/A'}'),
+                                      Text(
+                                          'Fecha: ${widget.salidas.first.salida_Fecha}'),
+                                      Text(
+                                          'Autoriza: ${widget.userAutoriza.user_Name ?? 'No especificado'}'),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 20),
+                          ),
+                          const SizedBox(height: 20),
+                          const Divider(),
+                          const SizedBox(height: 20),
 
-                            //  Doc Firmas
+                          //  Tabla - SIN altura fija
+                          FutureBuilder<Map<int, ProductosOptimizado>>(
+                            future: _productosFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                      color: Colors.blue.shade900),
+                                );
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                  child: Text(
+                                      'Error al cargar productos: ${snapshot.error}',
+                                      style:
+                                          const TextStyle(color: Colors.red)),
+                                );
+                              }
+                              final productosCache = snapshot.data ?? {};
+
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  columnSpacing: 20,
+                                  dataRowMinHeight: 40,
+                                  dataRowMaxHeight: 40,
+                                  headingRowHeight: 40,
+                                  columns: const [
+                                    DataColumn(
+                                        label: Text(
+                                      'Id Producto',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                    DataColumn(
+                                        label: Text(
+                                      'Nombre',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                    DataColumn(
+                                        label: Text(
+                                      'Cantidad',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                    DataColumn(
+                                        label: Text(
+                                      'Precio unitario',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                    DataColumn(
+                                        label: Text(
+                                      'Total (\$)',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                    DataColumn(
+                                        label: Text(
+                                      'Estado',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                  ],
+                                  rows: groupProductos.entries.map((entry) {
+                                    final idProducto = entry.key;
+                                    final cantidad = entry.value['cantidad'];
+                                    final total = entry.value['total'];
+                                    final nombreProducto =
+                                        productosCache[idProducto]
+                                                ?.prodDescripcion ??
+                                            'Desconocido';
+                                    final salidasProducto =
+                                        salidasPorProducto[idProducto] ?? [];
+                                    final tieneActivos = salidasProducto
+                                        .any((s) => s.salida_Estado == true);
+
+                                    return DataRow(cells: [
+                                      DataCell(Text(
+                                        idProducto.toString(),
+                                        style: const TextStyle(fontSize: 18),
+                                      )),
+                                      DataCell(Text(
+                                        nombreProducto,
+                                        style: const TextStyle(fontSize: 18),
+                                      )),
+                                      DataCell(Text(
+                                        cantidad.toString(),
+                                        style: const TextStyle(fontSize: 18),
+                                      )),
+                                      DataCell(Text(
+                                        '\$${(total / cantidad).toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 18),
+                                      )),
+                                      DataCell(Text(
+                                        '\$${total.toStringAsFixed(2)}',
+                                        style: const TextStyle(fontSize: 18),
+                                      )),
+                                      DataCell(Text(
+                                          tieneActivos ? 'Activo' : 'Cancelado',
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              color: tieneActivos
+                                                  ? Colors.green
+                                                  : Colors.red))),
+                                    ]);
+                                  }).toList(),
+                                ),
+                              );
+                            },
+                          ),
+
+                          //  Comentario
+                          if (widget.salidas.first.salida_Comentario != null &&
+                              widget.salidas.first.salida_Comentario!
+                                  .isNotEmpty) ...[
+                            const SizedBox(height: 30),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
+                              margin: const EdgeInsets.only(bottom: 20),
                               decoration: BoxDecoration(
                                 color: Colors.grey[100],
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.grey[300]!),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    spreadRadius: 1,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Documento con Firmas',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.comment,
+                                          size: 18, color: Colors.blueGrey),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Comentarios:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.blueGrey[800],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(height: 10),
-                                  if (widget.salidas.any((s) =>
-                                      s.salida_DocumentoFirmas != null &&
-                                      s.salida_DocumentoFirmas!
-                                          .isNotEmpty)) ...[
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.description,
-                                            color: Colors.blue),
-                                        const SizedBox(width: 8),
-                                        const Text('Documento disponible'),
-                                        const Spacer(),
-                                        IconButton(
-                                          icon: const Icon(Icons.download,
-                                              color: Colors.green),
-                                          onPressed: _descargarDocumentoFirmas,
-                                          tooltip: 'Descargar documento',
-                                        ),
-                                      ],
-                                    )
-                                  ] else ...[
-                                    const Text('No hay documento subido'),
-                                    const SizedBox(height: 10),
-                                    // El botón SOLO aparece cuando NO hay documento
-                                    ElevatedButton.icon(
-                                      onPressed: _subirDocumentoFirmas,
-                                      icon: const Icon(Icons.upload_file),
-                                      label: const Text(
-                                          'Subir documento con firmas'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue.shade900,
-                                        foregroundColor: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                  if (_isUploadingDocument) ...[
-                                    const Padding(
-                                      padding: EdgeInsets.only(top: 8.0),
-                                      child: LinearProgressIndicator(),
-                                    ),
-                                  ],
+                                  Text(
+                                    widget.salidas.first.salida_Comentario!,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
                                 ],
                               ),
                             ),
                           ],
-                        ),
+                          const SizedBox(height: 20),
+
+                          //  Doc Firmas
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Documento con Firmas',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16),
+                                ),
+                                const SizedBox(height: 10),
+                                if (widget.salidas.any((s) =>
+                                    s.salida_DocumentoFirmas != null &&
+                                    s.salida_DocumentoFirmas!.isNotEmpty)) ...[
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.description,
+                                          color: Colors.blue),
+                                      const SizedBox(width: 8),
+                                      const Text('Documento disponible'),
+                                      const Spacer(),
+                                      IconButton(
+                                        icon: const Icon(Icons.download,
+                                            color: Colors.green),
+                                        onPressed: _descargarDocumentoFirmas,
+                                        tooltip: 'Descargar documento',
+                                      ),
+                                    ],
+                                  )
+                                ] else ...[
+                                  const Text('No hay documento subido'),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton.icon(
+                                    onPressed: _subirDocumentoFirmas,
+                                    icon: const Icon(Icons.upload_file),
+                                    label: const Text(
+                                        'Subir documento con firmas'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue.shade900,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                                if (_isUploadingDocument) ...[
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 8.0),
+                                    child: LinearProgressIndicator(),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                }),
+                  ),
+                ),
               ),
             ),
     );
