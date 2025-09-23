@@ -475,7 +475,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
 
                       //Proveedores
                       Expanded(
-                        child: CustomAutocompleteField(
+                        child: CustomAutocompleteField<Proveedores>(
                           value: _selectedProveedor != null
                               ? _proveedor.firstWhere(
                                   (proveedor) =>
@@ -487,6 +487,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                               : null,
                           labelText: 'Buscar Proveedor',
                           items: _proveedor,
+                          prefixIcon: Icons.search,
                           onChanged: (Proveedores? newValue) {
                             setState(() {
                               _selectedProveedor =
@@ -495,10 +496,9 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                             _filterEntradas();
                           },
                           itemLabelBuilder: (proveedor) =>
-                              '${proveedor.id_Proveedor ?? 0} - ${proveedor.proveedor_Name ?? 'N/A'}',
+                              '${proveedor.id_Proveedor ?? 0} - ${proveedor.proveedor_Name}',
                           itemValueBuilder: (proveedor) =>
                               proveedor.id_Proveedor.toString(),
-                          prefixIcon: Icons.search,
                         ),
                       ),
                       const SizedBox(width: 20),
