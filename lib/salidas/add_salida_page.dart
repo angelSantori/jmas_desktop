@@ -19,6 +19,7 @@ import 'package:jmas_desktop/widgets/buscar_calle_widget.dart';
 import 'package:jmas_desktop/widgets/buscar_colonia_widget.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
+import 'package:jmas_desktop/widgets/formularios/custom_autocomplete_field.dart';
 import 'package:jmas_desktop/widgets/generales.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 import 'package:jmas_desktop/widgets/widgets_salida.dart';
@@ -67,14 +68,10 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   String? folioTR;
 
   //Empleados
-  List<Users> _empleadosFiltrados = [];
-  bool _buscandoEmpleados = false;
+  List<Users> _empleados = [];
   Users? _selectedEmpleado;
 
   //Autotiza
-  final TextEditingController _busquedaAutorizaController =
-      TextEditingController();
-  bool _buscandoAutoriza = false;
   List<Users> _listaAutoriza = [];
   Users? _selectedAutoriza;
 
@@ -139,43 +136,15 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Future<void> _loadDataSalidas() async {
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
     List<Juntas> juntas = await _juntasController.listJuntas();
+    List<Users> usuarios = await _usersController.listUsers();
 
     setState(() {
       _almacenes = almacenes;
       _juntas = juntas;
-    });
-  }
-
-  Future<void> _buscarEmpleados(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _empleadosFiltrados = [];
-      });
-      return;
-    }
-    setState(() => _buscandoEmpleados = true);
-    final resultados = await _usersController.getUserXNombre(query);
-
-    final empleados =
-        resultados.where((users) => users.user_Rol == "Empleado").toList();
-    setState(() {
-      _empleadosFiltrados = empleados;
-      _buscandoEmpleados = false;
-    });
-  }
-
-  Future<void> _buscarAutoriza(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _listaAutoriza = [];
-      });
-      return;
-    }
-    setState(() => _buscandoAutoriza = true);
-    final resultadosAutoriza = await _usersController.getUserXNombre(query);
-    setState(() {
-      _listaAutoriza = resultadosAutoriza;
-      _buscandoAutoriza = false;
+      _listaAutoriza = usuarios;
+      _empleados = usuarios
+          .where((empleados) => empleados.user_Rol == 'Empleado')
+          .toList();
     });
   }
 
@@ -527,7 +496,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _imagenOrden = null;
       _selectedOrdenServicio = null;
       _mostrarOrdenServicio = false;
-      _empleadosFiltrados = [];
 
       //_referenciaController.clear();
       _busquedaUsuarioController.clear();
@@ -618,26 +586,29 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
 
                           //Junta destino
                           Expanded(
-                            child: CustomListaDesplegableTipo<Juntas>(
+                            child: CustomAutocompleteField<Juntas>(
                               value: _selectedJunta,
                               labelText: 'Junta Destino',
                               items: _juntas,
+                              prefixIcon: Icons.search,
                               onChanged: (junta) {
                                 setState(() {
                                   _selectedJunta = junta;
                                 });
                               },
+                              itemLabelBuilder: (junta) =>
+                                  '${junta.id_Junta ?? 0} - ${junta.junta_Name ?? 'N/A'}',
+                              itemValueBuilder: (junta) =>
+                                  junta.id_Junta.toString(),
                               validator: (junta) {
                                 if (junta == null) {
                                   return 'Debe seleccionar una junta destino.';
                                 }
                                 return null;
                               },
-                              itemLabelBuilder: (junta) =>
-                                  '${junta.junta_Name} - (${junta.id_Junta})',
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 20),
 
                           Expanded(
                             child: Column(
@@ -673,6 +644,76 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               ],
                             ),
                           )
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(width: 10),
+                          //  Empleados
+                          Expanded(
+                            child: CustomAutocompleteField<Users>(
+                              value: _selectedEmpleado,
+                              labelText: 'Buscar Empleado',
+                              items: _empleados,
+                              prefixIcon: Icons.person,
+                              onChanged: (empleados) {
+                                setState(() {
+                                  _selectedEmpleado = empleados;
+                                });
+                              },
+                              itemLabelBuilder: (empleado) =>
+                                  '${empleado.id_User} - ${empleado.user_Name}',
+                              itemValueBuilder: (empleado) =>
+                                  empleado.id_User.toString(),
+                              validator: (value) {
+                                if (_selectedEmpleado == null) {
+                                  return 'Seleccione un empleado válido';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+
+                          //  Autoriza
+                          Expanded(
+                            child: CustomAutocompleteField<Users>(
+                              value: _selectedAutoriza,
+                              labelText: 'Buscar Autorizador',
+                              items: _listaAutoriza,
+                              prefixIcon: Icons.person,
+                              onChanged: (autoriza) {
+                                setState(() {
+                                  _selectedAutoriza = autoriza;
+                                });
+                              },
+                              itemLabelBuilder: (autoriza) =>
+                                  '${autoriza.id_User} - ${autoriza.user_Name}',
+                              itemValueBuilder: (autoriza) =>
+                                  autoriza.id_User.toString(),
+                              validator: (autoriza) {
+                                if (_selectedAutoriza == null) {
+                                  return 'Seleccione quien autoriza';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+
+                          //  Comentario
+                          Expanded(
+                              child: CustomTextFielTexto(
+                            controller: _comentarioController,
+                            labelText: 'Comentario*',
+                            prefixIcon: Icons.remove_red_eye,
+                          )),
+                          const SizedBox(width: 10),
                         ],
                       ),
                       const SizedBox(height: 30),
@@ -769,190 +810,6 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                           ],
                                         ),
                                       ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-
-                                //Buscar Empleado
-                                CustomTextFielTexto(
-                                  controller: _busquedaUsuarioController,
-                                  labelText: 'Buscar Empleado',
-                                  onChanged: _buscarEmpleados,
-                                  validator: (value) {
-                                    if (_selectedEmpleado == null) {
-                                      return 'Seleccione un empleado válido';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 8),
-                                if (_buscandoEmpleados)
-                                  const CircularProgressIndicator(),
-                                if (_empleadosFiltrados.isNotEmpty)
-                                  Card(
-                                    elevation: 3,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        maxHeight:
-                                            MediaQuery.of(context).size.height *
-                                                0.3,
-                                      ),
-                                      child: ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: _empleadosFiltrados.length,
-                                        itemBuilder: (context, index) {
-                                          final empleado =
-                                              _empleadosFiltrados[index];
-                                          return ListTile(
-                                            leading: const Icon(
-                                              Icons.person,
-                                              color: Colors.blue,
-                                            ),
-                                            title: Text(
-                                              empleado.user_Name ??
-                                                  'Sin Nombre',
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            subtitle: Text(
-                                              'ID: ${empleado.id_User}',
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                            onTap: () {
-                                              setState(() {
-                                                _selectedEmpleado = empleado;
-                                                _empleadosFiltrados = [];
-                                                _busquedaUsuarioController
-                                                    .clear();
-                                              });
-                                            },
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                if (_selectedEmpleado != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Chip(
-                                      label: Text(
-                                        _selectedEmpleado!.user_Name ??
-                                            'Empleado seleccionado',
-                                        style: const TextStyle(
-                                            color: Colors.white, fontSize: 20),
-                                      ),
-                                      backgroundColor: Colors.blue.shade800,
-                                      deleteIcon: const Icon(Icons.close,
-                                          color: Colors.white),
-                                      onDeleted: () {
-                                        setState(() {
-                                          _selectedEmpleado = null;
-                                          _busquedaUsuarioController.clear();
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                const SizedBox(height: 30),
-
-                                //  Buscar Autoriza
-                                CustomTextFielTexto(
-                                  controller: _busquedaAutorizaController,
-                                  labelText: 'Buscar Autorizador',
-                                  onChanged: _buscarAutoriza,
-                                  validator: (autoriza) {
-                                    if (_selectedAutoriza == null) {
-                                      return 'Seleccione quien autoriza';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 8),
-                                if (_buscandoAutoriza) ...[
-                                  CircularProgressIndicator(
-                                    color: Colors.blue.shade900,
-                                  )
-                                ],
-                                if (_listaAutoriza.isNotEmpty) ...[
-                                  Card(
-                                    elevation: 3,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        maxHeight:
-                                            MediaQuery.of(context).size.height *
-                                                0.3,
-                                      ),
-                                      child: ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: _listaAutoriza.length,
-                                        itemBuilder: (context, index) {
-                                          final autoriza =
-                                              _listaAutoriza[index];
-                                          return ListTile(
-                                            leading: const Icon(
-                                              Icons.person,
-                                              color: Colors.blue,
-                                            ),
-                                            title: Text(
-                                              autoriza.user_Name ??
-                                                  'Sin nombre',
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            subtitle: Text(
-                                              'ID: ${autoriza.id_User}',
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                            onTap: () {
-                                              setState(() {
-                                                _selectedAutoriza = autoriza;
-                                                _listaAutoriza = [];
-                                                _busquedaAutorizaController
-                                                    .clear();
-                                              });
-                                            },
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  )
-                                ],
-                                if (_selectedAutoriza != null) ...[
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: Chip(
-                                      label: Text(
-                                        _selectedAutoriza!.user_Name ??
-                                            'Empleado seleccionado',
-                                        style: const TextStyle(
-                                            color: Colors.white, fontSize: 20),
-                                      ),
-                                      backgroundColor: Colors.blue.shade800,
-                                      deleteIcon: const Icon(
-                                        Icons.close,
-                                        color: Colors.white,
-                                      ),
-                                      onDeleted: () {
-                                        setState(() {
-                                          _selectedAutoriza = null;
-                                          _busquedaAutorizaController.clear();
-                                        });
-                                      },
-                                    ),
-                                  )
-                                ],
-                                const SizedBox(height: 30),
-
-                                //  Comentario
-                                Row(
-                                  children: [
-                                    Expanded(
-                                        child: CustomTextFielTexto(
-                                      controller: _comentarioController,
-                                      labelText: 'Comentario*',
-                                      prefixIcon: Icons.remove_red_eye,
-                                    )),
                                   ],
                                 ),
                               ],
