@@ -14,6 +14,7 @@ import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/trabajo_realizado_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/salidas/widgets/pdf_salida.dart';
+import 'package:jmas_desktop/salidas/widgets/tabla_productos_salida.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/buscar_calle_widget.dart';
 import 'package:jmas_desktop/widgets/buscar_colonia_widget.dart';
@@ -906,10 +907,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                       const SizedBox(height: 10),
 
                       //Tabla productos agregados
-                      buildProductosAgregados(
+                      buildProductosAgregadosSalidaX(
                         _productosAgregados,
                         eliminarProductoSalida,
-                        actualizarCostoSalida,
                       ),
                       const SizedBox(height: 30),
 
