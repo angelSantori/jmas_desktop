@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
-// import 'package:jmas_desktop/ajustes_minus/add_ajuste_menos_page.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/ajustes_plus/list_ajuste_mas_page.dart';
 import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
@@ -20,7 +19,6 @@ import 'package:jmas_desktop/entradas/add_entrada_page.dart';
 import 'package:jmas_desktop/entradas/list_entrada_page.dart';
 import 'package:jmas_desktop/general/inventory_dashboard_page.dart';
 import 'package:jmas_desktop/general/login2.dart';
-import 'package:jmas_desktop/general/login_page.dart';
 import 'package:jmas_desktop/general/widgets/excel_validar_captura.dart';
 import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
 import 'package:jmas_desktop/herramientas/list_herramientas_page.dart';
@@ -521,7 +519,7 @@ class _HomePageState extends State<HomePage>
                           ),
                         const SizedBox(height: 10),
                         const Text(
-                          'v. 12092025',
+                          'v. 23092025',
                           style: TextStyle(
                               color: Colors.grey, fontWeight: FontWeight.bold),
                         ),
