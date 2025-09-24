@@ -75,6 +75,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   String? _selectedColonia;
   String? _selectedCalle;
   String? _selectedAlmacen;
+  String? _selectedPadron;
+  String? _selectedUserAsignado;
 
   bool _isLoading = true;
 
@@ -259,12 +261,22 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final matchesCalle = _selectedCalle == null ||
             salida.idCalle.toString() == _selectedCalle;
 
+        //Match Padron
+        final matchesPadron = _selectedPadron == null ||
+            salida.idPadron.toString() == _selectedPadron;
+
+        //Match UserAsignado
+        final matchesUserAsignado = _selectedUserAsignado == null ||
+            salida.id_User_Asignado.toString() == _selectedUserAsignado;
+
         return matchesText &&
             matchesDate &&
             matchesJunta &&
             matchesAlmacen &&
             matchesColonia &&
-            matchesCalle;
+            matchesCalle &&
+            matchesPadron &&
+            matchesUserAsignado;
       }).toList();
       _currentPage = 1;
     });
@@ -517,7 +529,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      const SizedBox(height: 20),
                       //Folio
                       Expanded(
                         child: CustomTextFielTexto(
@@ -526,7 +537,65 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                           prefixIcon: Icons.search,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 20),
+                      //  Padron
+                      Expanded(
+                        child: CustomAutocompleteField<Padron>(
+                          value: _selectedPadron != null
+                              ? _padrones.firstWhere(
+                                  (padron) =>
+                                      padron.idPadron.toString() ==
+                                      _selectedPadron,
+                                  orElse: () =>
+                                      Padron(idPadron: 0, padronNombre: 'N/A'),
+                                )
+                              : null,
+                          labelText: 'Buscar Padron',
+                          items: _padrones,
+                          prefixIcon: Icons.search,
+                          onChanged: (Padron? newValue) {
+                            setState(() {
+                              _selectedPadron = newValue?.idPadron.toString();
+                            });
+                            _filterSalidas();
+                          },
+                          itemLabelBuilder: (padron) =>
+                              '${padron.idPadron ?? 0} - ${padron.padronNombre ?? 'N/A'}',
+                          itemValueBuilder: (padron) =>
+                              padron.idPadron.toString(),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+
+                      //User Asignado
+                      Expanded(
+                        child: CustomAutocompleteField<Users>(
+                          value: _selectedUserAsignado != null
+                              ? _userAsignado.firstWhere(
+                                  (userAs) =>
+                                      userAs.id_User.toString() ==
+                                      _selectedUserAsignado,
+                                  orElse: () =>
+                                      Users(id_User: 0, user_Name: 'N/A'),
+                                )
+                              : null,
+                          labelText: 'Buscar Usuario Asignado',
+                          items: _userAsignado,
+                          prefixIcon: Icons.search,
+                          onChanged: (Users? newValue) {
+                            setState(() {
+                              _selectedUserAsignado =
+                                  newValue?.id_User.toString();
+                            });
+                            _filterSalidas();
+                          },
+                          itemLabelBuilder: (userAs) =>
+                              '${userAs.id_User ?? 0} - ${userAs.user_Name ?? 'N/A'}',
+                          itemValueBuilder: (userAs) =>
+                              userAs.id_User.toString(),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
 
                       //Fecha
                       Expanded(
@@ -568,7 +637,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                     ],
                   ),
                 ),
-                //Listas desplegables
+                const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
@@ -685,6 +754,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                           prefixIcon: Icons.search,
                         ),
                       ),
+                      const SizedBox(width: 10),
                     ],
                   ),
                 ),
