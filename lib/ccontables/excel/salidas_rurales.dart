@@ -497,18 +497,15 @@ class ExcelSalidasRurales {
       rowIndex++;
     }
 
-    // Totales (solo para salidas activas si es la hoja completa)
-    if (!isComplete) {
-      final double totalUnidades =
-          salidas.fold(0, (sum, item) => sum + (item.salida_Unidades ?? 0));
-      final double totalCosto =
-          salidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
+    final double totalUnidades =
+        salidas.fold(0, (sum, item) => sum + (item.salida_Unidades ?? 0));
+    final double totalCosto =
+        salidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
 
-      sheet.getRangeByIndex(rowIndex, 3).setText('TOTALES:');
-      sheet.getRangeByIndex(rowIndex, 3).cellStyle.bold = true;
-      sheet.getRangeByIndex(rowIndex, 4).setNumber(totalUnidades);
-      sheet.getRangeByIndex(rowIndex, 5).setNumber(totalCosto);
-    }
+    sheet.getRangeByIndex(rowIndex, 3).setText('TOTALES:');
+    sheet.getRangeByIndex(rowIndex, 3).cellStyle.bold = true;
+    sheet.getRangeByIndex(rowIndex, 4).setNumber(totalUnidades);
+    sheet.getRangeByIndex(rowIndex, 5).setNumber(totalCosto);
   }
 
   // Función auxiliar para parsear fechas
