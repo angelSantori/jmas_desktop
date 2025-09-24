@@ -310,7 +310,7 @@ class ExcelSalidasEspeciales {
         sheet: sheet2,
         salidas: salidasActivas,
         juntas: juntasEspeciales,
-        allProductos: productos,
+        allProductos: allProductos,
         allCuentas: await ccontablesController.listCcontables(),
         title:
             'SALIDAS ESPECIALES ACTIVAS - ${getMonthName(selectedMonth).toUpperCase()} $currentYear',
@@ -430,7 +430,27 @@ class ExcelSalidasEspeciales {
 
     // Datos
     int rowIndex = 5;
+    List<Salidas> salidasIncluidas = [];
     for (var salida in salidas) {
+      if (!isComplete) {
+        // Solo para Hoja 2 (Salidas Activas)
+        if (salida.idProducto != null) {
+          final producto = allProductos.firstWhere(
+            (p) => p.id_Producto == salida.idProducto,
+            orElse: () => Productos(),
+          );
+
+          // Verificar si es servicio (con verificación de null safety)
+          final esServicio =
+              producto.prodUMedSalida?.toLowerCase().trim() == "servicio" ||
+                  producto.prodUMedEntrada?.toLowerCase().trim() == "servicio";
+
+          if (esServicio) {
+            continue; // Saltar servicios en Hoja 2
+          }
+        }
+      }
+      salidasIncluidas.add(salida);
       final isCanceled = !(salida.salida_Estado ?? false);
       final currentStyle = isCanceled ? canceledStyle : normalStyle;
 
@@ -501,17 +521,16 @@ class ExcelSalidasEspeciales {
     }
 
     // Totales (solo para salidas activas si es la hoja completa)
-    if (!isComplete) {
-      final double totalUnidades =
-          salidas.fold(0, (sum, item) => sum + (item.salida_Unidades ?? 0));
-      final double totalCosto =
-          salidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
 
-      sheet.getRangeByIndex(rowIndex, 3).setText('TOTALES:');
-      sheet.getRangeByIndex(rowIndex, 3).cellStyle.bold = true;
-      sheet.getRangeByIndex(rowIndex, 4).setNumber(totalUnidades);
-      sheet.getRangeByIndex(rowIndex, 5).setNumber(totalCosto);
-    }
+    final double totalUnidades = salidasIncluidas.fold(
+        0, (sum, item) => sum + (item.salida_Unidades ?? 0));
+    final double totalCosto =
+        salidasIncluidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
+
+    sheet.getRangeByIndex(rowIndex, 3).setText('TOTALES:');
+    sheet.getRangeByIndex(rowIndex, 3).cellStyle.bold = true;
+    sheet.getRangeByIndex(rowIndex, 4).setNumber(totalUnidades);
+    sheet.getRangeByIndex(rowIndex, 5).setNumber(totalCosto);
   }
 
   // Función auxiliar para parsear fechas
