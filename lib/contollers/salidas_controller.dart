@@ -1,9 +1,6 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/service/auth_service.dart';
 
 //TODO: Crear aquí y en back la busqueda de salida x idproducto
@@ -197,13 +194,40 @@ class SalidasController {
     }
   }
 
+  Future<bool> uploadDocumentoPago(String folio, Uint8List documento) async {
+    try {
+      final request = http.MultipartRequest(
+          'POST',
+          Uri.parse(
+              '${_authService.apiURL}/Salidas/UploadDocumentoPago/$folio'));
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        documento,
+        filename: 'documento_pago_$folio.pdf',
+      ));
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print(
+            'Error uploadDocumentoPago | Ife | SalidasController: ${response.statusCode} - $responseBody');
+        return false;
+      }
+    } catch (e) {
+      print('Error uploadDocumentoPago | Try | SalidasController: $e');
+      return false;
+    }
+  }
+
   Future<Uint8List?> getDocumentoFirmas(String folio) async {
     try {
       final response = await http.get(
         Uri.parse('${_authService.apiURL}/Salidas/GetDocumentoFirmas/$folio'),
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
       if (response.statusCode == 200) {
@@ -218,7 +242,31 @@ class SalidasController {
         return null;
       }
     } catch (e) {
-      print('Error al obtener documento: $e');
+      print('Error getDocumentoFirmas | Try | SalidasController: $e');
+      return null;
+    }
+  }
+
+  Future<Uint8List?> getDocumentoPago(String folio) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Salidas/GetDocumentoPago/$folio'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        final base64Doc = jsonData['documentoBase64'];
+        return base64Decode(base64Doc);
+      } else if (response.statusCode == 404) {
+        return null;
+      } else {
+        print(
+            'Error getDocumentoPago | Ife | SalidasController: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error getDocumentoPago | Try | SalidasController: $e');
       return null;
     }
   }
@@ -236,6 +284,7 @@ class Salidas {
   String? salida_Comentario;
   String? salida_Imag64Orden;
   String? salida_DocumentoFirmas;
+  String? salida_DocumentoPago;
   bool? salida_DocumentoFirma;
   bool? salida_Pagado;
   int? idProducto;
@@ -260,6 +309,7 @@ class Salidas {
     this.salida_Comentario,
     this.salida_Imag64Orden,
     this.salida_DocumentoFirmas,
+    this.salida_DocumentoPago,
     this.salida_DocumentoFirma,
     this.salida_Pagado,
     this.idProducto,
@@ -286,6 +336,7 @@ class Salidas {
     String? salida_Comentario,
     String? salida_Imag64Orden,
     String? salida_DocumentoFirmas,
+    String? salida_DocumentoPago,
     bool? salida_DocumentoFirma,
     bool? salida_Pagado,
     int? idProducto,
@@ -312,6 +363,7 @@ class Salidas {
       salida_Imag64Orden: salida_Imag64Orden ?? this.salida_Imag64Orden,
       salida_DocumentoFirmas:
           salida_DocumentoFirmas ?? this.salida_DocumentoFirmas,
+      salida_DocumentoPago: salida_DocumentoPago ?? this.salida_DocumentoPago,
       salida_DocumentoFirma:
           salida_DocumentoFirma ?? this.salida_DocumentoFirma,
       salida_Pagado: salida_Pagado ?? this.salida_Pagado,
@@ -341,6 +393,7 @@ class Salidas {
       'salida_Comentario': salida_Comentario,
       'salida_Imag64Orden': salida_Imag64Orden,
       'salida_DocumentoFirmas': salida_DocumentoFirmas,
+      'salida_DocumentoPago': salida_DocumentoPago,
       'salida_DocumentoFirma': salida_DocumentoFirma,
       'salida_Pagado': salida_Pagado,
       'idProducto': idProducto,
@@ -386,6 +439,9 @@ class Salidas {
       salida_DocumentoFirmas: map['salida_DocumentoFirmas'] != null
           ? map['salida_DocumentoFirmas'] as String
           : null,
+      salida_DocumentoPago: map['salida_DocumentoPago'] != null
+          ? map['salida_DocumentoPago'] as String
+          : null,
       salida_DocumentoFirma: map['salida_DocumentoFirma'] != null
           ? map['salida_DocumentoFirma'] as bool
           : null,
@@ -415,7 +471,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, salida_Imag64Orden: $salida_Imag64Orden, salida_DocumentoFirmas: $salida_DocumentoFirmas, salida_DocumentoFirma: $salida_DocumentoFirma, salida_Pagado: $salida_Pagado, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio, idUserAutoriza: $idUserAutoriza)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, salida_Imag64Orden: $salida_Imag64Orden, salida_DocumentoFirmas: $salida_DocumentoFirmas, salida_DocumentoPago: $salida_DocumentoPago, salida_DocumentoFirma: $salida_DocumentoFirma, salida_Pagado: $salida_Pagado, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio, idUserAutoriza: $idUserAutoriza)';
   }
 
   @override
@@ -433,6 +489,7 @@ class Salidas {
         other.salida_Comentario == salida_Comentario &&
         other.salida_Imag64Orden == salida_Imag64Orden &&
         other.salida_DocumentoFirmas == salida_DocumentoFirmas &&
+        other.salida_DocumentoPago == salida_DocumentoPago &&
         other.salida_DocumentoFirma == salida_DocumentoFirma &&
         other.salida_Pagado == salida_Pagado &&
         other.idProducto == idProducto &&
@@ -460,6 +517,7 @@ class Salidas {
         salida_Comentario.hashCode ^
         salida_Imag64Orden.hashCode ^
         salida_DocumentoFirmas.hashCode ^
+        salida_DocumentoPago.hashCode ^
         salida_DocumentoFirma.hashCode ^
         salida_Pagado.hashCode ^
         idProducto.hashCode ^
