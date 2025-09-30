@@ -3,11 +3,11 @@ import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String apiURL = 'https://localhost:5001/api'; //  LOCAL
-  final String apiNubeURL = 'https://localhost:5001/api'; //   LOCAL
+  //final String apiURL = 'https://localhost:5001/api'; //  LOCAL
+  //final String apiNubeURL = 'https://localhost:5001/api'; //   LOCAL
 
-  //final String apiURL = 'http://200.200.200.155:5000/api'; //   OFICINA
-  //final String apiNubeURL = 'http://154.12.243.37:80/api'; //   Server
+  final String apiURL = 'http://200.200.200.155:5000/api'; //   OFICINA
+  final String apiNubeURL = 'http://154.12.243.37:80/api'; //   Server
 
   Users? _currentUser;
 

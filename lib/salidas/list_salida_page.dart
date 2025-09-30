@@ -1088,6 +1088,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                               ),
                             ),
                             const SizedBox(height: 20),
+
+                            //  Documento de firmas
                             if (_tieneDocumentoFirmas(salidas))
                               const Column(
                                 children: [
@@ -1103,17 +1105,21 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                                 ],
                               ),
                             const SizedBox(height: 20),
-                            if (salida.salida_Pagado == true)
-                              const Icon(
-                                Icons.attach_money,
-                                color: Colors.green,
-                                size: 30,
+
+                            //  Documento de pago
+                            if (_tieneDocumentoPago(salidas))
+                              const Column(
+                                children: [
+                                  Icon(Icons.attach_money,
+                                      color: Colors.green, size: 30),
+                                ],
                               )
                             else
-                              const Icon(
-                                Icons.money_off,
-                                color: Colors.red,
-                                size: 30,
+                              const Column(
+                                children: [
+                                  Icon(Icons.money_off,
+                                      color: Colors.red, size: 30),
+                                ],
                               )
                           ],
                         ),
@@ -1132,6 +1138,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
 
   bool _tieneDocumentoFirmas(List<SalidaLista> salidasDelFolio) {
     return salidasDelFolio.any((s) => s.salida_DocumentoFirma == true);
+  }
+
+  bool _tieneDocumentoPago(List<SalidaLista> salidaDelFolio) {
+    return salidaDelFolio.any((s) => s.salida_Pagado == true);
   }
 
   String? idUserDelete;

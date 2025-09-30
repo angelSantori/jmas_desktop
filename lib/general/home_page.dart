@@ -519,7 +519,7 @@ class _HomePageState extends State<HomePage>
                           ),
                         const SizedBox(height: 10),
                         const Text(
-                          'v. 23092025',
+                          'v. 29092025',
                           style: TextStyle(
                               color: Colors.grey, fontWeight: FontWeight.bold),
                         ),
