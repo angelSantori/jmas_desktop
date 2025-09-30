@@ -62,6 +62,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
       CanceladoSalidaController();
   final AuthService _authService = AuthService();
   final UsersController _usersController = UsersController();
+  final SalidasController _salidasController = SalidasController();
   late Future<Map<int, ProductosOptimizado>> _productosFuture;
 
   String? _currentUserId;
@@ -70,9 +71,10 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
   final TextEditingController _motivoController = TextEditingController();
   Map<int, Productos>? productosCache;
   bool _isUploadingDocument = false;
-  bool _isUpdatingPayment = false;
   // ignore: unused_field
   Uint8List? _documentoFirmas;
+  // ignore: unused_field
+  Uint8List? _documentoPago;
 
   @override
   void initState() {
@@ -80,6 +82,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     _productosFuture = _loadProductos();
     _getCurrentUser();
     _verificarDocumentoExistente();
+    _verificarPagoExistente();
   }
 
   @override
@@ -107,11 +110,29 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     }
   }
 
+  Future<void> _verificarPagoExistente() async {
+    try {
+      final tienePago = widget.salidas.any((s) =>
+          s.salida_DocumentoPago != null && s.salida_DocumentoPago!.isNotEmpty);
+
+      if (tienePago) {
+        final documento = await SalidasController()
+            .getDocumentoPago(widget.salidas.first.salida_CodFolio!);
+        if (mounted) {
+          setState(() => _documentoPago = documento);
+        }
+      }
+    } catch (e) {
+      print(
+          'Error al verificar documento existente | _verificarDocumentoExistente | DetailsSalida: $e');
+    }
+  }
+
   Future<void> _subirDocumentoFirmas() async {
     final filePicker = FilePicker.platform;
     final result = await filePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: ['pdf'],
     );
 
     if (result == null || result.files.isEmpty) return;
@@ -141,7 +162,48 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         }
       }
     } catch (e) {
-      showError(context, 'Error al procesar el archivo: $e');
+      print('ERROR _subirDocumentoFirmas | Try | DetailsSalida: $e');
+      showError(context, 'Error al procesar el archivo');
+    } finally {
+      setState(() => _isUploadingDocument = false);
+    }
+  }
+
+  Future<void> _subirDocumentoPago() async {
+    final filePicker = FilePicker.platform;
+    final result = await filePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    setState(() => _isUploadingDocument = true);
+
+    try {
+      final fileBytes = result.files.first.bytes;
+      if (fileBytes != null) {
+        final success = await _salidasController.uploadDocumentoPago(
+          widget.salidas.first.salida_CodFolio!,
+          fileBytes,
+        );
+
+        if (success) {
+          setState(() => _documentoPago = fileBytes);
+          for (var salida in widget.salidas) {
+            salida.salida_DocumentoPago = 'documento_subido';
+          }
+          if (widget.onDocumentUploaded != null) {
+            widget.onDocumentUploaded!();
+          }
+          showOk(context, 'Documento subido correctamente');
+        } else {
+          showError(context, 'Error al subir el documento');
+        }
+      }
+    } catch (e) {
+      print('ERROR _subirDocumentoPago | Try | DetailsSalida: $e');
+      showError(context, 'Error al procesar el archivo');
     } finally {
       setState(() => _isUploadingDocument = false);
     }
@@ -150,10 +212,8 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
   Future<void> _descargarDocumentoFirmas() async {
     setState(() => _isLoading = true);
     try {
-      final documento = await SalidasController().getDocumentoFirmas(
-        widget.salidas.first.salida_CodFolio!,
-      );
-
+      final documento = await _salidasController
+          .getDocumentoFirmas(widget.salidas.first.salida_CodFolio!);
       if (documento != null) {
         setState(() => _documentoFirmas = documento);
 
@@ -172,57 +232,41 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         showAdvertence(context, 'No hay documento de firmas para esta salida');
       }
     } catch (e) {
-      showError(context, 'Error al descargar documento: $e');
+      print('ERROR _descargarDocumentoFirmas | DetailsSalida: $e');
+      showError(context, 'Error al descargar documento');
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _togglePagoStatus() async {
-    setState(() => _isUpdatingPayment = true);
-
+  Future<void> _descargarDocumentoPago() async {
+    setState(() => _isLoading = true);
     try {
-      bool todasActualizadas = true;
-      final nuevoEstado = !(widget.salidas.first.salida_Pagado ?? false);
+      final documento = await _salidasController
+          .getDocumentoPago(widget.salidas.first.salida_CodFolio!);
+      if (documento != null) {
+        setState(() => _documentoPago = documento);
 
-      for (var salida in widget.salidas) {
-        final salidasActualizadas = salida.copyWith(salida_Pagado: nuevoEstado);
+        //  Guardar el documento localmente
+        final result = await FileSaver.instance.saveFile(
+          name: 'documento_pago_${widget.salidas.first.salida_CodFolio}.pdf',
+          bytes: documento,
+          customMimeType: 'pdf',
+        );
 
-        final success =
-            await SalidasController().editSalida(salidasActualizadas);
-        if (!success) {
-          todasActualizadas = false;
-          break;
+        // ignore: unnecessary_null_comparison
+        if (result != null) {
+          showOk(context, 'Documento descargado correctamente');
         }
-      }
-
-      if (todasActualizadas) {
-        for (var salida in widget.salidas) {
-          salida.salida_Pagado = nuevoEstado;
-        }
-        setState(() {});
-        await showOk(
-            context,
-            nuevoEstado
-                ? 'Salida marcada como pagada'
-                : 'Salida marcada como no pagada');
-        Navigator.pop(context, true);
       } else {
-        showError(context, 'Error al actualizar el estado de pago');
+        showAdvertence(context, 'No hay documento de pago para esta salida');
       }
     } catch (e) {
-      showError(context, 'ERROR');
-      print('Error: $e');
+      print('ERROR _descargarDocumentoPago | DetailsSalida: $e');
+      showError(context, 'Error al descargar el documento');
     } finally {
-      setState(() => _isUpdatingPayment = false);
+      setState(() => _isLoading = false);
     }
-  }
-
-  bool get _isAuthorizedUser {
-    final userName = widget.user.toLowerCase();
-    return userName == 'admin' ||
-        userName == 'angel' ||
-        userName == 'rosa maria piñon anchondo';
   }
 
   Future<void> _getCurrentUser() async {
@@ -670,40 +714,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                   onPressed: _imprimirSalida,
                                   tooltip: 'Reimprimir salida',
                                 ),
-                                if (_isAuthorizedUser) ...[
-                                  _isUpdatingPayment
-                                      ? Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.blue.shade900,
-                                            ),
-                                          ),
-                                        )
-                                      : IconButton(
-                                          icon: Icon(
-                                            widget.salidas.first
-                                                        .salida_Pagado ==
-                                                    true
-                                                ? Icons.attach_money
-                                                : Icons.money_off,
-                                            color: widget.salidas.first
-                                                        .salida_Pagado ==
-                                                    true
-                                                ? Colors.green
-                                                : Colors.red,
-                                          ),
-                                          onPressed: _togglePagoStatus,
-                                          tooltip: widget.salidas.first
-                                                      .salida_Pagado ==
-                                                  true
-                                              ? 'Marcar como no pagado'
-                                              : 'Marcar como pagado',
-                                        ),
-                                ],
                               ]),
                           const SizedBox(height: 15),
                           const Divider(),
@@ -997,65 +1007,145 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                           const SizedBox(height: 20),
 
                           //  Doc Firmas
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Documento con Firmas',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16),
-                                ),
-                                const SizedBox(height: 10),
-                                if (widget.salidas.any((s) =>
-                                    s.salida_DocumentoFirmas != null &&
-                                    s.salida_DocumentoFirmas!.isNotEmpty)) ...[
-                                  Row(
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(8),
+                                    border:
+                                        Border.all(color: Colors.grey[300]!),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.description,
-                                          color: Colors.blue),
-                                      const SizedBox(width: 8),
-                                      const Text('Documento disponible'),
-                                      const Spacer(),
-                                      IconButton(
-                                        icon: const Icon(Icons.download,
-                                            color: Colors.green),
-                                        onPressed: _descargarDocumentoFirmas,
-                                        tooltip: 'Descargar documento',
+                                      const Text(
+                                        'Documento con Firmas',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
                                       ),
+                                      const SizedBox(height: 10),
+                                      if (widget.salidas.any((s) =>
+                                          s.salida_DocumentoFirmas != null &&
+                                          s.salida_DocumentoFirmas!
+                                              .isNotEmpty)) ...[
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.description,
+                                                color: Colors.blue),
+                                            const SizedBox(width: 8),
+                                            const Text('Documento disponible'),
+                                            IconButton(
+                                              icon: const Icon(Icons.download,
+                                                  color: Colors.green),
+                                              onPressed:
+                                                  _descargarDocumentoFirmas,
+                                              tooltip: 'Descargar documento',
+                                            ),
+                                          ],
+                                        )
+                                      ] else ...[
+                                        const Text('No hay documento subido'),
+                                        const SizedBox(height: 10),
+                                        ElevatedButton.icon(
+                                          onPressed: _subirDocumentoFirmas,
+                                          icon: const Icon(Icons.upload_file),
+                                          label: const Text(
+                                              'Subir documento con firmas'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.blue.shade900,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                      if (_isUploadingDocument) ...[
+                                        const Padding(
+                                          padding: EdgeInsets.only(top: 8.0),
+                                          child: LinearProgressIndicator(),
+                                        ),
+                                      ],
                                     ],
-                                  )
-                                ] else ...[
-                                  const Text('No hay documento subido'),
-                                  const SizedBox(height: 10),
-                                  ElevatedButton.icon(
-                                    onPressed: _subirDocumentoFirmas,
-                                    icon: const Icon(Icons.upload_file),
-                                    label: const Text(
-                                        'Subir documento con firmas'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue.shade900,
-                                      foregroundColor: Colors.white,
-                                    ),
                                   ),
-                                ],
-                                if (_isUploadingDocument) ...[
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 8.0),
-                                    child: LinearProgressIndicator(),
+                                ),
+                              ),
+                              const SizedBox(width: 30),
+
+                              //  Doc Pago
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(8),
+                                    border:
+                                        Border.all(color: Colors.grey[300]!),
                                   ),
-                                ],
-                              ],
-                            ),
-                          ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Documento de Pago',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      if (widget.salidas.any((s) =>
+                                          s.salida_DocumentoPago != null &&
+                                          s.salida_DocumentoPago!
+                                              .isNotEmpty)) ...[
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.description,
+                                                color: Colors.blue),
+                                            const SizedBox(width: 8),
+                                            const Text('Documento disponible'),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.download,
+                                                color: Colors.green,
+                                              ),
+                                              onPressed:
+                                                  _descargarDocumentoPago,
+                                              tooltip: 'Descargar documento',
+                                            )
+                                          ],
+                                        )
+                                      ] else ...[
+                                        const Text('No hay documento subido'),
+                                        const SizedBox(height: 10),
+                                        ElevatedButton.icon(
+                                          onPressed: _subirDocumentoPago,
+                                          icon: const Icon(
+                                            Icons.upload_file,
+                                          ),
+                                          label: const Text(
+                                              'Subir documento de pago'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.blue.shade900,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                        )
+                                      ],
+                                      if (_isUploadingDocument) ...[
+                                        const Padding(
+                                          padding: EdgeInsets.only(top: 8),
+                                          child: LinearProgressIndicator(),
+                                        )
+                                      ]
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     ),
