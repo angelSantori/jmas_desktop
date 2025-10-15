@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/ccontables/widgets_ccontables.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -17,6 +18,7 @@ class ExcelServicios {
     required ProductosController productosController,
     required SalidasController salidasController,
     required CcontablesController ccontablesController,
+    required ContratistasController contratistasController,
     required BuildContext context,
   }) async {
     if (selectedMonth == null) {
@@ -82,36 +84,60 @@ class ExcelServicios {
       }
 
       // Agrupar salidas por servicio y junta
-      final Map<int, Map<int, List<SalidaLista>>> salidasByServiceAndJunta = {};
-      final Map<int, Map<int, double>> totalCostoByServiceAndJunta = {};
+      final Map<int, Map<int, Map<int, List<SalidaLista>>>>
+          salidasByServiceJuntaContratista = {};
+      final Map<int, Map<int, Map<int, double>>>
+          totalCostoByServiceJuntaContratista = {};
 
       for (var salida in salidasServicios) {
         if (salida.idProducto == null || salida.id_Junta == null) continue;
 
-        if (!salidasByServiceAndJunta.containsKey(salida.idProducto)) {
-          salidasByServiceAndJunta[salida.idProducto!] = {};
-          totalCostoByServiceAndJunta[salida.idProducto!] = {};
+        final contratistaId =
+            salida.idContratista ?? 0; // Usar 0 para "Sin contratista"
+
+        if (!salidasByServiceJuntaContratista.containsKey(salida.idProducto)) {
+          salidasByServiceJuntaContratista[salida.idProducto!] = {};
+          totalCostoByServiceJuntaContratista[salida.idProducto!] = {};
         }
 
-        if (!salidasByServiceAndJunta[salida.idProducto]!
+        if (!salidasByServiceJuntaContratista[salida.idProducto]!
             .containsKey(salida.id_Junta)) {
-          salidasByServiceAndJunta[salida.idProducto]![salida.id_Junta!] = [];
-          totalCostoByServiceAndJunta[salida.idProducto]![salida.id_Junta!] = 0;
+          salidasByServiceJuntaContratista[salida.idProducto]![
+              salida.id_Junta!] = {};
+          totalCostoByServiceJuntaContratista[salida.idProducto]![
+              salida.id_Junta!] = {};
         }
 
-        salidasByServiceAndJunta[salida.idProducto]![salida.id_Junta!]!
+        if (!salidasByServiceJuntaContratista[salida.idProducto]![
+                salida.id_Junta]!
+            .containsKey(contratistaId)) {
+          salidasByServiceJuntaContratista[salida.idProducto]![
+              salida.id_Junta]![contratistaId] = [];
+          totalCostoByServiceJuntaContratista[salida.idProducto]![
+              salida.id_Junta]![contratistaId] = 0;
+        }
+
+        salidasByServiceJuntaContratista[salida.idProducto]![salida.id_Junta]![
+                contratistaId]!
             .add(salida);
-        totalCostoByServiceAndJunta[salida.idProducto]![salida.id_Junta!] =
-            (totalCostoByServiceAndJunta[salida.idProducto]![
-                        salida.id_Junta!] ??
-                    0) +
-                (salida.salida_Costo ?? 0);
+        totalCostoByServiceJuntaContratista[salida.idProducto]![salida
+            .id_Junta]![contratistaId] = (totalCostoByServiceJuntaContratista[
+                    salida.idProducto]![salida.id_Junta]![contratistaId] ??
+                0) +
+            (salida.salida_Costo ?? 0);
       }
 
       double totalCargo = 0;
-      for (var productId in totalCostoByServiceAndJunta.keys) {
-        for (var juntaId in totalCostoByServiceAndJunta[productId]!.keys) {
-          totalCargo += totalCostoByServiceAndJunta[productId]![juntaId] ?? 0;
+      for (var productId in totalCostoByServiceJuntaContratista.keys) {
+        for (var juntaId
+            in totalCostoByServiceJuntaContratista[productId]!.keys) {
+          for (var contratistaId
+              in totalCostoByServiceJuntaContratista[productId]![juntaId]!
+                  .keys) {
+            totalCargo += totalCostoByServiceJuntaContratista[productId]![
+                    juntaId]![contratistaId] ??
+                0;
+          }
         }
       }
 
@@ -134,6 +160,8 @@ class ExcelServicios {
           40; // Descripción Servicio
       detallesSheet.getRangeByName('G1').columnWidth = 10; // ID Junta
       detallesSheet.getRangeByName('H1').columnWidth = 30; // Nombre Junta
+      detallesSheet.getRangeByName('I1').columnWidth = 10; // ID Contratista
+      detallesSheet.getRangeByName('J1').columnWidth = 30; // Nombre Contratista
 
       // Encabezados de la hoja de detalles
       detallesSheet.getRangeByName('A1').setText('Folio');
@@ -144,10 +172,20 @@ class ExcelServicios {
       detallesSheet.getRangeByName('F1').setText('Descripción Servicio');
       detallesSheet.getRangeByName('G1').setText('ID Junta');
       detallesSheet.getRangeByName('H1').setText('Nombre Junta');
+      detallesSheet.getRangeByName('I1').setText('ID Contratista');
+      detallesSheet.getRangeByName('J1').setText('Nombre Contratista');
 
       // Aplicar estilo a los encabezados
-      final rangeHeadersDetalles = detallesSheet.getRangeByName('A1:H1');
+      final rangeHeadersDetalles = detallesSheet.getRangeByName('A1:J1');
       rangeHeadersDetalles.cellStyle.hAlign = HAlignType.center;
+
+      // Precargar contratistas para optimizar
+      final allContratistas = await contratistasController.listContratistas();
+      final contratistasMap = <int, String>{};
+      for (var contratista in allContratistas) {
+        contratistasMap[contratista.idContratista] =
+            contratista.contratistaNombre;
+      }
 
       // Llenar datos en la hoja de detalles
       int detallesRow = 2;
@@ -157,6 +195,12 @@ class ExcelServicios {
             orElse: () => Productos());
         final junta = juntas.firstWhere((j) => j.id_Junta == salida.id_Junta,
             orElse: () => Juntas());
+
+        // Obtener información del contratista
+        String nombreContratista = 'N/A';
+        if (salida.idContratista != null && salida.idContratista! > 0) {
+          nombreContratista = contratistasMap[salida.idContratista!] ?? 'N/A';
+        }
 
         detallesSheet
             .getRangeByName('A$detallesRow')
@@ -188,6 +232,12 @@ class ExcelServicios {
         detallesSheet
             .getRangeByName('H$detallesRow')
             .setText(junta.junta_Name ?? '');
+        detallesSheet
+            .getRangeByName('I$detallesRow')
+            .setValue(salida.idContratista ?? 0);
+        detallesSheet
+            .getRangeByName('J$detallesRow')
+            .setText(nombreContratista);
 
         detallesRow++;
       }
@@ -329,63 +379,82 @@ class ExcelServicios {
       // Datos - ahora mostrando junta_Cuenta y concepto combinado
       int currentRow = 9;
 
-      // Primero: Filas de juntas con sus servicios (cargo)
-      for (var productId in salidasByServiceAndJunta.keys) {
+      // Primero: Filas de juntas con sus servicios Y contratistas (cargo)
+      for (var productId in salidasByServiceJuntaContratista.keys) {
         final product = productosServicio.firstWhere(
             (p) => p.id_Producto == productId,
             orElse: () => Productos());
         if (product.id_Producto == null) continue;
 
-        for (var juntaId in salidasByServiceAndJunta[productId]!.keys) {
+        for (var juntaId in salidasByServiceJuntaContratista[productId]!.keys) {
           final junta = juntas.firstWhere((j) => j.id_Junta == juntaId,
               orElse: () => Juntas());
-          final totalCosto =
-              totalCostoByServiceAndJunta[productId]![juntaId] ?? 0;
 
-          // Usar junta_Cuenta en lugar del código contable del producto
-          sheet
-              .getRangeByName('A$currentRow')
-              .setText(junta.junta_Cuenta ?? '0');
-          sheet.getRangeByName('A$currentRow').cellStyle = styleInfoData;
+          for (var contratistaId
+              in salidasByServiceJuntaContratista[productId]![juntaId]!.keys) {
+            final totalCosto = totalCostoByServiceJuntaContratista[productId]![
+                    juntaId]![contratistaId] ??
+                0;
 
-          sheet.getRangeByName('B$currentRow').setNumber(totalCosto);
-          sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
-              HAlignType.right;
-          sheet.getRangeByName('B$currentRow').cellStyle = styleInfoData;
+            // Obtener nombre del contratista
+            String nombreContratista = 'Sin contratista';
+            if (contratistaId > 0) {
+              nombreContratista = contratistasMap[contratistaId] ??
+                  'Contratista $contratistaId';
+            }
 
-          sheet.getRangeByName('C$currentRow').setNumber(0);
-          sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
-              HAlignType.right;
-          sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
+            // Usar junta_Cuenta en lugar del código contable del producto
+            sheet
+                .getRangeByName('A$currentRow')
+                .setText(junta.junta_Cuenta ?? '0');
+            sheet.getRangeByName('A$currentRow').cellStyle = styleInfoData;
 
-          // Concepto combinado: servicio + junta
-          final conceptoMovimiento =
-              '${product.prodDescripcion?.toUpperCase() ?? ''} - ${junta.junta_Name?.toUpperCase() ?? ''}';
-          sheet.getRangeByName('D$currentRow').setText(conceptoMovimiento);
-          sheet.getRangeByName('D$currentRow').cellStyle = styleInfoData;
+            sheet.getRangeByName('B$currentRow').setNumber(totalCosto);
+            sheet.getRangeByName('B$currentRow').cellStyle.hAlign =
+                HAlignType.right;
+            sheet.getRangeByName('B$currentRow').cellStyle = styleInfoData;
 
-          sheet.getRangeByName('E$currentRow').setText('149825');
-          sheet.getRangeByName('E$currentRow').cellStyle = styleSuma;
-          sheet.getRangeByName('E$currentRow').cellStyle.hAlign =
-              HAlignType.center;
+            sheet.getRangeByName('C$currentRow').setNumber(0);
+            sheet.getRangeByName('C$currentRow').cellStyle.hAlign =
+                HAlignType.right;
+            sheet.getRangeByName('C$currentRow').cellStyle = styleInfoData;
 
-          currentRow++;
+            // Concepto combinado: servicio + junta + contratista
+            String conceptoMovimiento =
+                '${product.prodDescripcion?.toUpperCase() ?? ''} - ${junta.junta_Name?.toUpperCase() ?? ''}';
+            if (contratistaId > 0) {
+              conceptoMovimiento += ' - $nombreContratista';
+            }
+            sheet.getRangeByName('D$currentRow').setText(conceptoMovimiento);
+            sheet.getRangeByName('D$currentRow').cellStyle = styleInfoData;
+
+            sheet.getRangeByName('E$currentRow').setText('149825');
+            sheet.getRangeByName('E$currentRow').cellStyle = styleSuma;
+            sheet.getRangeByName('E$currentRow').cellStyle.hAlign =
+                HAlignType.center;
+
+            currentRow++;
+          }
         }
       }
 
-      // Segundo: Filas de resumen por servicio (abono)
-      // Calcular totales por servicio
+      // Segundo: Filas de resumen por servicio (abono) - SIN cambios aquí
+// Calcular totales por servicio
       final Map<int, double> totalPorServicio = {};
-      for (var productId in salidasByServiceAndJunta.keys) {
+      for (var productId in salidasByServiceJuntaContratista.keys) {
         double totalServicio = 0;
-        for (var juntaId in salidasByServiceAndJunta[productId]!.keys) {
-          totalServicio +=
-              totalCostoByServiceAndJunta[productId]![juntaId] ?? 0;
+        for (var juntaId in salidasByServiceJuntaContratista[productId]!.keys) {
+          for (var contratistaId
+              in salidasByServiceJuntaContratista[productId]![juntaId]!.keys) {
+            totalServicio += totalCostoByServiceJuntaContratista[productId]![
+                    juntaId]![contratistaId] ??
+                0;
+          }
         }
         totalPorServicio[productId] = totalServicio;
       }
 
-      // Agregar filas de abono para cada servicio
+      // Agregar filas de abono para cada servicio (sin cambios)
       for (var productId in totalPorServicio.keys) {
         final product = productosServicio.firstWhere(
             (p) => p.id_Producto == productId,

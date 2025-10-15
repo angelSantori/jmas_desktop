@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -16,6 +17,7 @@ class ExcelSalidasRurales {
     required ProductosController productosController,
     required SalidasController salidasController,
     required CcontablesController ccontablesController,
+    required ContratistasController contratistasController,
     required BuildContext context,
   }) async {
     if (selectedMonth == null) {
@@ -82,6 +84,7 @@ class ExcelSalidasRurales {
       // Agrupar salidas por junta (en lugar de por producto)
       final Map<int, List<Salidas>> salidasByJunta = {};
       final Map<int, double> totalCostoByJunta = {};
+      final Map<int, Set<int>> contratistasByJunta = {};
 
       for (var salida in salidasActivas) {
         if (salida.id_Junta == null) continue;
@@ -95,6 +98,10 @@ class ExcelSalidasRurales {
         totalCostoByJunta[salida.id_Junta!] =
             (totalCostoByJunta[salida.id_Junta!] ?? 0) +
                 (salida.salida_Costo ?? 0);
+
+        if (salida.idContratista != null && salida.idContratista! > 0) {
+          contratistasByJunta[salida.id_Junta!]!.add(salida.idContratista!);
+        }
       }
 
       double totalCargo = 0;
@@ -128,6 +135,7 @@ class ExcelSalidasRurales {
       sheet1.getRangeByName('F1').columnWidth = 25;
       sheet1.getRangeByName('G1').columnWidth = 25;
       sheet1.getRangeByName('H1').columnWidth = 25;
+      sheet1.getRangeByName('I1').columnWidth = 25;
 
       // Estilos
       final Style headerStyle = workbook.styles.add('headerStyle');
@@ -250,9 +258,12 @@ class ExcelSalidasRurales {
       sheet1.getRangeByName('D8').setText('Concepto por Movimiento');
       sheet1.getRangeByName('D8').cellStyle = grayBgStyle;
       sheet1.getRangeByName('D8').cellStyle.hAlign = HAlignType.center;
-      sheet1.getRangeByName('E8').setText('Fuente Financiamiento');
+      sheet1.getRangeByName('E8').setText('Contratista');
       sheet1.getRangeByName('E8').cellStyle = grayBgStyle;
       sheet1.getRangeByName('E8').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('F8').setText('Fuente Financiamiento');
+      sheet1.getRangeByName('F8').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('F8').cellStyle.hAlign = HAlignType.center;
 
       // Datos - ahora agrupados por junta
       int currentRow = 9;
@@ -261,6 +272,25 @@ class ExcelSalidasRurales {
         final junta = juntasRurales.firstWhere((j) => j.id_Junta == juntaId,
             orElse: () => Juntas());
         final totalCosto = totalCostoByJunta[juntaId] ?? 0;
+
+        // Obtener todos los contratistas para esta junta
+        String infoContratistas = 'N/A';
+        final contratistasIds = contratistasByJunta[juntaId] ?? <int>{};
+
+        if (contratistasIds.isNotEmpty) {
+          final contratistasNombres = <String>[];
+          for (var contratistaId in contratistasIds) {
+            final contratista =
+                await contratistasController.getContratistaById(contratistaId);
+            if (contratista != null) {
+              contratistasNombres.add('${contratista.contratistaNombre}');
+            }
+          }
+          if (contratistasNombres.isNotEmpty) {
+            // Si hay múltiples contratistas, mostrarlos separados por coma
+            infoContratistas = contratistasNombres.join(', ');
+          }
+        }
 
         // Usar junta_Cuenta en lugar de cuenta de producto
         sheet1
@@ -283,9 +313,13 @@ class ExcelSalidasRurales {
             'SALIDA DE ALMACÉN DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear ${junta.junta_Name?.toUpperCase()}');
         sheet1.getRangeByName('D$currentRow').cellStyle = styleInfoData;
 
-        sheet1.getRangeByName('E$currentRow').setText('149825');
-        sheet1.getRangeByName('E$currentRow').cellStyle = styleSuma;
-        sheet1.getRangeByName('E$currentRow').cellStyle.hAlign =
+        // Nueva columna Contratista
+        sheet1.getRangeByName('E$currentRow').setText(infoContratistas);
+        sheet1.getRangeByName('E$currentRow').cellStyle = styleInfoData;
+
+        sheet1.getRangeByName('F$currentRow').setText('149825');
+        sheet1.getRangeByName('F$currentRow').cellStyle = styleSuma;
+        sheet1.getRangeByName('F$currentRow').cellStyle.hAlign =
             HAlignType.center;
 
         currentRow++;
@@ -298,8 +332,9 @@ class ExcelSalidasRurales {
       sheet1.getRangeByName('C$currentRow').cellStyle = styleInfoData;
       sheet1.getRangeByName('D$currentRow').setText(
           'SALIDAS DE ALMACÉN RURALES DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear');
-      sheet1.getRangeByName('E$currentRow').setText('149825');
-      sheet1.getRangeByName('E$currentRow').cellStyle.hAlign =
+      sheet1.getRangeByName('E$currentRow').setText('');
+      sheet1.getRangeByName('F$currentRow').setText('149825');
+      sheet1.getRangeByName('F$currentRow').cellStyle.hAlign =
           HAlignType.center;
 
       // ===== HOJA 2: Salidas Rurales Activas =====
@@ -309,6 +344,7 @@ class ExcelSalidasRurales {
         juntas: juntasRurales,
         allProductos: allProductos,
         allCuentas: await ccontablesController.listCcontables(),
+        contratistasController: contratistasController,
         title:
             'SALIDAS RURALES ACTIVAS - ${getMonthName(selectedMonth).toUpperCase()} $currentYear',
         isComplete: false,
@@ -321,6 +357,7 @@ class ExcelSalidasRurales {
         juntas: juntasRurales,
         allProductos: allProductos,
         allCuentas: await ccontablesController.listCcontables(),
+        contratistasController: contratistasController,
         title:
             'SALIDAS RURALES COMPLETAS - ${getMonthName(selectedMonth).toUpperCase()} $currentYear',
         isComplete: true,
@@ -357,6 +394,7 @@ class ExcelSalidasRurales {
     required List<Juntas> juntas,
     required List<Productos> allProductos,
     required List<CContables> allCuentas,
+    required ContratistasController contratistasController,
     required String title,
     required bool isComplete, // Si es true, marca las canceladas en rojo
   }) async {
@@ -371,6 +409,7 @@ class ExcelSalidasRurales {
     sheet.getRangeByName('H1').columnWidth = 20;
     sheet.getRangeByName('I1').columnWidth = 20;
     sheet.getRangeByName('J1').columnWidth = 20;
+    sheet.getRangeByName('K1').columnWidth = 30;
 
     // Estilos
     final Workbook workbook = sheet.workbook;
@@ -390,8 +429,8 @@ class ExcelSalidasRurales {
     final Style canceledStyle =
         workbook.styles.add('canceledStyle${sheet.index}');
     canceledStyle.fontName = 'Arial';
-    canceledStyle.fontSize = 11;
-    canceledStyle.fontColor = '#FF0000'; // Rojo para salidas canceladas
+    canceledStyle.backColor = '#FF0000';
+    canceledStyle.fontColor = '#FFFFFF';
     canceledStyle.italic = true;
 
     // Título
@@ -416,7 +455,8 @@ class ExcelSalidasRurales {
       'ID Producto',
       'ID Almacén',
       'ID Padron',
-      'ID Junta - Nombre'
+      'ID Junta - Nombre',
+      'ID Contratista - Nombre'
     ];
 
     // Escribir encabezados
@@ -427,6 +467,7 @@ class ExcelSalidasRurales {
 
     // Datos
     int rowIndex = 5;
+    final Map<int, String> contratistasCache = {};
     for (var salida in salidas) {
       final isCanceled = !(salida.salida_Estado ?? false);
       final currentStyle = isCanceled ? canceledStyle : normalStyle;
@@ -493,6 +534,21 @@ class ExcelSalidasRurales {
           .getRangeByIndex(rowIndex, 10)
           .setText('$juntaID - ${junta.junta_Name}');
       sheet.getRangeByIndex(rowIndex, 10).cellStyle = currentStyle;
+
+      // ID Contratista - Nombre
+      String infoContratista = 'N/A';
+      if (salida.idContratista != null && salida.idContratista! > 0) {
+        if (!contratistasCache.containsKey(salida.idContratista)) {
+          final contratista = await contratistasController
+              .getContratistaById(salida.idContratista!);
+          contratistasCache[salida.idContratista!] =
+              contratista?.contratistaNombre ?? 'N/A';
+        }
+        infoContratista =
+            '${salida.idContratista} - ${contratistasCache[salida.idContratista!]}';
+      }
+      sheet.getRangeByIndex(rowIndex, 11).setText(infoContratista);
+      sheet.getRangeByIndex(rowIndex, 11).cellStyle = currentStyle;
 
       rowIndex++;
     }

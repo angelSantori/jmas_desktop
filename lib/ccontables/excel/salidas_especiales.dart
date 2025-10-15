@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
@@ -16,6 +17,7 @@ class ExcelSalidasEspeciales {
     required ProductosController productosController,
     required SalidasController salidasController,
     required CcontablesController ccontablesController,
+    required ContratistasController contratistasController,
     required BuildContext context,
   }) async {
     if (selectedMonth == null) {
@@ -130,6 +132,7 @@ class ExcelSalidasEspeciales {
       sheet1.getRangeByName('F1').columnWidth = 25;
       sheet1.getRangeByName('G1').columnWidth = 25;
       sheet1.getRangeByName('H1').columnWidth = 25;
+      sheet1.getRangeByName('I1').columnWidth = 25;
 
       // Estilos
       final Style headerStyle = workbook.styles.add('headerStyle');
@@ -252,9 +255,12 @@ class ExcelSalidasEspeciales {
       sheet1.getRangeByName('D8').setText('Concepto por Movimiento');
       sheet1.getRangeByName('D8').cellStyle = grayBgStyle;
       sheet1.getRangeByName('D8').cellStyle.hAlign = HAlignType.center;
-      sheet1.getRangeByName('E8').setText('Fuente Financiamiento');
+      sheet1.getRangeByName('E8').setText('Contratista');
       sheet1.getRangeByName('E8').cellStyle = grayBgStyle;
       sheet1.getRangeByName('E8').cellStyle.hAlign = HAlignType.center;
+      sheet1.getRangeByName('F8').setText('Fuente Financiamiento');
+      sheet1.getRangeByName('F8').cellStyle = grayBgStyle;
+      sheet1.getRangeByName('F8').cellStyle.hAlign = HAlignType.center;
 
       // Datos
       int currentRow = 9;
@@ -265,6 +271,15 @@ class ExcelSalidasEspeciales {
         if (product.id_Producto == null) continue;
         final cc = ccByProduct[productId];
         final totalCosto = totalCostoByProduct[productId] ?? 0;
+
+        String nombreContratista = 'N/A';
+        final primeraSalida = salidasByProduct[productId]!.first;
+        if (primeraSalida.idContratista != null &&
+            primeraSalida.idContratista! > 0) {
+          final contratista = await contratistasController
+              .getContratistaById(primeraSalida.idContratista!);
+          nombreContratista = contratista?.contratistaNombre ?? 'N/A';
+        }
 
         sheet1
             .getRangeByName('A$currentRow')
@@ -286,9 +301,13 @@ class ExcelSalidasEspeciales {
             .setText('${product.prodDescripcion?.toUpperCase()}');
         sheet1.getRangeByName('D$currentRow').cellStyle = styleInfoData;
 
-        sheet1.getRangeByName('E$currentRow').setText('149825');
-        sheet1.getRangeByName('E$currentRow').cellStyle = styleSuma;
-        sheet1.getRangeByName('E$currentRow').cellStyle.hAlign =
+        // Nueva columna Contratista
+        sheet1.getRangeByName('E$currentRow').setText(nombreContratista);
+        sheet1.getRangeByName('E$currentRow').cellStyle = styleInfoData;
+
+        sheet1.getRangeByName('F$currentRow').setText('149825');
+        sheet1.getRangeByName('F$currentRow').cellStyle = styleSuma;
+        sheet1.getRangeByName('F$currentRow').cellStyle.hAlign =
             HAlignType.center;
 
         currentRow++;
@@ -301,8 +320,9 @@ class ExcelSalidasEspeciales {
       sheet1.getRangeByName('C$currentRow').cellStyle = styleInfoData;
       sheet1.getRangeByName('D$currentRow').setText(
           'SALIDAS DE ALMACÉN DEL 01 AL ${lastDay.day.toString().padLeft(2, '0')} DE ${getMonthName(selectedMonth).toUpperCase()} $currentYear');
-      sheet1.getRangeByName('E$currentRow').setText('149825');
-      sheet1.getRangeByName('E$currentRow').cellStyle.hAlign =
+      sheet1.getRangeByName('E$currentRow').setText('');
+      sheet1.getRangeByName('F$currentRow').setText('149825');
+      sheet1.getRangeByName('F$currentRow').cellStyle.hAlign =
           HAlignType.center;
 
       // ===== HOJA 2: Salidas Especiales Activas =====
@@ -312,6 +332,7 @@ class ExcelSalidasEspeciales {
         juntas: juntasEspeciales,
         allProductos: allProductos,
         allCuentas: await ccontablesController.listCcontables(),
+        contratistasController: contratistasController,
         title:
             'SALIDAS ESPECIALES ACTIVAS - ${getMonthName(selectedMonth).toUpperCase()} $currentYear',
         isComplete: false,
@@ -324,6 +345,7 @@ class ExcelSalidasEspeciales {
         juntas: juntasEspeciales,
         allProductos: productos,
         allCuentas: await ccontablesController.listCcontables(),
+        contratistasController: contratistasController,
         title:
             'SALIDAS ESPECIALES COMPLETAS - ${getMonthName(selectedMonth).toUpperCase()} $currentYear',
         isComplete: true,
@@ -360,6 +382,7 @@ class ExcelSalidasEspeciales {
     required List<Juntas> juntas,
     required List<Productos> allProductos,
     required List<CContables> allCuentas,
+    required ContratistasController contratistasController,
     required String title,
     required bool isComplete, // Si es true, marca las canceladas en rojo
   }) async {
@@ -374,6 +397,7 @@ class ExcelSalidasEspeciales {
     sheet.getRangeByName('H1').columnWidth = 20;
     sheet.getRangeByName('I1').columnWidth = 20;
     sheet.getRangeByName('J1').columnWidth = 20;
+    sheet.getRangeByName('K1').columnWidth = 30;
 
     // Estilos
     final Workbook workbook = sheet.workbook;
@@ -394,7 +418,8 @@ class ExcelSalidasEspeciales {
         workbook.styles.add('canceledStyle${sheet.index}');
     canceledStyle.fontName = 'Arial';
     canceledStyle.fontSize = 11;
-    canceledStyle.fontColor = '#FF0000'; // Rojo para salidas canceladas
+    canceledStyle.backColor = '#FF0000';
+    canceledStyle.fontColor = '#FFFFFF';
     canceledStyle.italic = true;
 
     // Título
@@ -419,7 +444,8 @@ class ExcelSalidasEspeciales {
       'ID Producto',
       'ID Almacén',
       'ID Padron',
-      'ID Junta - Nombre'
+      'ID Junta - Nombre',
+      'ID Contratista - Nombre'
     ];
 
     // Escribir encabezados
@@ -431,6 +457,8 @@ class ExcelSalidasEspeciales {
     // Datos
     int rowIndex = 5;
     List<Salidas> salidasIncluidas = [];
+    final Map<int, String> contratistasCache = {};
+
     for (var salida in salidas) {
       if (!isComplete) {
         // Solo para Hoja 2 (Salidas Activas)
@@ -516,6 +544,21 @@ class ExcelSalidasEspeciales {
           .getRangeByIndex(rowIndex, 10)
           .setText('$juntaID - ${junta.junta_Name}');
       sheet.getRangeByIndex(rowIndex, 10).cellStyle = currentStyle;
+
+      // ID Contratista - Nombre
+      String infoContratista = 'N/A';
+      if (salida.idContratista != null && salida.idContratista! > 0) {
+        if (!contratistasCache.containsKey(salida.idContratista)) {
+          final contratista = await contratistasController
+              .getContratistaById(salida.idContratista!);
+          contratistasCache[salida.idContratista!] =
+              contratista?.contratistaNombre ?? 'N/A';
+        }
+        infoContratista =
+            '${salida.idContratista} - ${contratistasCache[salida.idContratista!]}';
+      }
+      sheet.getRangeByIndex(rowIndex, 11).setText(infoContratista);
+      sheet.getRangeByIndex(rowIndex, 11).cellStyle = currentStyle;
 
       rowIndex++;
     }

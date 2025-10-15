@@ -10,7 +10,7 @@ import 'dart:html' as html;
 class ExcelEntradasMes {
   static Future<void> generateExcelEntradasMes({
     DateTime? selectedMonth,
-    required List<Entradas> filteredEntradas,
+    required List<EntradaLista> filteredEntradas,
     required BuildContext context,
   }) async {
     try {
