@@ -1,14 +1,16 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
+import 'package:jmas_desktop/contollers/presupuestos_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/trabajo_realizado_controller.dart';
@@ -48,10 +50,13 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       OrdenServicioController();
   final TrabajoRealizadoController _trabajoRealizadoController =
       TrabajoRealizadoController();
+  final PresupuestosController _presupuestosController =
+      PresupuestosController();
+  final ContratistasController _contratistasController =
+      ContratistasController();
 
   final _formKey = GlobalKey<FormState>();
 
-  //final TextEditingController _referenciaController = TextEditingController();
   final TextEditingController _busquedaUsuarioController =
       TextEditingController();
   final TextEditingController _idProductoController = TextEditingController();
@@ -62,6 +67,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   final TextEditingController _fechaController = TextEditingController(
       text: DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now()));
   final TextEditingController _comentarioController = TextEditingController();
+  final TextEditingController _folioPresupuestoController =
+      TextEditingController(text: 'PRE');
+  final TextEditingController _folioOSTController = TextEditingController();
 
   final _showDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
@@ -82,8 +90,14 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   bool _cargandoOrdenes = false;
   OrdenServicio? _selectedOrdenServicio;
 
+  //Presupuestos
+  List<Presupuestos> _presupuestosSeleccionados = [];
+  bool _cargandoPresupuestos = false;
+  Padron? _padronPresupuesto;
+
   List<Almacenes> _almacenes = [];
   List<Juntas> _juntas = [];
+  List<Contratistas> _contratistas = [];
   final List<Map<String, dynamic>> _productosAgregados = [];
 
   Almacenes? _selectedAlmacen;
@@ -92,12 +106,18 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
   Colonias? _selectedColonia;
   Calles? _selectedCalle;
   Padron? _selectedPadron;
+  Contratistas? _selectedContratista;
 
   bool _isLoading = false;
   bool _isGeneratingPDF = false;
   bool _mostrarOrdenServicio = false;
+  bool _mostrarPresupuesto = false;
+  bool _mostrarContratista = false;
 
   Uint8List? _imagenOrden;
+
+  // Lista de juntas especiales que NO aplican descuento
+  final List<int> _juntasEspeciales = [1, 6, 8, 14];
 
   String? _selectedTipoTrabajo;
   final List<String> _tipoTrabajos = [
@@ -112,6 +132,368 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     _loadDataSalidas();
     _loadFolioTR();
     _cargarOrdenesAprobadas();
+  }
+
+  void _recalcularPreciosPorCambioDeJunta() {
+    if (_productosAgregados.isEmpty) return;
+
+    setState(() {
+      for (int i = 0; i < _productosAgregados.length; i++) {
+        var producto = _productosAgregados[i];
+
+        // Solo recalcular para productos especiales
+        if (producto['id'] == 40050558 || producto['id'] == 40050557) {
+          double cantidad = producto['cantidad'];
+          double costoOriginal =
+              producto['costo_original'] ?? producto['costo'];
+
+          // Recalcular precio unitario
+          double nuevoPrecioUnitario = costoOriginal;
+          if (_selectedJunta != null &&
+              !_juntasEspeciales.contains(_selectedJunta!.id_Junta)) {
+            nuevoPrecioUnitario = costoOriginal * 0.4; // 60% descuento
+          }
+
+          _productosAgregados[i]['costo'] = nuevoPrecioUnitario;
+          _productosAgregados[i]['precio'] = nuevoPrecioUnitario * cantidad;
+          _productosAgregados[i]['descuento_aplicado'] =
+              (nuevoPrecioUnitario != costoOriginal);
+        }
+      }
+    });
+  }
+
+  double _calcularPrecioConDescuento(Productos producto, double cantidad) {
+    double precioUnitario = producto.prodCosto ?? 0.0;
+
+    // Aplicar descuento del 60% si el producto es 40050558 o 40050557
+    // y la junta NO está en la lista de especiales
+    if ((producto.id_Producto == 40050558 ||
+            producto.id_Producto == 40050557) &&
+        _selectedJunta != null &&
+        !_juntasEspeciales.contains(_selectedJunta!.id_Junta)) {
+      precioUnitario =
+          precioUnitario * 0.4; // 60% de descuento (40% del precio original)
+    }
+
+    return precioUnitario * cantidad;
+  }
+
+  Future<void> _buscarPrespuestoByFolio() async {
+    String folio = _folioPresupuestoController.text.trim();
+
+    // Validar que el folio tenga al menos 4 caracteres (PRE + al menos 1 número)
+    if (folio.isEmpty || folio.length < 4) {
+      showAdvertence(
+          context, 'Ingrese un folio de presupuesto válido (ej: PRE1)');
+      return;
+    }
+
+    // Validar que el folio empiece con PRE
+    if (!folio.toUpperCase().startsWith('PRE')) {
+      showAdvertence(context, 'El folio debe comenzar con "PRE"');
+      return;
+    }
+
+    setState(() => _cargandoPresupuestos = true);
+
+    try {
+      final presupuestos =
+          await _presupuestosController.getPresupuestoByFolio(folio);
+
+      if (presupuestos == null || presupuestos.isEmpty) {
+        showAdvertence(
+            context, 'No se encontró el presupuesto con el folio: $folio');
+        setState(() {
+          _presupuestosSeleccionados.clear();
+          _padronPresupuesto = null;
+        });
+        return;
+      }
+
+      //  Verificar si hay presupuesto ya utilizdos (estado = false)
+      final presupuestoUtilizado =
+          presupuestos.where((p) => !p.presupuestoEstado).toList();
+      if (presupuestoUtilizado.isNotEmpty) {
+        showAdvertence(context,
+            'El presupuesto contiene ${presupuestoUtilizado.length} productos(s) ya utilizados. No se puede seleccionar.');
+        setState(() {
+          _presupuestosSeleccionados.clear();
+          _padronPresupuesto = null;
+        });
+        return;
+      }
+
+      // Obtener información del padrón del primer presupuesto
+      final primerPresupuesto = presupuestos.first;
+      final padron =
+          await _padronController.getPadronById(primerPresupuesto.idPadron);
+
+      setState(() {
+        _presupuestosSeleccionados = presupuestos;
+        _padronPresupuesto = padron;
+        _selectedPadron = padron;
+
+        if (padron != null) {
+          _idPadronController.text = padron.idPadron.toString();
+        }
+      });
+
+      // AUTOMÁTICAMENTE cargar los productos del presupuesto en la salida
+      _cargarProductosPresupuestoEnSalida();
+    } catch (e) {
+      print('Error _buscarPresupuestoPorFolio: $e');
+      showError(context, 'Error al buscar presupuesto');
+    } finally {
+      setState(() => _cargandoPresupuestos = false);
+    }
+  }
+
+  void _cargarProductosPresupuestoEnSalida() async {
+    if (_presupuestosSeleccionados.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      // Limpiar productos actuales
+      _productosAgregados.clear();
+    });
+
+    // Cargar todos los productos del presupuesto
+    for (var presupuesto in _presupuestosSeleccionados) {
+      try {
+        final producto =
+            await _productosController.getProductoById(presupuesto.idProducto);
+        if (producto != null) {
+          // CALCULAR PRECIO UNITARIO CORRECTO DEL PRESUPUESTO
+          final double precioUnitarioPresupuesto =
+              presupuesto.presupuestoUnidades > 0
+                  ? presupuesto.presupuestoTotal /
+                      presupuesto.presupuestoUnidades
+                  : 0.0;
+
+          setState(() {
+            _productosAgregados.add({
+              'id': producto.id_Producto,
+              'descripcion': producto.prodDescripcion,
+              'costo':
+                  precioUnitarioPresupuesto, // USAR PRECIO DEL PRESUPUESTO, NO DEL PRODUCTO
+              'cantidad': presupuesto.presupuestoUnidades,
+              'precio': presupuesto.presupuestoTotal,
+              'presupuesto_original': true,
+            });
+          });
+        }
+      } catch (e) {
+        print('Error cargando producto ${presupuesto.idProducto}: $e');
+      }
+    }
+
+    showOk(context, 'Presupuesto cargado automáticamente en la salida');
+  }
+
+  Widget _buildTablaPresupuesto() {
+    if (_presupuestosSeleccionados.isEmpty) {
+      return const SizedBox();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        const Text(
+          'Productos del Presupuesto:',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 10),
+        Table(
+          border: TableBorder.all(),
+          columnWidths: const {
+            0: FlexColumnWidth(1), // ID Producto
+            1: FlexColumnWidth(3), // Descripción
+            2: FlexColumnWidth(0.5), // Unidades
+            3: FlexColumnWidth(1), // Precio Unitario
+            4: FlexColumnWidth(1), // Precio Total
+          },
+          children: [
+            TableRow(
+              decoration: BoxDecoration(
+                color: Colors.green.shade800,
+              ),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Clave',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Descripción',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Unidades',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'P. Unitario',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'P. Total',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+            ..._presupuestosSeleccionados.map((presupuesto) {
+              // Calcular precio unitario
+              final precioUnitario = presupuesto.presupuestoUnidades > 0
+                  ? presupuesto.presupuestoTotal /
+                      presupuesto.presupuestoUnidades
+                  : 0.0;
+
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      presupuesto.idProducto.toString(),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  FutureBuilder<Productos?>(
+                    future: _productosController
+                        .getProductoById(presupuesto.idProducto),
+                    builder: (context, snapshot) {
+                      final descripcion = snapshot.hasData
+                          ? snapshot.data!.prodDescripcion
+                          : 'Cargando...';
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          descripcion ?? 'N/A',
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      presupuesto.presupuestoUnidades.toStringAsFixed(2),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      '\$${precioUnitario.toStringAsFixed(2)}',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      '\$${presupuesto.presupuestoTotal.toStringAsFixed(2)}',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+            // Fila de totales
+            TableRow(
+              children: [
+                const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
+                const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Total',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Padding(padding: EdgeInsets.all(8.0), child: Text('')),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    '\$${_presupuestosSeleccionados.fold<double>(0.0, (sum, presupuesto) => sum + presupuesto.presupuestoTotal).toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoPadronPresupuesto() {
+    if (_padronPresupuesto == null) return const SizedBox();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        const Text(
+          'Información del Padrón del Presupuesto:',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 10),
+        Card(
+          elevation: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ID Padrón: ${_padronPresupuesto!.idPadron}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Nombre: ${_padronPresupuesto!.padronNombre ?? 'N/A'}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Dirección: ${_padronPresupuesto!.padronDireccion ?? 'N/A'}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _seleccionarImagen() async {
@@ -138,10 +520,13 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     List<Almacenes> almacenes = await _almacenesController.listAlmacenes();
     List<Juntas> juntas = await _juntasController.listJuntas();
     List<Users> usuarios = await _usersController.listUsers();
+    List<Contratistas> contratistas =
+        await _contratistasController.listContratistas();
 
     setState(() {
       _almacenes = almacenes;
       _juntas = juntas;
+      _contratistas = contratistas;
       _listaAutoriza = usuarios;
       _empleados = usuarios
           .where((empleados) => empleados.user_Rol == 'Empleado')
@@ -190,7 +575,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           nuevaExistencia - (_selectedProducto!.prodMin!);
 
       // Mostrar advertencia si la existencia queda negativa
-      if (nuevaExistencia < 0) {
+      if (nuevaExistencia < 0 &&
+          _selectedProducto!.prodUMedEntrada != "Servicio") {
         final bool confirmado = await showDialog(
               context: context,
               builder: (context) => AlertDialog(
@@ -236,26 +622,11 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           return; // El usuario canceló la operación
         }
       }
-      // Mostrar advertencia si está por debajo del mínimo (pero no negativo)
-      else if (nuevaExistencia < (_selectedProducto!.prodMin!)) {
-        showAdvertence(context,
-            'La cantidad está por debajo de las existencias mínimas del producto: ${_selectedProducto!.prodDescripcion}. \nCantidad mínima: ${_selectedProducto!.prodMin} \nTotal unidades tras salida: $nuevaExistencia  \nDeficit: $totalDeficit unidades de menos.');
-      }
 
       setState(() {
-        double precioUnitario = _selectedProducto!.prodCosto ?? 0.0;
-
-        // Aplicar descuento del 60% si el producto es 40050569 o 40050570
-        // y la junta NO es 1, 6, 8 o 14
-        if ((_selectedProducto!.id_Producto == 40050558 ||
-                _selectedProducto!.id_Producto == 40050559) &&
-            _selectedJunta != null &&
-            ![1, 6, 8, 14].contains(_selectedJunta!.id_Junta)) {
-          precioUnitario = precioUnitario *
-              0.4; // 60% de descuento (40% del precio original)
-        }
-
-        final double precioTotal = precioUnitario * cantidad;
+        final double precioTotal =
+            _calcularPrecioConDescuento(_selectedProducto!, cantidad);
+        final double precioUnitario = precioTotal / cantidad;
 
         _productosAgregados.add({
           'id': _selectedProducto!.id_Producto,
@@ -263,8 +634,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
           'costo': precioUnitario,
           'cantidad': cantidad,
           'precio': precioTotal,
-          'descuento_aplicado': (precioUnitario !=
-              _selectedProducto!.prodCosto) // Marcar si se aplicó descuento
+          'descuento_aplicado':
+              (precioUnitario != _selectedProducto!.prodCosto),
+          'costo_original': _selectedProducto!.prodCosto,
         });
 
         //Limpiar campos después de agregar
@@ -275,6 +647,33 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     } else {
       showAdvertence(
           context, 'Debe seleccionar un producto y definir la cantidad.');
+    }
+  }
+
+  Future<void> _actualizarEstadoPresupuestos() async {
+    try {
+      // Crear una lista de presupuestos actualizados con estado = false
+      final presupuestosActualizados =
+          _presupuestosSeleccionados.map((presupuesto) {
+        return presupuesto.copyWith(
+          presupuestoEstado: false,
+        );
+      }).toList();
+
+      // Llamar al controlador para ACTUALIZAR los presupuestos (no crear nuevos)
+      final resultado = await _presupuestosController
+          .updatePresupuestosMultiple(presupuestosActualizados);
+
+      if (resultado == null) {
+        print('Error al actualizar el estado de los presupuestos');
+        showAdvertence(context, 'Error al marcar presupuestos como utilizados');
+      } else {
+        print(
+            'Presupuestos actualizados exitosamente: ${resultado.length} registros');
+      }
+    } catch (e) {
+      print('Error en _actualizarEstadoPresupuestos: $e');
+      showAdvertence(context, 'Error al actualizar estado de presupuestos');
     }
   }
 
@@ -310,6 +709,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         } else {
           // Obtener el folio generado (de la primera salida)
           folioGenerado = salidasGuardadas.first.salida_CodFolio;
+          if (_presupuestosSeleccionados.isNotEmpty) {
+            await _actualizarEstadoPresupuestos();
+          }
 
           // Actualizar existencias de productos
           for (int i = 0; i < _productosAgregados.length; i++) {
@@ -396,6 +798,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         movimiento: 'Salida',
         fecha: _fechaController.text,
         folio: folio,
+        presupuestoFolio:
+            !_mostrarPresupuesto ? 'N/A' : _folioPresupuestoController.text,
         userName: widget.userName!,
         idUser: widget.idUser!,
         alamcenA: _selectedAlmacen!,
@@ -409,6 +813,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
         userAutoriza: _selectedAutoriza!,
         comentario: _comentarioController.text,
         productos: _productosAgregados,
+        folioOST: _folioOSTController.text,
+        contratista: _selectedContratista,
       );
     } catch (e) {
       print('Error al generar PDF: $e');
@@ -435,7 +841,8 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
     return Salidas(
       id_Salida: 0,
       salida_CodFolio: '',
-      salida_Referencia: null,
+      salida_PresupuestoFolio:
+          !_mostrarPresupuesto ? 'N/A' : _folioPresupuestoController.text,
       salida_Estado: true,
       salida_Unidades: double.tryParse(producto['cantidad'].toString()),
       salida_Costo: double.tryParse(producto['precio'].toString()),
@@ -446,6 +853,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       salida_Pagado: false,
       salida_Imag64Orden:
           _imagenOrden != null ? base64Encode(_imagenOrden!) : null,
+      salidaFolioOST: _folioOSTController.text,
       idProducto: producto['id'] ?? 0,
       id_User: int.parse(idUserReporte!), // Usuario
       id_Junta: _selectedJunta?.id_Junta,
@@ -456,6 +864,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       idColonia: _selectedColonia?.idColonia,
       idOrdenServicio: _selectedOrdenServicio?.idOrdenServicio,
       idUserAutoriza: _selectedAutoriza?.id_User,
+      idContratista: _selectedContratista?.idContratista,
     );
   }
 
@@ -494,12 +903,19 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
       _selectedEmpleado = null;
       _selectedTipoTrabajo = null;
       _selectedAutoriza = null;
+      _selectedContratista = null;
       _imagenOrden = null;
       _selectedOrdenServicio = null;
       _mostrarOrdenServicio = false;
+      _mostrarPresupuesto = false;
+      _mostrarContratista = false;
 
-      //_referenciaController.clear();
+      _presupuestosSeleccionados.clear();
+      _padronPresupuesto = null;
+      _folioPresupuestoController.text = 'PRE';
+
       _busquedaUsuarioController.clear();
+      _folioOSTController.clear();
       _comentarioController.clear();
       _idProductoController.clear();
       _idColoniaController.clear();
@@ -544,6 +960,79 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(width: 10),
+                          // Expanded(
+                          //   child: CustomTextFielTexto(
+                          //     controller: _folioPresupuestoController,
+                          //     prefixIcon: Icons.receipt,
+                          //     labelText: 'Folio de presupuesto (ej, PRE1)',
+                          //     inputFormatters: [
+                          //       // No permite espacios
+                          //       FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                          //       // Permite solo letras, números y algunos caracteres especiales
+                          //       FilteringTextInputFormatter.allow(
+                          //           RegExp(r'[a-zA-Z0-9]')),
+                          //     ],
+                          //     validator: (folio) {
+                          //       if (folio == null ||
+                          //           folio.isEmpty ||
+                          //           folio.length < 4) {
+                          //         return 'Ingrese un folio válido (ej: PRE1)';
+                          //       }
+                          //       if (!folio.toUpperCase().startsWith('PRE')) {
+                          //         return 'El folio debe comenzar con "PRE"';
+                          //       }
+                          //       return null;
+                          //     },
+                          //     onFieldSubmitted: (value) {
+                          //       if (value.isNotEmpty &&
+                          //           value.toUpperCase().startsWith('PRE')) {
+                          //         _buscarPrespuestoByFolio();
+                          //       }
+                          //     },
+                          //     onChanged: (value) {
+                          //       // Mantener "PRE" siempre al principio y en mayúsculas
+                          //       if (value.isNotEmpty &&
+                          //           (aqui iba un signo de admiración !)value.toUpperCase().startsWith('PRE')) {
+                          //         // Si el usuario borra parte de "PRE", restaurarlo
+                          //         if (value.length < 3) {
+                          //           _folioPresupuestoController.text = 'PRE';
+                          //           _folioPresupuestoController.selection =
+                          //               TextSelection.collapsed(offset: 3);
+                          //         } else {
+                          //           // Forzar que empiece con PRE
+                          //           final cleanedValue =
+                          //               'PRE${value.substring(3)}';
+                          //           _folioPresupuestoController.text =
+                          //               cleanedValue.toUpperCase();
+                          //           _folioPresupuestoController.selection =
+                          //               TextSelection.collapsed(
+                          //                   offset: cleanedValue.length);
+                          //         }
+                          //       } else if (value.isNotEmpty) {
+                          //         // Convertir a mayúsculas automáticamente
+                          //         _folioPresupuestoController.text =
+                          //             value.toUpperCase();
+                          //         _folioPresupuestoController.selection =
+                          //             TextSelection.collapsed(
+                          //                 offset: value.length);
+                          //       }
+                          //     },
+                          //   ),
+                          // ),
+                          // const SizedBox(width: 20),
+                          Expanded(
+                              child: CustomTextFielTexto(
+                            controller: _folioOSTController,
+                            labelText: 'Orden de Servicio Técnico',
+                            prefixIcon: Icons.border_outer_outlined,
+                            validator: (ost) {
+                              if (ost == null || ost.isEmpty) {
+                                return 'Introduzca la orden de servicio técnico';
+                              }
+                              return null;
+                            },
+                          )),
+                          const SizedBox(width: 20),
                           Expanded(
                             child: CustomListaDesplegable(
                               value: _selectedTipoTrabajo,
@@ -596,6 +1085,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                 setState(() {
                                   _selectedJunta = junta;
                                 });
+                                _recalcularPreciosPorCambioDeJunta();
                               },
                               itemLabelBuilder: (junta) =>
                                   '${junta.id_Junta ?? 0} - ${junta.junta_Name ?? 'N/A'}',
@@ -732,7 +1222,7 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                 Row(
                                   children: [
                                     const Text(
-                                      '¿Agregar orden de servicio?',
+                                      '¿Agregar presupuesto?',
                                       style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16),
@@ -740,20 +1230,20 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                     const SizedBox(width: 10),
                                     ToggleButtons(
                                       isSelected: [
-                                        _mostrarOrdenServicio,
-                                        !_mostrarOrdenServicio
+                                        _mostrarPresupuesto,
+                                        !_mostrarPresupuesto
                                       ],
                                       onPressed: (index) {
                                         setState(() {
-                                          _mostrarOrdenServicio = index == 0;
-                                          if (!_mostrarOrdenServicio) {
-                                            _selectedOrdenServicio = null;
-                                            _idColoniaController.clear();
-                                            _idCalleController.clear();
-                                            _idPadronController.clear();
-                                            _selectedColonia = null;
-                                            _selectedCalle = null;
+                                          _mostrarPresupuesto = index == 0;
+                                          if (!_mostrarPresupuesto) {
+                                            // Limpiar datos del presupuesto cuando se desactiva
+                                            _presupuestosSeleccionados.clear();
+                                            _padronPresupuesto = null;
+                                            _folioPresupuestoController.text =
+                                                'PRE';
                                             _selectedPadron = null;
+                                            _idPadronController.clear();
                                           }
                                         });
                                       },
@@ -769,48 +1259,147 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                       ],
                                     ),
                                     const SizedBox(width: 20),
-                                    if (_mostrarOrdenServicio)
+                                    if (_mostrarPresupuesto)
                                       Expanded(
-                                        child: Row(
-                                          children: [
-                                            SizedBox(
-                                              width: 300,
-                                              child: CustomListaDesplegableTipo<
-                                                  OrdenServicio>(
-                                                value: _selectedOrdenServicio,
-                                                labelText: 'Orden de Servicio',
-                                                items:
-                                                    _ordenesServicioAprobadas,
-                                                onChanged:
-                                                    _onOrdenServicioSelected,
-                                                validator: (orden) {
-                                                  if (_mostrarOrdenServicio &&
-                                                      orden == null) {
-                                                    return 'Debe seleccionar una orden de servicio';
-                                                  }
-                                                  return null;
-                                                },
-                                                itemLabelBuilder: (orden) =>
-                                                    '${orden.folioOS} - ${orden.estadoOS} - ${orden.prioridadOS}',
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  IconButton(
-                                                    onPressed:
-                                                        _cargarOrdenesAprobadas,
-                                                    icon: const Icon(
-                                                        Icons.refresh),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                        child: CustomTextFielTexto(
+                                          controller:
+                                              _folioPresupuestoController,
+                                          prefixIcon: Icons.receipt,
+                                          labelText:
+                                              'Folio de presupuesto (ej, PRE1)',
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter.deny(
+                                                RegExp(r'\s')),
+                                            FilteringTextInputFormatter.allow(
+                                                RegExp(r'[a-zA-Z0-9]')),
                                           ],
+                                          validator: (folio) {
+                                            if (_mostrarPresupuesto &&
+                                                (folio == null ||
+                                                    folio.isEmpty ||
+                                                    folio.length < 4)) {
+                                              return 'Ingrese un folio válido (ej: PRE1)';
+                                            }
+                                            if (_mostrarPresupuesto &&
+                                                !folio!
+                                                    .toUpperCase()
+                                                    .startsWith('PRE')) {
+                                              return 'El folio debe comenzar con "PRE"';
+                                            }
+                                            return null;
+                                          },
+                                          onFieldSubmitted: (value) {
+                                            if (_mostrarPresupuesto &&
+                                                value.isNotEmpty &&
+                                                value
+                                                    .toUpperCase()
+                                                    .startsWith('PRE')) {
+                                              _buscarPrespuestoByFolio();
+                                            }
+                                          },
+                                          onChanged: (value) {
+                                            if (_mostrarPresupuesto &&
+                                                value.isNotEmpty) {
+                                              if (!value
+                                                  .toUpperCase()
+                                                  .startsWith('PRE')) {
+                                                if (value.length < 3) {
+                                                  _folioPresupuestoController
+                                                      .text = 'PRE';
+                                                  _folioPresupuestoController
+                                                          .selection =
+                                                      const TextSelection
+                                                          .collapsed(offset: 3);
+                                                } else {
+                                                  final cleanedValue =
+                                                      'PRE${value.substring(3)}';
+                                                  _folioPresupuestoController
+                                                          .text =
+                                                      cleanedValue
+                                                          .toUpperCase();
+                                                  _folioPresupuestoController
+                                                          .selection =
+                                                      TextSelection.collapsed(
+                                                          offset: cleanedValue
+                                                              .length);
+                                                }
+                                              } else if (value.isNotEmpty) {
+                                                _folioPresupuestoController
+                                                    .text = value.toUpperCase();
+                                                _folioPresupuestoController
+                                                        .selection =
+                                                    TextSelection.collapsed(
+                                                        offset: value.length);
+                                              }
+                                            }
+                                          },
                                         ),
                                       ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    const Text(
+                                      '¿Agregar Contratista?',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ToggleButtons(
+                                      isSelected: [
+                                        _mostrarContratista,
+                                        !_mostrarContratista
+                                      ],
+                                      onPressed: (index) {
+                                        setState(() {
+                                          _mostrarContratista = index == 0;
+                                          if (!_mostrarPresupuesto) {
+                                            _selectedContratista = null;
+                                          }
+                                        });
+                                      },
+                                      children: const [
+                                        Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 16),
+                                            child: Text('Sí')),
+                                        Padding(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 16),
+                                            child: Text('No')),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 20),
+                                    if (_mostrarContratista) ...[
+                                      Expanded(
+                                        child: CustomAutocompleteField<
+                                            Contratistas>(
+                                          value: _selectedContratista,
+                                          labelText: 'Buscar Contratista',
+                                          items: _contratistas,
+                                          prefixIcon: Icons.person,
+                                          onChanged: (contratista) {
+                                            setState(() {
+                                              _selectedContratista =
+                                                  contratista;
+                                            });
+                                          },
+                                          itemLabelBuilder: (contratista) =>
+                                              '${contratista.idContratista} - ${contratista.contratistaNombre}',
+                                          itemValueBuilder: (contratista) =>
+                                              contratista.idContratista
+                                                  .toString(),
+                                          validator: (value) {
+                                            if (_selectedContratista == null) {
+                                              return 'Seleccione un contratista válido';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ],
@@ -819,6 +1408,107 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                         ],
                       ),
                       const SizedBox(height: 30),
+
+                      // Row(
+                      //   crossAxisAlignment: CrossAxisAlignment.center,
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   mainAxisSize: MainAxisSize.min,
+                      //   children: [
+                      //     const SizedBox(width: 10),
+                      //     Expanded(
+                      //       child: Column(
+                      //         crossAxisAlignment: CrossAxisAlignment.start,
+                      //         children: [
+                      //           Row(
+                      //             children: [
+                      //               const Text(
+                      //                 '¿Agregar orden de servicio?',
+                      //                 style: TextStyle(
+                      //                     fontWeight: FontWeight.bold,
+                      //                     fontSize: 16),
+                      //               ),
+                      //               const SizedBox(width: 10),
+                      //               ToggleButtons(
+                      //                 isSelected: [
+                      //                   _mostrarOrdenServicio,
+                      //                   !_mostrarOrdenServicio
+                      //                 ],
+                      //                 onPressed: (index) {
+                      //                   setState(() {
+                      //                     _mostrarOrdenServicio = index == 0;
+                      //                     if (!_mostrarOrdenServicio) {
+                      //                       _selectedOrdenServicio = null;
+                      //                       _idColoniaController.clear();
+                      //                       _idCalleController.clear();
+                      //                       _idPadronController.clear();
+                      //                       _selectedColonia = null;
+                      //                       _selectedCalle = null;
+                      //                       _selectedPadron = null;
+                      //                     }
+                      //                   });
+                      //                 },
+                      //                 children: const [
+                      //                   Padding(
+                      //                       padding: EdgeInsets.symmetric(
+                      //                           horizontal: 16),
+                      //                       child: Text('Sí')),
+                      //                   Padding(
+                      //                       padding: EdgeInsets.symmetric(
+                      //                           horizontal: 16),
+                      //                       child: Text('No')),
+                      //                 ],
+                      //               ),
+                      //               const SizedBox(width: 20),
+                      //               if (_mostrarOrdenServicio)
+                      //                 Expanded(
+                      //                   child: Row(
+                      //                     children: [
+                      //                       SizedBox(
+                      //                         width: 300,
+                      //                         child: CustomListaDesplegableTipo<
+                      //                             OrdenServicio>(
+                      //                           value: _selectedOrdenServicio,
+                      //                           labelText: 'Orden de Servicio',
+                      //                           items:
+                      //                               _ordenesServicioAprobadas,
+                      //                           onChanged:
+                      //                               _onOrdenServicioSelected,
+                      //                           validator: (orden) {
+                      //                             if (_mostrarOrdenServicio &&
+                      //                                 orden == null) {
+                      //                               return 'Debe seleccionar una orden de servicio';
+                      //                             }
+                      //                             return null;
+                      //                           },
+                      //                           itemLabelBuilder: (orden) =>
+                      //                               '${orden.folioOS} - ${orden.estadoOS} - ${orden.prioridadOS}',
+                      //                         ),
+                      //                       ),
+                      //                       Expanded(
+                      //                         child: Row(
+                      //                           mainAxisAlignment:
+                      //                               MainAxisAlignment.start,
+                      //                           children: [
+                      //                             IconButton(
+                      //                               onPressed:
+                      //                                   _cargarOrdenesAprobadas,
+                      //                               icon: const Icon(
+                      //                                   Icons.refresh),
+                      //                             ),
+                      //                           ],
+                      //                         ),
+                      //                       ),
+                      //                     ],
+                      //                   ),
+                      //                 ),
+                      //             ],
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ],
+                      // ),
+                      //const SizedBox(height: 30),
 
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -856,60 +1546,69 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 20),
 
-                          Expanded(
-                            child: BuscarPadronWidgetSalida(
-                              idPadronController: _idPadronController,
-                              padronController: _padronController,
-                              selectedPadron: _selectedPadron,
-                              onPadronSeleccionado: (padron) {
-                                setState(() {
-                                  _selectedPadron = padron;
-                                });
-                              },
-                              onAdvertencia: (p0) {
-                                showAdvertence(context, p0);
-                              },
+                          //  Buscar Padrón
+                          if (!_mostrarPresupuesto) ...[
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: BuscarPadronWidgetSalida(
+                                idPadronController: _idPadronController,
+                                padronController: _padronController,
+                                selectedPadron: _selectedPadron,
+                                onPadronSeleccionado: (padron) {
+                                  setState(() {
+                                    _selectedPadron = padron;
+                                  });
+                                },
+                                onAdvertencia: (p0) {
+                                  showAdvertence(context, p0);
+                                },
+                              ),
                             ),
-                          ),
+                          ],
 
                           const SizedBox(width: 10),
                         ],
                       ),
                       const SizedBox(height: 30),
-                      const SizedBox(height: 30),
 
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: BuscarProductoWidget(
-                              idProductoController: _idProductoController,
-                              cantidadController: _cantidadController,
-                              productosController: _productosController,
-                              selectedProducto: _selectedProducto,
-                              onProductoSeleccionado: (producto) {
-                                setState(() => _selectedProducto = producto);
-                              },
-                              onAdvertencia: (message) {
-                                showAdvertence(context, message);
-                              },
-                              onEnterPressed: _agregarProducto,
+                      //  Buscar producto
+                      if (!_mostrarPresupuesto) ...[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: BuscarProductoWidget(
+                                idProductoController: _idProductoController,
+                                cantidadController: _cantidadController,
+                                productosController: _productosController,
+                                selectedProducto: _selectedProducto,
+                                onProductoSeleccionado: (producto) {
+                                  setState(() => _selectedProducto = producto);
+                                },
+                                onAdvertencia: (message) {
+                                  showAdvertence(context, message);
+                                },
+                                onEnterPressed: _agregarProducto,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                        ],
-                      ),
+                            const SizedBox(width: 10),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 10),
+
+                      // Mostrar información del padrón del presupuesto
+                      _buildInfoPadronPresupuesto(),
 
                       //Tabla productos agregados
                       buildProductosAgregadosSalidaX(
                         _productosAgregados,
                         eliminarProductoSalida,
+                        mostrarEliminar: !_mostrarPresupuesto,
                       ),
                       const SizedBox(height: 30),
 
@@ -931,9 +1630,9 @@ class _AddSalidaPageState extends State<AddSalidaPage> {
                                         bool datosCompletos =
                                             await validarCamposAntesDeImprimirSalida(
                                           context: context,
+                                          folioOST: _folioOSTController,
                                           productosAgregados:
                                               _productosAgregados,
-                                          //referenciaController: _referenciaController,
                                           padron: _idPadronController,
                                           colonia: _idColoniaController,
                                           calle: _idCalleController,

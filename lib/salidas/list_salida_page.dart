@@ -5,6 +5,7 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
@@ -28,7 +29,6 @@ class ListSalidaPage extends StatefulWidget {
 }
 
 class _ListSalidaPageState extends State<ListSalidaPage> {
-  //final AuthService _authService = AuthService();
   final SalidasController _salidasController = SalidasController();
   final CcontablesController _ccontablesController = CcontablesController();
   final ProductosController _productosController = ProductosController();
@@ -40,6 +40,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   final CallesController _callesController = CallesController();
   final OrdenServicioController _ordenServicioController =
       OrdenServicioController();
+  final ContratistasController _contratistasController =
+      ContratistasController();
 
   final TextEditingController _searchController = TextEditingController();
   List<SalidaLista> _allSalidas = [];
@@ -70,6 +72,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   List<Users> _userAsignado = [];
   List<Users> _userAutoriza = [];
   List<Users> _userCreoSalida = [];
+  List<Contratistas> _contratistas = [];
 
   String? _selectedJunta;
   String? _selectedColonia;
@@ -162,9 +165,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
           await _ordenServicioController.listOrdenServicio();
       final colonias = await _coloniasController.listColonias();
       final calles = await _callesController.listCalles();
-      final userAsignado = await _usersController.listUsers();
-      final userAutoriza = await _usersController.listUsers();
-      final userCreoSalida = await _usersController.listUsers();
+      final contratista = await _contratistasController.listContratistas();
 
       setState(() {
         _allSalidas = salidas;
@@ -184,9 +185,10 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         _ordenesServicios = ordenesServicios;
         _colonias = colonias;
         _calles = calles;
-        _userAsignado = userAsignado;
-        _userAutoriza = userAutoriza;
-        _userCreoSalida = userCreoSalida;
+        _userAsignado = users;
+        _userAutoriza = users;
+        _userCreoSalida = users;
+        _contratistas = contratista;
 
         _isLoading = false;
       });
@@ -199,12 +201,8 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
   }
 
   void _filterSalidas() {
-    final query = _searchController.text.trim().toLowerCase();
     setState(() {
       _filteredSalidas = _allSalidas.where((salida) {
-        final folio = (salida.salida_CodFolio ?? '').toString().toLowerCase();
-        final referencia =
-            (salida.salida_Referencia ?? '').toString().toLowerCase();
         final fechaString = salida.salida_Fecha;
         final fecha = fechaString != null ? parseDate(fechaString) : null;
 
@@ -226,10 +224,6 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
               DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
         }
 
-        final matchesFolio = folio.contains(query);
-        final matchesReferencia = referencia.contains(query);
-        final matchesText = query.isEmpty || matchesFolio || matchesReferencia;
-
         bool matchesDate = true;
         if (normalizedFecha != null) {
           if (normalizedStartDate != null) {
@@ -245,6 +239,15 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         } else if (_startDate != null || _endDate != null) {
           matchesDate = false;
         }
+
+        // Match Folio (nuevo filtro agregado)
+        final searchText = _searchController.text.toLowerCase();
+        final matchesFolio = searchText.isEmpty ||
+            (salida.salida_CodFolio?.toLowerCase().contains(searchText) ??
+                false) ||
+            (salida.salidaFolioOST?.toLowerCase().contains(searchText) ??
+                false);
+
         //Match Junta
         final matchesJunta = _selectedJunta == null ||
             salida.id_Junta.toString() == _selectedJunta;
@@ -269,7 +272,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
         final matchesUserAsignado = _selectedUserAsignado == null ||
             salida.id_User_Asignado.toString() == _selectedUserAsignado;
 
-        return matchesText &&
+        return matchesFolio &&
             matchesDate &&
             matchesJunta &&
             matchesAlmacen &&
@@ -533,7 +536,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                       Expanded(
                         child: CustomTextFielTexto(
                           controller: _searchController,
-                          labelText: 'Buscar por folio o referencia',
+                          labelText: 'Buscar por Folio u OST',
                           prefixIcon: Icons.search,
                         ),
                       ),
@@ -992,6 +995,17 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                         orElse: () => Users(id_User: 0, user_Name: 'N/A'),
                       );
 
+                      final contratista = _contratistas.firstWhere(
+                        (contratista) =>
+                            contratista.idContratista == salida.idContratista,
+                        orElse: () => Contratistas(
+                            idContratista: 0,
+                            contratistaNombre: 'N/A',
+                            contratistaDireccion: 'N/A',
+                            contratistaNumeroCuenta: 'N/A',
+                            contratistaTelefono: 'N/A'),
+                      );
+
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -1007,6 +1021,7 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                             userAutoriza: userAutoriza,
                             userCreoSalida: userSalida,
                             ordenServicio: ordenServicio,
+                            contratista: contratista,
                             userRole: widget.userRole!,
                             onDocumentUploaded: () async {
                               await _reloadData();
@@ -1059,6 +1074,18 @@ class _ListSalidaPageState extends State<ListSalidaPage> {
                                 ),
                               ),
                               const SizedBox(height: 10),
+                              if (salidaPrincipal.salidaFolioOST != null) ...[
+                                Chip(
+                                  label: Text(
+                                    'OST: ${salidaPrincipal.salidaFolioOST}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  backgroundColor: Colors.blue.shade900,
+                                )
+                              ],
                               // Text(
                               //   'Referencia: ${salida.salida_Referencia ?? 'No disponible'}',
                               //   overflow: TextOverflow.ellipsis,

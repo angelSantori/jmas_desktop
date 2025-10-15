@@ -7,12 +7,14 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/cancelado_salida_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:jmas_desktop/contollers/padron_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
+import 'package:jmas_desktop/salidas/widgets/details_producto_auxiliar.dart';
 import 'package:jmas_desktop/salidas/widgets/pdf_salida.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
@@ -33,6 +35,7 @@ class DetailsSalidaPage extends StatefulWidget {
   final Users userCreoSalida;
   final OrdenServicio? ordenServicio;
   final String user;
+  final Contratistas? contratista;
   final VoidCallback? onDocumentUploaded;
 
   const DetailsSalidaPage({
@@ -50,6 +53,7 @@ class DetailsSalidaPage extends StatefulWidget {
     this.ordenServicio,
     this.onDocumentUploaded,
     required this.userCreoSalida,
+    this.contratista,
   });
 
   @override
@@ -69,11 +73,9 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
   Users? _currentUser;
   bool _isLoading = false;
   final TextEditingController _motivoController = TextEditingController();
-  Map<int, Productos>? productosCache;
+  Map<int, ProductosOptimizado>? productosCache;
   bool _isUploadingDocument = false;
-  // ignore: unused_field
   Uint8List? _documentoFirmas;
-  // ignore: unused_field
   Uint8List? _documentoPago;
 
   @override
@@ -150,8 +152,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         if (success) {
           setState(() => _documentoFirmas = fileBytes);
           for (var salida in widget.salidas) {
-            salida.salida_DocumentoFirmas =
-                "documento_subido"; // O el valor que uses para indicar que hay documento
+            salida.salida_DocumentoFirmas = "documento_subido";
           }
           if (widget.onDocumentUploaded != null) {
             widget.onDocumentUploaded!();
@@ -217,14 +218,12 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
       if (documento != null) {
         setState(() => _documentoFirmas = documento);
 
-        // Guardar el documento localmente
         final result = await FileSaver.instance.saveFile(
           name: 'documento_firmas_${widget.salidas.first.salida_CodFolio}.pdf',
           bytes: documento,
           customMimeType: 'pdf',
         );
 
-        // ignore: unnecessary_null_comparison
         if (result != null) {
           showOk(context, 'Documento descargado correctamente');
         }
@@ -247,14 +246,12 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
       if (documento != null) {
         setState(() => _documentoPago = documento);
 
-        //  Guardar el documento localmente
         final result = await FileSaver.instance.saveFile(
           name: 'documento_pago_${widget.salidas.first.salida_CodFolio}.pdf',
           bytes: documento,
           customMimeType: 'pdf',
         );
 
-        // ignore: unnecessary_null_comparison
         if (result != null) {
           showOk(context, 'Documento descargado correctamente');
         }
@@ -296,7 +293,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
       final productosCache = await _productosFuture;
       final productosParaPDF = <Map<String, dynamic>>[];
 
-      // Agrupar salidas por producto para el PDF
       final Map<int, List<Salidas>> salidasPorProducto = {};
       for (var salida in widget.salidas) {
         salidasPorProducto.update(
@@ -306,7 +302,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         );
       }
 
-      // Preparar datos para el PDF
       for (var entry in salidasPorProducto.entries) {
         final producto = productosCache[entry.key];
         final cantidad = entry.value.fold<double>(
@@ -322,7 +317,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
           'costo': total / cantidad,
           'precio': total,
           'estado': tieneActivos ? 'Activo' : 'Cancelado',
-          // AÑADIR ESTOS CAMPOS CRUCIALES:
           'prodUMedEntrada': producto?.prodUMedEntrada ?? '',
           'prodUMedSalida': producto?.prodUMedSalida ?? '',
         });
@@ -335,6 +329,8 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         userName: widget.userCreoSalida.user_Name!,
         idUser: widget.userCreoSalida.id_User.toString(),
         almacen: widget.almacen,
+        folioOST: widget.salidas.first.salidaFolioOST ?? 'N/A',
+        contratista: widget.contratista,
         userAutoriza: widget.userAutoriza,
         junta: widget.junta,
         userAsignado: widget.userAsignado,
@@ -345,7 +341,7 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         ordenServicio: widget.ordenServicio,
         productos: productosParaPDF,
         comentario: widget.salidas.first.salida_Comentario,
-        mostrarEstado: true, // Mostrar columna de estado
+        mostrarEstado: true,
       );
     } catch (e) {
       showError(context, 'Error al generar PDF: $e');
@@ -406,14 +402,11 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Preparar datos para el PDF
       final List<Map<String, dynamic>> productosParaPDF = [];
       final productosCache = await _productosFuture;
 
-      // Procesar cada salida individual
       for (var salida in widget.salidas) {
         if (salida.salida_Estado == true) {
-          // 1. Registrar cancelación para esta salida
           final cancelacion = CanceladoSalidas(
             idCanceladoSalida: 0,
             cancelSalidaMotivo: _motivoController.text,
@@ -430,7 +423,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                 'Error al registrar la cancelación para salida ${salida.id_Salida}');
           }
 
-          // 2. Actualizar la salida original
           salida.salida_Estado = false;
           final actualizado = await SalidasController().editSalida(salida);
           if (!actualizado) {
@@ -438,7 +430,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                 'Error al actualizar la salida ${salida.id_Salida}');
           }
 
-          // 3. Actualizar existencias del producto
           final producto = productosCache[salida.idProducto];
           if (producto != null) {
             final cantidad = salida.salida_Unidades ?? 0;
@@ -446,7 +437,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
             Productos productoEditar = producto.toProductos();
             await _productosController.editProducto(productoEditar);
 
-            // Agregar al PDF si no está ya incluido
             if (!productosParaPDF.any((p) => p['id'] == salida.idProducto)) {
               productosParaPDF.add({
                 'id': salida.idProducto,
@@ -461,7 +451,6 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         }
       }
 
-      // 4. Generar PDF cancelación si hay productos
       if (productosParaPDF.isNotEmpty) {
         await generarPdfCancelacion(
           tipoMovimiento: 'CANCELACION_SALIDA',
@@ -478,17 +467,14 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
         );
       }
 
-      // 5. Mostrar mensaje de éxito
       await showOk(context, 'Salida cancelada exitosamente');
       Navigator.pop(context, true);
 
-      // Recargar datos
       final futureProductos = _loadProductos();
       setState(() {
         _productosFuture = futureProductos;
       });
 
-      // Cerrar la pantalla después de la cancelación exitosa
       Navigator.pop(context);
     } catch (e) {
       showError(context, 'Error al procesar cancelación');
@@ -498,339 +484,331 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
     }
   }
 
-  Future<void> _editarJuntaSalida() async {
-    final juntasController = JuntasController();
-    final todasJuntas = await juntasController.listJuntas();
-
-    Juntas? juntaSeleccionada = widget.junta;
-
-    final confirmacion = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar Junta de Salida'),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Seleccione la nueva junta destino:'),
-                const SizedBox(height: 20),
-                DropdownButtonFormField<Juntas>(
-                  value: juntaSeleccionada,
-                  items: todasJuntas.map((junta) {
-                    return DropdownMenuItem<Juntas>(
-                      value: junta,
-                      child: Text('${junta.junta_Name} (${junta.id_Junta})'),
-                    );
-                  }).toList(),
-                  onChanged: (junta) {
-                    setState(() {
-                      juntaSeleccionada = junta;
-                    });
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Junta Destino',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (juntaSeleccionada != null) {
-                Navigator.pop(context, true);
-              }
-            },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade900),
-            child:
-                const Text('Confirmar', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmacion != true || juntaSeleccionada == null) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      // Actualizar todas las salidas asociadas al mismo folio
-      bool todasActualizadas = true;
-      for (var salida in widget.salidas) {
-        // Crear una copia de la salida con la nueva junta
-        final salidaActualizada = salida.copyWith(
-          id_Junta: juntaSeleccionada!.id_Junta,
-        );
-
-        // Usar el método editSalida existente
-        final success = await SalidasController().editSalida(salidaActualizada);
-
-        if (!success) {
-          todasActualizadas = false;
-          break;
-        }
-      }
-
-      if (todasActualizadas) {
-        // Generar PDF de modificación (similar al de cancelación)
-        final productosCache = await _productosFuture;
-        final productosParaPDF = <Map<String, dynamic>>[];
-
-        for (var salida in widget.salidas) {
-          final producto = productosCache[salida.idProducto];
-          if (producto != null) {
-            productosParaPDF.add({
-              'id': salida.idProducto,
-              'descripcion': producto.prodDescripcion ?? 'Producto desconocido',
-              'cantidad': salida.salida_Unidades ?? 0,
-              'costo': salida.salida_Costo! / (salida.salida_Unidades ?? 1),
-              'precio': salida.salida_Costo ?? 0,
-            });
-          }
-        }
-
-        await generarPdfSalida(
-          movimiento: 'MODIFICACION SALIDA',
-          fecha: DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now()),
-          folio: widget.salidas.first.salida_CodFolio ?? '',
-          userName: _currentUser?.user_Name ?? '',
-          idUser: _currentUser!.id_User.toString(),
-          alamcenA: widget.almacen,
-          userAsignado: widget.userAsignado,
-          tipoTrabajo: widget.salidas.first.salida_TipoTrabajo ?? '',
-          padron: widget.padron,
-          colonia: widget.colonia,
-          userAutoriza: widget.userAutoriza,
-          calle: widget.calle,
-          junta: juntaSeleccionada!,
-          productos: productosParaPDF,
-        );
-
-        // Mostrar mensaje de éxito
-        await showOk(context, 'Junta actualizada exitosamente');
-
-        // Cerrar la pantalla actual para forzar recarga
-        Navigator.pop(context, true);
-      } else {
-        showError(context, 'Error al actualizar algunas salidas');
-      }
-    } catch (e) {
-      showError(context, 'Error al actualizar junta: ${e.toString()}');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final Map<int, Map<String, dynamic>> groupProductos = {};
-    final Map<int, List<Salidas>> salidasPorProducto = {};
-    final tieneActivos = widget.salidas.any((s) => s.salida_Estado == true);
+    if (widget.salidas.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Detalles de Salida'),
+        ),
+        body: const Center(
+          child: Text('No hay datos de la salida'),
+        ),
+      );
+    }
 
+    final salidaPrincipal = widget.salidas.first;
+    final tieneActivos = widget.salidas.any((s) => s.salida_Estado == true);
     final isAdmin = widget.userRole == "Admin";
     final isGestion = widget.userRole == "Gestion";
 
-    for (var salida in widget.salidas) {
-      // Agrupar por producto para mostrar en tabla
-      groupProductos.update(
-        salida.idProducto!,
-        (value) => {
-          'cantidad': value['cantidad'] + (salida.salida_Unidades ?? 0),
-          'total': value['total'] + (salida.salida_Costo ?? 0),
-          'salidas': [...value['salidas'], salida],
-        },
-        ifAbsent: () => {
-          'cantidad': salida.salida_Unidades ?? 0,
-          'total': salida.salida_Costo ?? 0,
-          'salidas': [salida],
-        },
-      );
-
-      // Mapear todas las salidas por producto
-      salidasPorProducto.update(
-        salida.idProducto!,
-        (value) => [...value, salida],
-        ifAbsent: () => [salida],
-      );
-    }
-
-    // ... código anterior ...
+    // Calcular totales
+    final double totalUnidades = widget.salidas
+        .fold(0, (sum, item) => sum + (item.salida_Unidades ?? 0));
+    final double totalCosto =
+        widget.salidas.fold(0, (sum, item) => sum + (item.salida_Costo ?? 0));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Detalles de salida: ${widget.salidas.first.salida_CodFolio}',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Salida ${salidaPrincipal.salida_CodFolio}'),
+            const SizedBox(width: 10),
+            IconButton(
+              icon: Icon(
+                Icons.print,
+                color: Colors.blue.shade700,
+              ),
+              onPressed: _imprimirSalida,
+              tooltip: 'Reimprimir salida',
+            ),
+          ],
         ),
-        centerTitle: true,
-        elevation: 2,
-        backgroundColor: Colors.blue.shade900,
-        foregroundColor: Colors.white,
+        actions: [
+          // Botón para cancelar salida
+          if ((isAdmin || isGestion) && tieneActivos)
+            IconButton(
+              icon: Icon(
+                Icons.delete,
+                color: Colors.red.shade700,
+              ),
+              onPressed: _cancelarTodaLaSalida,
+              tooltip: 'Cancelar toda la salida',
+            ),
+        ],
       ),
       body: _isLoading
           ? Center(
-              child: CircularProgressIndicator(color: Colors.blue.shade900))
+              child: CircularProgressIndicator(
+                color: Colors.blue.shade900,
+              ),
+            )
           : SingleChildScrollView(
-              // Cambio principal: Scroll en toda la página
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Card(
-                    elevation: 4,
-                    color: widget.salidas.first.salida_Estado == false
-                        ? const Color.fromARGB(188, 255, 205, 210)
-                        : Colors.blue.shade100,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    margin: const EdgeInsets.all(20), // Reducir margen
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min, // Importante
-                        children: [
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if ((isAdmin || isGestion) && tieneActivos) ...[
-                                  IconButton(
-                                    icon: Icon(Icons.delete,
-                                        color: Colors.red.shade800),
-                                    onPressed: _cancelarTodaLaSalida,
-                                    tooltip: 'Cancelar toda la salida',
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IntrinsicHeight(
+                    child: Row(
+                      children: [
+                        // Tarjeta #1: Datos Generales
+                        Expanded(
+                          child: Card(
+                            elevation: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Datos Generales',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildInfoRow('Folio:',
+                                      salidaPrincipal.salida_CodFolio ?? ''),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('OST:',
+                                      salidaPrincipal.salidaFolioOST ?? 'N/A'),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('Fecha:',
+                                      salidaPrincipal.salida_Fecha ?? ''),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('Almacén:',
+                                      widget.almacen.almacen_Nombre ?? ''),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Tipo trabajo:',
+                                    salidaPrincipal.salida_TipoTrabajo ?? 'N/A',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Total Unidades:',
+                                    totalUnidades.toString(),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Total Costo:',
+                                    '\$${totalCosto.toStringAsFixed(2)}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'Estado:',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              salidaPrincipal.salida_Estado ==
+                                                      true
+                                                  ? Colors.green.shade100
+                                                  : Colors.red.shade100,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          salidaPrincipal.salida_Estado == true
+                                              ? 'ACTIVA'
+                                              : 'CANCELADA',
+                                          style: TextStyle(
+                                            color:
+                                                salidaPrincipal.salida_Estado ==
+                                                        true
+                                                    ? Colors.green.shade800
+                                                    : Colors.red.shade800,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                                IconButton(
-                                  icon: Icon(Icons.print,
-                                      color: Colors.blue.shade800),
-                                  onPressed: _imprimirSalida,
-                                  tooltip: 'Reimprimir salida',
-                                ),
-                              ]),
-                          const SizedBox(height: 15),
-                          const Divider(),
-
-                          //Columnas de información
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          'Almacen: ${widget.almacen.almacen_Nombre}'),
-                                      Row(
-                                        children: [
-                                          const Text('Junta: '),
-                                          GestureDetector(
-                                            onTap: () {
-                                              if (widget.userRole == "Admin") {
-                                                _editarJuntaSalida();
-                                              }
-                                            },
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  widget.junta.junta_Name ?? '',
-                                                  style: TextStyle(
-                                                    color: (widget.userRole ==
-                                                                "Admin" ||
-                                                            widget.userRole ==
-                                                                "Gestion")
-                                                        ? Colors.blue.shade800
-                                                        : Colors.black,
-                                                    decoration: (widget
-                                                                    .userRole ==
-                                                                "Admin" ||
-                                                            widget.userRole ==
-                                                                "Gestion")
-                                                        ? TextDecoration
-                                                            .underline
-                                                        : null,
-                                                  ),
-                                                ),
-                                                if (widget.userRole ==
-                                                        "Admin" ||
-                                                    widget.userRole ==
-                                                        "Gestion")
-                                                  const Icon(Icons.edit,
-                                                      size: 16,
-                                                      color: Colors.blue),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      Text(
-                                          'Padron: ${widget.padron.idPadron} - ${widget.padron.padronNombre}'),
-                                      if (widget.ordenServicio?.prioridadOS !=
-                                          null) ...[
-                                        Text(
-                                            'Orden Trabajo: ${widget.ordenServicio?.folioOS} - ${widget.ordenServicio?.prioridadOS}'),
-                                      ]
-                                    ],
-                                  ),
-                                ),
                               ),
-
-                              //Columna 2
-                              Expanded(
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          'Colonia: ${widget.colonia.idColonia} - ${widget.colonia.nombreColonia}'),
-                                      Text(
-                                          'Calle: ${widget.calle.idCalle} - ${widget.calle.calleNombre}'),
-                                      Text('Realizado por: ${widget.user}'),
-                                    ],
-                                  ),
-                                ),
-                              ),
-
-                              //Columna 3
-                              Expanded(
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          'Asignado a: ${widget.userAsignado.user_Name}'),
-                                      Text(
-                                          'Tipo trabajo: ${widget.salidas.first.salida_TipoTrabajo ?? 'N/A'}'),
-                                      Text(
-                                          'Fecha: ${widget.salidas.first.salida_Fecha}'),
-                                      Text(
-                                          'Autoriza: ${widget.userAutoriza.user_Name ?? 'No especificado'}'),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 20),
-                          const Divider(),
-                          const SizedBox(height: 20),
+                        ),
 
-                          //  Tabla - SIN altura fija
+                        const SizedBox(width: 16),
+
+                        // Tarjeta #2: Datos Destino
+                        Expanded(
+                          child: Card(
+                            elevation: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Datos Destino',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  if (salidaPrincipal.salida_PresupuestoFolio!
+                                          .isNotEmpty &&
+                                      salidaPrincipal.salida_PresupuestoFolio !=
+                                          'N/A') ...[
+                                    _buildInfoRow(
+                                      'Folio Presupuesto:',
+                                      '${salidaPrincipal.salida_PresupuestoFolio}',
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'Junta:',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                widget.junta.junta_Name ?? '',
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (widget.userRole == "Admin" ||
+                                                widget.userRole == "Gestion")
+                                              const Icon(Icons.edit,
+                                                  size: 16, color: Colors.blue),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'ID Padrón:',
+                                    '${widget.padron.idPadron}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Nombre Padrón:',
+                                    '${widget.padron.padronNombre}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Dirección Padrón:',
+                                    '${widget.padron.padronDireccion}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Colonia:',
+                                    '${widget.colonia.idColonia} - ${widget.colonia.nombreColonia}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Calle:',
+                                    '${widget.calle.idCalle} - ${widget.calle.calleNombre}',
+                                  ),
+                                  if (widget.ordenServicio?.prioridadOS !=
+                                      null) ...[
+                                    const SizedBox(height: 8),
+                                    _buildInfoRow(
+                                      'Orden Trabajo:',
+                                      '${widget.ordenServicio?.folioOS} - ${widget.ordenServicio?.prioridadOS}',
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 16),
+
+                        // Tarjeta #3: Datos Usuarios
+                        Expanded(
+                          child: Card(
+                            elevation: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Datos Usuarios',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildInfoRow(
+                                    'Creada por:',
+                                    '${widget.userCreoSalida.id_User ?? 0} - ${widget.userCreoSalida.user_Name ?? 'N/A'}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Asignada a:',
+                                    '${widget.userAsignado.id_User} - ${widget.userAsignado.user_Name ?? ''}',
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(
+                                    'Autoriza:',
+                                    '${widget.userAutoriza.id_User ?? 0} - ${widget.userAutoriza.user_Name ?? 'No especificado'}',
+                                  ),
+                                  if (salidaPrincipal.idContratista != null &&
+                                      widget.contratista != null) ...[
+                                    const SizedBox(height: 8),
+                                    _buildInfoRow(
+                                      'Contratista:',
+                                      '${widget.contratista?.idContratista ?? 'N/A'} - ${widget.contratista?.contratistaNombre ?? 'N/A'}',
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Lista de productos de la salida
+                  Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Productos de la Salida',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
                           FutureBuilder<Map<int, ProductosOptimizado>>(
                             future: _productosFuture,
                             builder: (context, snapshot) {
@@ -848,134 +826,67 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                           const TextStyle(color: Colors.red)),
                                 );
                               }
+
                               final productosCache = snapshot.data ?? {};
+                              // Actualizamos la variable de instancia para que esté disponible en _buildProductoItem
+                              this.productosCache = productosCache;
 
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  columnSpacing: 20,
-                                  dataRowMinHeight: 40,
-                                  dataRowMaxHeight: 40,
-                                  headingRowHeight: 40,
-                                  columns: const [
-                                    DataColumn(
-                                        label: Text(
-                                      'Id Producto',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                                    DataColumn(
-                                        label: Text(
-                                      'Nombre',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                                    DataColumn(
-                                        label: Text(
-                                      'Cantidad',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                                    DataColumn(
-                                        label: Text(
-                                      'Precio unitario',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                                    DataColumn(
-                                        label: Text(
-                                      'Total (\$)',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                                    DataColumn(
-                                        label: Text(
-                                      'Estado',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                                  ],
-                                  rows: groupProductos.entries.map((entry) {
-                                    final idProducto = entry.key;
-                                    final cantidad = entry.value['cantidad'];
-                                    final total = entry.value['total'];
-                                    final nombreProducto =
-                                        productosCache[idProducto]
-                                                ?.prodDescripcion ??
-                                            'Desconocido';
-                                    final salidasProducto =
-                                        salidasPorProducto[idProducto] ?? [];
-                                    final tieneActivos = salidasProducto
-                                        .any((s) => s.salida_Estado == true);
+                              final Map<int, Map<String, dynamic>>
+                                  groupProductos = {};
 
-                                    return DataRow(cells: [
-                                      DataCell(Text(
-                                        idProducto.toString(),
-                                        style: const TextStyle(fontSize: 18),
-                                      )),
-                                      DataCell(Text(
-                                        nombreProducto,
-                                        style: const TextStyle(fontSize: 18),
-                                      )),
-                                      DataCell(Text(
-                                        cantidad.toString(),
-                                        style: const TextStyle(fontSize: 18),
-                                      )),
-                                      DataCell(Text(
-                                        '\$${(total / cantidad).toStringAsFixed(2)}',
-                                        style: const TextStyle(fontSize: 18),
-                                      )),
-                                      DataCell(Text(
-                                        '\$${total.toStringAsFixed(2)}',
-                                        style: const TextStyle(fontSize: 18),
-                                      )),
-                                      DataCell(Text(
-                                          tieneActivos ? 'Activo' : 'Cancelado',
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              color: tieneActivos
-                                                  ? Colors.green
-                                                  : Colors.red))),
-                                    ]);
-                                  }).toList(),
-                                ),
+                              for (var salida in widget.salidas) {
+                                groupProductos.update(
+                                  salida.idProducto!,
+                                  (value) => {
+                                    'cantidad': value['cantidad'] +
+                                        (salida.salida_Unidades ?? 0),
+                                    'total': value['total'] +
+                                        (salida.salida_Costo ?? 0),
+                                    'salidas': [...value['salidas'], salida],
+                                  },
+                                  ifAbsent: () => {
+                                    'cantidad': salida.salida_Unidades ?? 0,
+                                    'total': salida.salida_Costo ?? 0,
+                                    'salidas': [salida],
+                                  },
+                                );
+                              }
+
+                              return Column(
+                                children: groupProductos.entries.map((entry) {
+                                  final idProducto = entry.key;
+                                  final cantidad = entry.value['cantidad'];
+                                  final total = entry.value['total'];
+                                  final producto = productosCache[idProducto];
+                                  final salidasProducto =
+                                      entry.value['salidas'];
+                                  final tieneActivos = salidasProducto
+                                      .any((s) => s.salida_Estado == true);
+
+                                  return _buildProductoItem(
+                                    idProducto,
+                                    '${producto?.id_Producto ?? 0} - ${producto?.prodDescripcion ?? 'N/A'}',
+                                    cantidad,
+                                    total / cantidad,
+                                    total,
+                                    tieneActivos ? 'Activo' : 'Cancelado',
+                                  );
+                                }).toList(),
                               );
                             },
                           ),
 
-                          //  Comentario
-                          if (widget.salidas.first.salida_Comentario != null &&
-                              widget.salidas.first.salida_Comentario!
-                                  .isNotEmpty) ...[
-                            const SizedBox(height: 30),
+                          // Comentario al final de la lista de productos
+                          if (salidaPrincipal.salida_Comentario != null &&
+                              salidaPrincipal
+                                  .salida_Comentario!.isNotEmpty) ...[
+                            const SizedBox(height: 20),
                             Container(
-                              width: double.infinity,
                               padding: const EdgeInsets.all(16),
-                              margin: const EdgeInsets.only(bottom: 20),
                               decoration: BoxDecoration(
                                 color: Colors.grey[100],
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.grey[300]!),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    spreadRadius: 1,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -997,162 +908,286 @@ class _DetailsSalidaPageState extends State<DetailsSalidaPage> {
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
-                                    widget.salidas.first.salida_Comentario!,
+                                    salidaPrincipal.salida_Comentario!,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
                               ),
                             ),
                           ],
-                          const SizedBox(height: 20),
-
-                          //  Doc Firmas
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[100],
-                                    borderRadius: BorderRadius.circular(8),
-                                    border:
-                                        Border.all(color: Colors.grey[300]!),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Documento con Firmas',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      if (widget.salidas.any((s) =>
-                                          s.salida_DocumentoFirmas != null &&
-                                          s.salida_DocumentoFirmas!
-                                              .isNotEmpty)) ...[
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.description,
-                                                color: Colors.blue),
-                                            const SizedBox(width: 8),
-                                            const Text('Documento disponible'),
-                                            IconButton(
-                                              icon: const Icon(Icons.download,
-                                                  color: Colors.green),
-                                              onPressed:
-                                                  _descargarDocumentoFirmas,
-                                              tooltip: 'Descargar documento',
-                                            ),
-                                          ],
-                                        )
-                                      ] else ...[
-                                        const Text('No hay documento subido'),
-                                        const SizedBox(height: 10),
-                                        ElevatedButton.icon(
-                                          onPressed: _subirDocumentoFirmas,
-                                          icon: const Icon(Icons.upload_file),
-                                          label: const Text(
-                                              'Subir documento con firmas'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                Colors.blue.shade900,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                      if (_isUploadingDocument) ...[
-                                        const Padding(
-                                          padding: EdgeInsets.only(top: 8.0),
-                                          child: LinearProgressIndicator(),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 30),
-
-                              //  Doc Pago
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[100],
-                                    borderRadius: BorderRadius.circular(8),
-                                    border:
-                                        Border.all(color: Colors.grey[300]!),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Documento de Pago',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      if (widget.salidas.any((s) =>
-                                          s.salida_DocumentoPago != null &&
-                                          s.salida_DocumentoPago!
-                                              .isNotEmpty)) ...[
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.description,
-                                                color: Colors.blue),
-                                            const SizedBox(width: 8),
-                                            const Text('Documento disponible'),
-                                            IconButton(
-                                              icon: const Icon(
-                                                Icons.download,
-                                                color: Colors.green,
-                                              ),
-                                              onPressed:
-                                                  _descargarDocumentoPago,
-                                              tooltip: 'Descargar documento',
-                                            )
-                                          ],
-                                        )
-                                      ] else ...[
-                                        const Text('No hay documento subido'),
-                                        const SizedBox(height: 10),
-                                        ElevatedButton.icon(
-                                          onPressed: _subirDocumentoPago,
-                                          icon: const Icon(
-                                            Icons.upload_file,
-                                          ),
-                                          label: const Text(
-                                              'Subir documento de pago'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                Colors.blue.shade900,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                        )
-                                      ],
-                                      if (_isUploadingDocument) ...[
-                                        const Padding(
-                                          padding: EdgeInsets.only(top: 8),
-                                          child: LinearProgressIndicator(),
-                                        )
-                                      ]
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
                         ],
                       ),
                     ),
                   ),
-                ),
+
+                  const SizedBox(height: 20),
+
+                  // Tarjeta para documentos
+                  Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Documentos',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              // Documento de Firmas
+                              Expanded(
+                                child: _buildDocumentoCard(
+                                  'Documento con Firmas',
+                                  widget.salidas.any((s) =>
+                                      s.salida_DocumentoFirmas != null &&
+                                      s.salida_DocumentoFirmas!.isNotEmpty),
+                                  _subirDocumentoFirmas,
+                                  _descargarDocumentoFirmas,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              // Documento de Pago
+                              Expanded(
+                                child: _buildDocumentoCard(
+                                  'Documento de Pago',
+                                  widget.salidas.any((s) =>
+                                      s.salida_DocumentoPago != null &&
+                                      s.salida_DocumentoPago!.isNotEmpty),
+                                  _subirDocumentoPago,
+                                  _descargarDocumentoPago,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_isUploadingDocument) ...[
+                            const SizedBox(height: 16),
+                            const LinearProgressIndicator(),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+    );
+  }
+
+  Widget _buildProductoItem(
+    int idProducto,
+    String nombre,
+    double cantidad,
+    double precioUnitario,
+    double total,
+    String estado,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DetailsProductoAuxiliar(
+            idProducto: idProducto,
+            nombreProducto: nombre,
+            productosCache: productosCache,
+            child: Text(
+              nombre,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Cantidad:',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      cantidad.toString(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Precio Unitario:',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${precioUnitario.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Total:',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${total.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: estado == 'Activo'
+                  ? Colors.green.shade100
+                  : Colors.red.shade100,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              estado,
+              style: TextStyle(
+                color: estado == 'Activo'
+                    ? Colors.green.shade800
+                    : Colors.red.shade800,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 14),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDocumentoCard(
+    String titulo,
+    bool tieneDocumento,
+    VoidCallback onSubir,
+    VoidCallback onDescargar,
+  ) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(
+              titulo,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Icon(
+              tieneDocumento ? Icons.check_circle : Icons.pending,
+              color: tieneDocumento ? Colors.green : Colors.orange,
+              size: 40,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              tieneDocumento ? 'Documento subido' : 'Pendiente de subir',
+              style: TextStyle(
+                color: tieneDocumento ? Colors.green : Colors.orange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onSubir,
+                    icon: const Icon(Icons.upload),
+                    label: const Text('Subir'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade800,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: tieneDocumento ? onDescargar : null,
+                    icon: const Icon(Icons.download),
+                    label: const Text('Descargar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: tieneDocumento
+                          ? Colors.green.shade800
+                          : Colors.grey.shade400,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
