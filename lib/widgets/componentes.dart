@@ -1225,21 +1225,27 @@ class _BuscarProductoWidgetState extends State<BuscarProductoWidget> {
                             style: const TextStyle(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            'Ubicación: ${widget.selectedProducto!.prodUbFisica ?? 'Sin ubicación'}',
-                            style: const TextStyle(fontSize: 14),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          if (widget.selectedProducto!.prodUMedEntrada !=
+                              'Servicio') ...[
+                            Text(
+                              'Ubicación: ${widget.selectedProducto!.prodUbFisica ?? 'Sin ubicación'}',
+                              style: const TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                           Text(
                             'Costo: \$${widget.selectedProducto!.prodCosto?.toStringAsFixed(2) ?? 'No disponible'}',
                             style: const TextStyle(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          Text(
-                            'Existencia: ${widget.selectedProducto?.prodExistencia?.toStringAsFixed(2) ?? 'No disponible'}',
-                            style: const TextStyle(fontSize: 14),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          if (widget.selectedProducto!.prodUMedEntrada !=
+                              'Servicio') ...[
+                            Text(
+                              'Existencia: ${widget.selectedProducto?.prodExistencia?.toStringAsFixed(2) ?? 'No disponible'}',
+                              style: const TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ],
                       ),
                     ),
