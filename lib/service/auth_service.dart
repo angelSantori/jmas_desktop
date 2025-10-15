@@ -3,11 +3,11 @@ import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  //final String apiURL = 'https://localhost:5001/api'; //  LOCAL
-  //final String apiNubeURL = 'https://localhost:5001/api'; //   LOCAL
+  final String apiURL = 'https://localhost:5001/api'; //  LOCAL
+  final String apiNubeURL = 'https://localhost:5001/api'; //  LOCAL
 
-  final String apiURL = 'http://200.200.200.155:5000/api'; //   OFICINA
-  final String apiNubeURL = 'http://154.12.243.37:80/api'; //   Server
+  //final String apiURL = 'http://200.200.200.155:5000/api'; //   OFICINA
+  //final String apiNubeURL = 'http://154.12.243.37:80/api'; //   Server
 
   Users? _currentUser;
 
@@ -59,21 +59,24 @@ class AuthService {
         return user!.role!.canManageRoles ?? false;
       case 'evaluar':
         return user!.role!.canEvaluar ?? false;
-      case 'ccontable':
+      case 'canCContable':
         return user!.role!.canCContables ?? false;
+      case 'manageJunta':
+        return user!.role!.canManageJuntas ?? false;
+      case 'manageContratista':
+        return user!.role!.canManageContratistas ?? false;
+      case 'manageProveedor':
+        return user!.role!.canManageProveedores ?? false;
+      case 'manageCalle':
+        return user!.role!.canManageCalles ?? false;
+      case 'manageColonia':
+        return user!.role!.canManageColonias ?? false;
+      case 'manageAlmacen':
+        return user!.role!.canManageAlmacenes ?? false;
       default:
         return false;
     }
   }
-
-  // Métodos rápidos para permisos comunes
-  Future<bool> canView() => hasPermission('view');
-  Future<bool> canEdit() => hasPermission('edit');
-  Future<bool> canDelete() => hasPermission('delete');
-  Future<bool> canEvaluar() => hasPermission('evaluar');
-  Future<bool> canCContable() => hasPermission('ccontable');
-  Future<bool> canManageUsers() => hasPermission('manage_users');
-  Future<bool> canManageRoles() => hasPermission('manage_roles');
 
   //Save token en almacenamiento local
   Future<void> saveToken(String token) async {
