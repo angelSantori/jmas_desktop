@@ -26,11 +26,11 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
   int? _selectedYear = DateTime.now().year;
   int? _selectedMonth;
 
-  List<Entradas> _entradas = [];
-  List<Salidas> _salidas = [];
+  List<EntradaLista> _entradas = [];
+  List<SalidaLista> _salidas = [];
   // ignore: unused_field
-  List<Productos> _productos = [];
-  List<Productos> _productosFiltrados = [];
+  List<ProductosOptimizado> _productos = [];
+  List<ProductosOptimizado> _productosFiltrados = [];
 
   @override
   void initState() {
@@ -39,9 +39,9 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
   }
 
   Future<void> _loadData() async {
-    final entradas = await _entradasController.listEntradas();
-    final salidas = await _salidasController.listSalidas();
-    final productos = await _productosController.listProductos();
+    final entradas = await _entradasController.listEntradaOptimizado();
+    final salidas = await _salidasController.listSalidasOptimizado();
+    final productos = await _productosController.listProductosOptimizado();
 
     setState(() {
       _entradas = entradas;
@@ -91,7 +91,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
     _loadData();
   }
 
-  List<Entradas> get _filteredEntradas {
+  List<EntradaLista> get _filteredEntradas {
     if (_selectedDateRange != null) {
       return _entradas.where((e) {
         final fecha = _parseDate(e.entrada_Fecha ?? '');
@@ -112,7 +112,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
     return _entradas;
   }
 
-  List<Salidas> get _filteredSalidas {
+  List<SalidaLista> get _filteredSalidas {
     if (_selectedDateRange != null) {
       return _salidas.where((s) {
         final fecha = _parseDate(s.salida_Fecha ?? '');
@@ -511,7 +511,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
                   // Buscar el producto por ID
                   final producto = _productosFiltrados.firstWhere(
                     (p) => p.id_Producto == productId,
-                    orElse: () => Productos(
+                    orElse: () => ProductosOptimizado(
                       prodDescripcion: 'Desconocido',
                       prodCosto: 0,
                       prodExistencia: 0,
@@ -662,7 +662,7 @@ class _InventoryDashboardPageState extends State<InventoryDashboardPage> {
       final entry = topProducts[i];
       final producto = _productosFiltrados.firstWhere(
         (p) => p.id_Producto == entry.key,
-        orElse: () => Productos(
+        orElse: () => ProductosOptimizado(
           id_Producto: entry.key,
           prodDescripcion: 'Producto ${entry.key}',
         ),

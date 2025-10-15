@@ -1,17 +1,15 @@
+import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/ajustes_plus/list_ajuste_mas_page.dart';
-import 'package:jmas_desktop/almacenes/add_almacen_page.dart';
-import 'package:jmas_desktop/almacenes/list_almacenes_page.dart';
-import 'package:jmas_desktop/calles/add_calles_page.dart';
-import 'package:jmas_desktop/calles/list_calles_page.dart';
+import 'package:jmas_desktop/mantenimiento/almacenes/list_almacenes_page.dart';
+import 'package:jmas_desktop/mantenimiento/calles/list_calles_page.dart';
 import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
 import 'package:jmas_desktop/ccontables/ccontables_reportes_page.dart';
 import 'package:jmas_desktop/ccontables/list_ccontables_page.dart';
-import 'package:jmas_desktop/colonias/add_colonias_page.dart';
-import 'package:jmas_desktop/colonias/list_colonias_page.dart';
+import 'package:jmas_desktop/mantenimiento/colonias/list_colonias_page.dart';
 import 'package:jmas_desktop/conteoinicial/list_conteoinicial_page.dart';
 import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
@@ -24,16 +22,17 @@ import 'package:jmas_desktop/herramientas/add_herramienta_page.dart';
 import 'package:jmas_desktop/herramientas/list_herramientas_page.dart';
 import 'package:jmas_desktop/htaPrest/add_htaprest_page.dart';
 import 'package:jmas_desktop/htaPrest/list_htaprest_page.dart';
-import 'package:jmas_desktop/juntas/add_junta_page.dart';
-import 'package:jmas_desktop/juntas/list_juntas_page.dart';
+import 'package:jmas_desktop/mantenimiento/contratistas/list_contratistas_page.dart';
+import 'package:jmas_desktop/mantenimiento/juntas/list_juntas_page.dart';
 import 'package:jmas_desktop/ordenCompras/add_orden_compra_page.dart';
 import 'package:jmas_desktop/ordenCompras/list_orden_compra_page.dart';
-import 'package:jmas_desktop/padron/list_padron_page.dart';
+import 'package:jmas_desktop/mantenimiento/padron/list_padron_page.dart';
 import 'package:jmas_desktop/pdfs/pdf_list_page.dart';
+import 'package:jmas_desktop/presupuestos/add_presupuesto.dart';
+import 'package:jmas_desktop/presupuestos/list_presupuestos.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
-import 'package:jmas_desktop/proveedores/add_proveedor_page.dart';
-import 'package:jmas_desktop/proveedores/list_proveedor_page.dart';
+import 'package:jmas_desktop/mantenimiento/proveedores/list_proveedor_page.dart';
 import 'package:jmas_desktop/roles/add_role_page.dart';
 import 'package:jmas_desktop/roles/admin_role_page.dart';
 import 'package:jmas_desktop/salidas/add_salida_page.dart';
@@ -346,7 +345,13 @@ class _HomePageState extends State<HomePage>
 
       //Proveedores
       'listProveedores': () => const ListProveedorPage(),
-      'addProveedores': () => const AddProveedorPage(),
+
+      //  Presupuestos
+      'addPresupuesto': () =>
+          AddPresupuesto(idUser: idUser, userName: userName),
+
+      'listPresupuesto': () =>
+          ListPresupuestosPage(userName: userName, userRole: userRole),
 
       //Salidas
       'addSalida': () => AddSalidaPage(userName: userName, idUser: idUser),
@@ -358,19 +363,18 @@ class _HomePageState extends State<HomePage>
 
       //Alamcen
       'listAlmacenes': () => const ListAlmacenesPage(),
-      'addAlmacenes': () => const AddAlmacenPage(),
 
       //Juntas
       'listJuntas': () => const ListJuntasPage(),
-      'addJunta': () => const AddJuntaPage(),
 
       //Colonias
       'listColonias': () => const ListColoniasPage(),
-      'addColonia': () => const AddColoniasPage(),
 
       //Calles
       'listCalles': () => const ListCallesPage(),
-      'addCalle': () => const AddCallesPage(),
+
+      //Contratistas
+      'listContratistas': () => const ListContratistasPage(),
 
       //Herramientas
       'listHerramientas': () => const ListHerramientasPage(),
@@ -519,7 +523,7 @@ class _HomePageState extends State<HomePage>
                           ),
                         const SizedBox(height: 10),
                         const Text(
-                          'v. 29092025',
+                          'v. 09102025',
                           style: TextStyle(
                               color: Colors.grey, fontWeight: FontWeight.bold),
                         ),
@@ -578,6 +582,80 @@ class _HomePageState extends State<HomePage>
                               color: Colors.white,
                             ),
                             children: [
+                              //Almacenes
+                              CustomListTile(
+                                title: 'Almacenes',
+                                icon: SvgPicture.asset(
+                                  'assets/icons/almacen.svg',
+                                  height: 20,
+                                  width: 20,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listAlmacenes'),
+                              ),
+
+                              //Calles
+                              CustomListTile(
+                                title: 'Calles',
+                                icon: const Icon(
+                                  Icons.stream,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listCalles'),
+                              ),
+
+                              //Colonias
+                              CustomListTile(
+                                title: 'Colonias',
+                                icon: const Icon(
+                                  Icons.map_rounded,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listColonias'),
+                              ),
+
+                              //Contratistas
+                              CustomListTile(
+                                title: 'Contratistas',
+                                icon: const Icon(
+                                  Icons.contact_page_sharp,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listContratistas'),
+                              ),
+
+                              //Juntas
+                              CustomListTile(
+                                title: 'Juntas',
+                                icon: const Icon(
+                                  Icons.location_city_outlined,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listJuntas'),
+                              ),
+
+                              //Padrones
+                              CustomListTile(
+                                title: 'Padrones',
+                                icon: SvgPicture.asset(
+                                  'assets/icons/social.svg',
+                                  color: Colors.white,
+                                  width: 20,
+                                  height: 20,
+                                ),
+                                onTap: () => _navigateTo('listPadron'),
+                              ),
+
+                              //Proveedores
+                              CustomListTile(
+                                title: 'Proveedores',
+                                icon: const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                ),
+                                onTap: () => _navigateTo('listProveedores'),
+                              ),
+
                               //Productos
                               SubCustomExpansionTile(
                                 title: 'Productos',
@@ -659,183 +737,6 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
-
-                              //Proveedores
-                              SubCustomExpansionTile(
-                                title: 'Proveedores',
-                                icon: const Icon(Icons.person),
-                                children: [
-                                  CustomListTile(
-                                    title: 'Lista Proveedores',
-                                    icon: SvgPicture.asset(
-                                      'assets/icons/listprov.svg',
-                                      width: 20,
-                                      height: 20,
-                                      color: Colors.white,
-                                    ),
-                                    onTap: () => _navigateTo('listProveedores'),
-                                  ),
-                                  PermissionWidget(
-                                    permission: 'add',
-                                    child: CustomListTile(
-                                      title: 'Agregar Proveedor',
-                                      icon: const Icon(
-                                        Icons.person_add,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () =>
-                                          _navigateTo('addProveedores'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              //Almacenes
-                              SubCustomExpansionTile(
-                                title: 'Almacen',
-                                icon: SvgPicture.asset(
-                                  'assets/icons/almacen.svg',
-                                  height: 20,
-                                  width: 20,
-                                  color: Colors.white,
-                                ),
-                                children: [
-                                  CustomListTile(
-                                    title: 'Lista almacenes',
-                                    icon: const Icon(
-                                      Icons.list_alt_rounded,
-                                      color: Colors.white,
-                                    ),
-                                    onTap: () => _navigateTo('listAlmacenes'),
-                                  ),
-                                  PermissionWidget(
-                                    permission: 'add',
-                                    child: CustomListTile(
-                                      title: 'Agregar almacen',
-                                      icon: const Icon(
-                                        Icons.add_business_rounded,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('addAlmacenes'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              //Juntas
-                              SubCustomExpansionTile(
-                                title: 'Juntas',
-                                icon: const Icon(
-                                  Icons.location_city_outlined,
-                                  color: Colors.white,
-                                ),
-                                children: [
-                                  CustomListTile(
-                                    title: 'Lista juntas',
-                                    icon: SvgPicture.asset(
-                                      'assets/icons/listjuntas.svg',
-                                      color: Colors.white,
-                                      height: 20,
-                                      width: 20,
-                                    ),
-                                    onTap: () => _navigateTo('listJuntas'),
-                                  ),
-                                  PermissionWidget(
-                                    permission: 'add',
-                                    child: CustomListTile(
-                                      title: 'Agregar Junta',
-                                      icon: const Icon(
-                                        Icons.add_home_work_sharp,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('addJunta'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              //Colonias
-                              SubCustomExpansionTile(
-                                title: 'Colonias',
-                                icon: const Icon(
-                                  Icons.map_rounded,
-                                  color: Colors.white,
-                                ),
-                                children: [
-                                  CustomListTile(
-                                    title: 'Lista Colonias',
-                                    icon: const Icon(
-                                      Icons.map_rounded,
-                                      color: Colors.white,
-                                    ),
-                                    onTap: () => _navigateTo('listColonias'),
-                                  ),
-                                  PermissionWidget(
-                                    permission: 'add',
-                                    child: CustomListTile(
-                                      title: 'Agregar Colonia',
-                                      icon: const Icon(
-                                        Icons.public_rounded,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('addColonia'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              //Calles
-                              SubCustomExpansionTile(
-                                title: 'Calles',
-                                icon: const Icon(
-                                  Icons.stream,
-                                  color: Colors.white,
-                                ),
-                                children: [
-                                  CustomListTile(
-                                    title: 'Lista Calles',
-                                    icon: const Icon(
-                                      Icons.strikethrough_s_sharp,
-                                      color: Colors.white,
-                                    ),
-                                    onTap: () => _navigateTo('listCalles'),
-                                  ),
-                                  PermissionWidget(
-                                    permission: 'add',
-                                    child: CustomListTile(
-                                      title: 'Agregar Calle',
-                                      icon: const Icon(
-                                        Icons.stacked_line_chart_outlined,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('addCalle'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              //Padrones
-                              SubCustomExpansionTile(
-                                title: 'Padron',
-                                icon: SvgPicture.asset(
-                                  'assets/icons/social.svg',
-                                  color: Colors.white,
-                                  width: 20,
-                                  height: 20,
-                                ),
-                                children: [
-                                  CustomListTile(
-                                    title: 'Lista Padron',
-                                    icon: SvgPicture.asset(
-                                      'assets/icons/padronlist.svg',
-                                      color: Colors.white,
-                                      width: 20,
-                                      height: 20,
-                                    ),
-                                    onTap: () => _navigateTo('listPadron'),
-                                  ),
-                                ],
-                              ),
                             ],
                           ),
 
@@ -913,6 +814,37 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
+
+                              //Presupuesto
+                              SubCustomExpansionTile(
+                                  title: 'Presupuestos',
+                                  icon: const Icon(
+                                    Icons.wallet,
+                                    color: Colors.white,
+                                  ),
+                                  children: [
+                                    PermissionWidget(
+                                      permission: 'add',
+                                      child: CustomListTile(
+                                        title: 'Agregar Presupuesto',
+                                        icon: const Icon(
+                                          Icons.wallet_rounded,
+                                          color: Colors.white,
+                                        ),
+                                        onTap: () =>
+                                            _navigateTo('addPresupuesto'),
+                                      ),
+                                    ),
+                                    CustomListTile(
+                                      title: 'Lista Presupuestos',
+                                      icon: const Icon(
+                                        Icons.wallet_membership_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () =>
+                                          _navigateTo('listPresupuesto'),
+                                    ),
+                                  ]),
 
                               //HtaPrestamo
                               SubCustomExpansionTile(
@@ -1019,37 +951,40 @@ class _HomePageState extends State<HomePage>
                           ),
 
                           //REportes
-                          CustomExpansionTile(
-                            title: 'Contabilidad',
-                            icon: const Icon(
-                              Icons.paste_rounded,
+                          PermissionWidget(
+                            permission: 'canCContable',
+                            child: CustomExpansionTile(
+                              title: 'Contabilidad',
+                              icon: const Icon(
+                                Icons.paste_rounded,
+                              ),
+                              children: [
+                                CustomListTile(
+                                  title: 'CContables',
+                                  icon: const Icon(
+                                    Icons.list,
+                                    color: Colors.white,
+                                  ),
+                                  onTap: () => _navigateTo('listCC'),
+                                ),
+                                CustomListTile(
+                                  title: 'Reportes',
+                                  icon: const Icon(
+                                    Icons.add_chart,
+                                    color: Colors.white,
+                                  ),
+                                  onTap: () => _navigateTo('generadorCC'),
+                                ),
+                                CustomListTile(
+                                  title: 'PDF',
+                                  icon: const Icon(
+                                    Icons.picture_as_pdf,
+                                    color: Colors.white,
+                                  ),
+                                  onTap: () => _navigateTo('listPDF'),
+                                )
+                              ],
                             ),
-                            children: [
-                              CustomListTile(
-                                title: 'CContables',
-                                icon: const Icon(
-                                  Icons.list,
-                                  color: Colors.white,
-                                ),
-                                onTap: () => _navigateTo('listCC'),
-                              ),
-                              CustomListTile(
-                                title: 'Reportes',
-                                icon: const Icon(
-                                  Icons.add_chart,
-                                  color: Colors.white,
-                                ),
-                                onTap: () => _navigateTo('generadorCC'),
-                              ),
-                              CustomListTile(
-                                title: 'PDF',
-                                icon: const Icon(
-                                  Icons.picture_as_pdf,
-                                  color: Colors.white,
-                                ),
-                                onTap: () => _navigateTo('listPDF'),
-                              )
-                            ],
                           ),
 
                           PermissionWidget(
