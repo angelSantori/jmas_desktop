@@ -3,18 +3,15 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:jmas_desktop/service/auth_service.dart';
 
-//TODO: Crear aquí y en back la busqueda de salida x idproducto
-
 class SalidasController {
   final AuthService _authService = AuthService();
   static List<Salidas>? cacheSalidas;
 
   Future<List<Salidas>> listSalidas() async {
     try {
-      final response =
-          await http.get(Uri.parse('${_authService.apiURL}/Salidas'), headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-      });
+      final response = await http.get(
+          Uri.parse('${_authService.apiURL}/Salidas'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
@@ -123,10 +120,9 @@ class SalidasController {
   Future<List<Salidas>> getSalidaByFolio(String folio) async {
     try {
       final response = await http.get(
-          Uri.parse('${_authService.apiURL}/Salidas/ByFolio/$folio'),
-          headers: {
-            'Content-Type': 'application/json; charset=UTF-8',
-          });
+        Uri.parse('${_authService.apiURL}/Salidas/ByFolio/$folio'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
@@ -136,11 +132,11 @@ class SalidasController {
         return [];
       } else {
         print(
-            'Error al obtener las entradas por folio: ${response.statusCode} - ${response.body}');
+            'Error getSalidaByFolio | Ife | SalidasController: ${response.statusCode} - ${response.body}');
         return [];
       }
     } catch (e) {
-      print('Error al obtener las salidas poe folio: $e');
+      print('Error getSalidaByFolio | Try | SalidasController: $e');
       return [];
     }
   }
@@ -275,7 +271,7 @@ class SalidasController {
 class Salidas {
   int? id_Salida;
   String? salida_CodFolio;
-  String? salida_Referencia;
+  String? salida_PresupuestoFolio;
   bool? salida_Estado;
   double? salida_Unidades;
   double? salida_Costo;
@@ -287,6 +283,7 @@ class Salidas {
   String? salida_DocumentoPago;
   bool? salida_DocumentoFirma;
   bool? salida_Pagado;
+  String? salidaFolioOST;
   int? idProducto;
   int? id_User;
   int? id_Junta;
@@ -297,10 +294,11 @@ class Salidas {
   int? idColonia;
   int? idOrdenServicio;
   int? idUserAutoriza;
+  int? idContratista;
   Salidas({
     this.id_Salida,
     this.salida_CodFolio,
-    this.salida_Referencia,
+    this.salida_PresupuestoFolio,
     this.salida_Estado,
     this.salida_Unidades,
     this.salida_Costo,
@@ -312,6 +310,7 @@ class Salidas {
     this.salida_DocumentoPago,
     this.salida_DocumentoFirma,
     this.salida_Pagado,
+    this.salidaFolioOST,
     this.idProducto,
     this.id_User,
     this.id_Junta,
@@ -322,12 +321,13 @@ class Salidas {
     this.idColonia,
     this.idOrdenServicio,
     this.idUserAutoriza,
+    this.idContratista,
   });
 
   Salidas copyWith({
     int? id_Salida,
     String? salida_CodFolio,
-    String? salida_Referencia,
+    String? salida_PresupuestoFolio,
     bool? salida_Estado,
     double? salida_Unidades,
     double? salida_Costo,
@@ -339,6 +339,7 @@ class Salidas {
     String? salida_DocumentoPago,
     bool? salida_DocumentoFirma,
     bool? salida_Pagado,
+    String? salidaFolioOST,
     int? idProducto,
     int? id_User,
     int? id_Junta,
@@ -349,11 +350,13 @@ class Salidas {
     int? idColonia,
     int? idOrdenServicio,
     int? idUserAutoriza,
+    int? idContratista,
   }) {
     return Salidas(
       id_Salida: id_Salida ?? this.id_Salida,
       salida_CodFolio: salida_CodFolio ?? this.salida_CodFolio,
-      salida_Referencia: salida_Referencia ?? this.salida_Referencia,
+      salida_PresupuestoFolio:
+          salida_PresupuestoFolio ?? this.salida_PresupuestoFolio,
       salida_Estado: salida_Estado ?? this.salida_Estado,
       salida_Unidades: salida_Unidades ?? this.salida_Unidades,
       salida_Costo: salida_Costo ?? this.salida_Costo,
@@ -367,6 +370,7 @@ class Salidas {
       salida_DocumentoFirma:
           salida_DocumentoFirma ?? this.salida_DocumentoFirma,
       salida_Pagado: salida_Pagado ?? this.salida_Pagado,
+      salidaFolioOST: salidaFolioOST ?? this.salidaFolioOST,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
@@ -377,6 +381,7 @@ class Salidas {
       idColonia: idColonia ?? this.idColonia,
       idOrdenServicio: idOrdenServicio ?? this.idOrdenServicio,
       idUserAutoriza: idUserAutoriza ?? this.idUserAutoriza,
+      idContratista: idContratista ?? this.idContratista,
     );
   }
 
@@ -384,7 +389,7 @@ class Salidas {
     return <String, dynamic>{
       'id_Salida': id_Salida,
       'salida_CodFolio': salida_CodFolio,
-      'salida_Referencia': salida_Referencia,
+      'salida_PresupuestoFolio': salida_PresupuestoFolio,
       'salida_Estado': salida_Estado,
       'salida_Unidades': salida_Unidades,
       'salida_Costo': salida_Costo,
@@ -396,6 +401,7 @@ class Salidas {
       'salida_DocumentoPago': salida_DocumentoPago,
       'salida_DocumentoFirma': salida_DocumentoFirma,
       'salida_Pagado': salida_Pagado,
+      'salidaFolioOST': salidaFolioOST,
       'idProducto': idProducto,
       'id_User': id_User,
       'id_Junta': id_Junta,
@@ -406,6 +412,7 @@ class Salidas {
       'idColonia': idColonia,
       'idOrdenServicio': idOrdenServicio,
       'idUserAutoriza': idUserAutoriza,
+      'idContratista': idContratista,
     };
   }
 
@@ -415,8 +422,8 @@ class Salidas {
       salida_CodFolio: map['salida_CodFolio'] != null
           ? map['salida_CodFolio'] as String
           : null,
-      salida_Referencia: map['salida_Referencia'] != null
-          ? map['salida_Referencia'] as String
+      salida_PresupuestoFolio: map['salida_PresupuestoFolio'] != null
+          ? map['salida_PresupuestoFolio'] as String
           : null,
       salida_Estado:
           map['salida_Estado'] != null ? map['salida_Estado'] as bool : null,
@@ -447,6 +454,9 @@ class Salidas {
           : null,
       salida_Pagado:
           map['salida_Pagado'] != null ? map['salida_Pagado'] as bool : null,
+      salidaFolioOST: map['salidaFolioOST'] != null
+          ? map['salidaFolioOST'] as String
+          : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
@@ -461,6 +471,8 @@ class Salidas {
           map['idOrdenServicio'] != null ? map['idOrdenServicio'] as int : null,
       idUserAutoriza:
           map['idUserAutoriza'] != null ? map['idUserAutoriza'] as int : null,
+      idContratista:
+          map['idContratista'] != null ? map['idContratista'] as int : null,
     );
   }
 
@@ -471,7 +483,7 @@ class Salidas {
 
   @override
   String toString() {
-    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, salida_Imag64Orden: $salida_Imag64Orden, salida_DocumentoFirmas: $salida_DocumentoFirmas, salida_DocumentoPago: $salida_DocumentoPago, salida_DocumentoFirma: $salida_DocumentoFirma, salida_Pagado: $salida_Pagado, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio, idUserAutoriza: $idUserAutoriza)';
+    return 'Salidas(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_PresupuestoFolio: $salida_PresupuestoFolio, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, salida_Imag64Orden: $salida_Imag64Orden, salida_DocumentoFirmas: $salida_DocumentoFirmas, salida_DocumentoPago: $salida_DocumentoPago, salida_DocumentoFirma: $salida_DocumentoFirma, salida_Pagado: $salida_Pagado, salidaFolioOST: $salidaFolioOST, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio, idUserAutoriza: $idUserAutoriza, idContratista: $idContratista)';
   }
 
   @override
@@ -480,7 +492,7 @@ class Salidas {
 
     return other.id_Salida == id_Salida &&
         other.salida_CodFolio == salida_CodFolio &&
-        other.salida_Referencia == salida_Referencia &&
+        other.salida_PresupuestoFolio == salida_PresupuestoFolio &&
         other.salida_Estado == salida_Estado &&
         other.salida_Unidades == salida_Unidades &&
         other.salida_Costo == salida_Costo &&
@@ -492,6 +504,7 @@ class Salidas {
         other.salida_DocumentoPago == salida_DocumentoPago &&
         other.salida_DocumentoFirma == salida_DocumentoFirma &&
         other.salida_Pagado == salida_Pagado &&
+        other.salidaFolioOST == salidaFolioOST &&
         other.idProducto == idProducto &&
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
@@ -501,14 +514,15 @@ class Salidas {
         other.idCalle == idCalle &&
         other.idColonia == idColonia &&
         other.idOrdenServicio == idOrdenServicio &&
-        other.idUserAutoriza == idUserAutoriza;
+        other.idUserAutoriza == idUserAutoriza &&
+        other.idContratista == idContratista;
   }
 
   @override
   int get hashCode {
     return id_Salida.hashCode ^
         salida_CodFolio.hashCode ^
-        salida_Referencia.hashCode ^
+        salida_PresupuestoFolio.hashCode ^
         salida_Estado.hashCode ^
         salida_Unidades.hashCode ^
         salida_Costo.hashCode ^
@@ -520,6 +534,7 @@ class Salidas {
         salida_DocumentoPago.hashCode ^
         salida_DocumentoFirma.hashCode ^
         salida_Pagado.hashCode ^
+        salidaFolioOST.hashCode ^
         idProducto.hashCode ^
         id_User.hashCode ^
         id_Junta.hashCode ^
@@ -529,14 +544,15 @@ class Salidas {
         idCalle.hashCode ^
         idColonia.hashCode ^
         idOrdenServicio.hashCode ^
-        idUserAutoriza.hashCode;
+        idUserAutoriza.hashCode ^
+        idContratista.hashCode;
   }
 }
 
 class SalidaLista {
   int? id_Salida;
   String? salida_CodFolio;
-  String? salida_Referencia;
+  String? salida_PresupuestoFolio;
   bool? salida_Estado;
   double? salida_Unidades;
   double? salida_Costo;
@@ -545,6 +561,7 @@ class SalidaLista {
   String? salida_Comentario;
   bool? salida_DocumentoFirma;
   bool? salida_Pagado;
+  String? salidaFolioOST;
   int? idProducto;
   int? id_User;
   int? id_Junta;
@@ -555,10 +572,11 @@ class SalidaLista {
   int? idColonia;
   int? idOrdenServicio;
   int? idUserAutoriza;
+  int? idContratista;
   SalidaLista({
     this.id_Salida,
     this.salida_CodFolio,
-    this.salida_Referencia,
+    this.salida_PresupuestoFolio,
     this.salida_Estado,
     this.salida_Unidades,
     this.salida_Costo,
@@ -567,6 +585,7 @@ class SalidaLista {
     this.salida_Comentario,
     this.salida_DocumentoFirma,
     this.salida_Pagado,
+    this.salidaFolioOST,
     this.idProducto,
     this.id_User,
     this.id_Junta,
@@ -577,12 +596,13 @@ class SalidaLista {
     this.idColonia,
     this.idOrdenServicio,
     this.idUserAutoriza,
+    this.idContratista,
   });
 
   SalidaLista copyWith({
     int? id_Salida,
     String? salida_CodFolio,
-    String? salida_Referencia,
+    String? salida_PresupuestoFolio,
     bool? salida_Estado,
     double? salida_Unidades,
     double? salida_Costo,
@@ -591,6 +611,7 @@ class SalidaLista {
     String? salida_Comentario,
     bool? salida_DocumentoFirma,
     bool? salida_Pagado,
+    String? salidaFolioOST,
     int? idProducto,
     int? id_User,
     int? id_Junta,
@@ -601,11 +622,13 @@ class SalidaLista {
     int? idColonia,
     int? idOrdenServicio,
     int? idUserAutoriza,
+    int? idContratista,
   }) {
     return SalidaLista(
       id_Salida: id_Salida ?? this.id_Salida,
       salida_CodFolio: salida_CodFolio ?? this.salida_CodFolio,
-      salida_Referencia: salida_Referencia ?? this.salida_Referencia,
+      salida_PresupuestoFolio:
+          salida_PresupuestoFolio ?? this.salida_PresupuestoFolio,
       salida_Estado: salida_Estado ?? this.salida_Estado,
       salida_Unidades: salida_Unidades ?? this.salida_Unidades,
       salida_Costo: salida_Costo ?? this.salida_Costo,
@@ -615,6 +638,7 @@ class SalidaLista {
       salida_DocumentoFirma:
           salida_DocumentoFirma ?? this.salida_DocumentoFirma,
       salida_Pagado: salida_Pagado ?? this.salida_Pagado,
+      salidaFolioOST: salidaFolioOST ?? this.salidaFolioOST,
       idProducto: idProducto ?? this.idProducto,
       id_User: id_User ?? this.id_User,
       id_Junta: id_Junta ?? this.id_Junta,
@@ -625,6 +649,7 @@ class SalidaLista {
       idColonia: idColonia ?? this.idColonia,
       idOrdenServicio: idOrdenServicio ?? this.idOrdenServicio,
       idUserAutoriza: idUserAutoriza ?? this.idUserAutoriza,
+      idContratista: idContratista ?? this.idContratista,
     );
   }
 
@@ -632,7 +657,7 @@ class SalidaLista {
     return <String, dynamic>{
       'id_Salida': id_Salida,
       'salida_CodFolio': salida_CodFolio,
-      'salida_Referencia': salida_Referencia,
+      'salida_PresupuestoFolio': salida_PresupuestoFolio,
       'salida_Estado': salida_Estado,
       'salida_Unidades': salida_Unidades,
       'salida_Costo': salida_Costo,
@@ -641,6 +666,7 @@ class SalidaLista {
       'salida_Comentario': salida_Comentario,
       'salida_DocumentoFirma': salida_DocumentoFirma,
       'salida_Pagado': salida_Pagado,
+      'salidaFolioOST': salidaFolioOST,
       'idProducto': idProducto,
       'id_User': id_User,
       'id_Junta': id_Junta,
@@ -651,6 +677,7 @@ class SalidaLista {
       'idColonia': idColonia,
       'idOrdenServicio': idOrdenServicio,
       'idUserAutoriza': idUserAutoriza,
+      'idContratista': idContratista,
     };
   }
 
@@ -660,8 +687,8 @@ class SalidaLista {
       salida_CodFolio: map['salida_CodFolio'] != null
           ? map['salida_CodFolio'] as String
           : null,
-      salida_Referencia: map['salida_Referencia'] != null
-          ? map['salida_Referencia'] as String
+      salida_PresupuestoFolio: map['salida_PresupuestoFolio'] != null
+          ? map['salida_PresupuestoFolio'] as String
           : null,
       salida_Estado:
           map['salida_Estado'] != null ? map['salida_Estado'] as bool : null,
@@ -683,6 +710,9 @@ class SalidaLista {
           : null,
       salida_Pagado:
           map['salida_Pagado'] != null ? map['salida_Pagado'] as bool : null,
+      salidaFolioOST: map['salidaFolioOST'] != null
+          ? map['salidaFolioOST'] as String
+          : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
       id_User: map['id_User'] != null ? map['id_User'] as int : null,
       id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
@@ -697,6 +727,8 @@ class SalidaLista {
           map['idOrdenServicio'] != null ? map['idOrdenServicio'] as int : null,
       idUserAutoriza:
           map['idUserAutoriza'] != null ? map['idUserAutoriza'] as int : null,
+      idContratista:
+          map['idContratista'] != null ? map['idContratista'] as int : null,
     );
   }
 
@@ -707,7 +739,7 @@ class SalidaLista {
 
   @override
   String toString() {
-    return 'SalidaLista(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_Referencia: $salida_Referencia, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, salida_DocumentoFirma: $salida_DocumentoFirma, salida_Pagado: $salida_Pagado, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio, idUserAutoriza: $idUserAutoriza)';
+    return 'SalidaLista(id_Salida: $id_Salida, salida_CodFolio: $salida_CodFolio, salida_PresupuestoFolio: $salida_PresupuestoFolio, salida_Estado: $salida_Estado, salida_Unidades: $salida_Unidades, salida_Costo: $salida_Costo, salida_Fecha: $salida_Fecha, salida_TipoTrabajo: $salida_TipoTrabajo, salida_Comentario: $salida_Comentario, salida_DocumentoFirma: $salida_DocumentoFirma, salida_Pagado: $salida_Pagado, salidaFolioOST: $salidaFolioOST, idProducto: $idProducto, id_User: $id_User, id_Junta: $id_Junta, id_Almacen: $id_Almacen, id_User_Asignado: $id_User_Asignado, idPadron: $idPadron, idCalle: $idCalle, idColonia: $idColonia, idOrdenServicio: $idOrdenServicio, idUserAutoriza: $idUserAutoriza, idContratista: $idContratista)';
   }
 
   @override
@@ -716,7 +748,7 @@ class SalidaLista {
 
     return other.id_Salida == id_Salida &&
         other.salida_CodFolio == salida_CodFolio &&
-        other.salida_Referencia == salida_Referencia &&
+        other.salida_PresupuestoFolio == salida_PresupuestoFolio &&
         other.salida_Estado == salida_Estado &&
         other.salida_Unidades == salida_Unidades &&
         other.salida_Costo == salida_Costo &&
@@ -725,6 +757,7 @@ class SalidaLista {
         other.salida_Comentario == salida_Comentario &&
         other.salida_DocumentoFirma == salida_DocumentoFirma &&
         other.salida_Pagado == salida_Pagado &&
+        other.salidaFolioOST == salidaFolioOST &&
         other.idProducto == idProducto &&
         other.id_User == id_User &&
         other.id_Junta == id_Junta &&
@@ -734,14 +767,15 @@ class SalidaLista {
         other.idCalle == idCalle &&
         other.idColonia == idColonia &&
         other.idOrdenServicio == idOrdenServicio &&
-        other.idUserAutoriza == idUserAutoriza;
+        other.idUserAutoriza == idUserAutoriza &&
+        other.idContratista == idContratista;
   }
 
   @override
   int get hashCode {
     return id_Salida.hashCode ^
         salida_CodFolio.hashCode ^
-        salida_Referencia.hashCode ^
+        salida_PresupuestoFolio.hashCode ^
         salida_Estado.hashCode ^
         salida_Unidades.hashCode ^
         salida_Costo.hashCode ^
@@ -750,6 +784,7 @@ class SalidaLista {
         salida_Comentario.hashCode ^
         salida_DocumentoFirma.hashCode ^
         salida_Pagado.hashCode ^
+        salidaFolioOST.hashCode ^
         idProducto.hashCode ^
         id_User.hashCode ^
         id_Junta.hashCode ^
@@ -759,6 +794,7 @@ class SalidaLista {
         idCalle.hashCode ^
         idColonia.hashCode ^
         idOrdenServicio.hashCode ^
-        idUserAutoriza.hashCode;
+        idUserAutoriza.hashCode ^
+        idContratista.hashCode;
   }
 }

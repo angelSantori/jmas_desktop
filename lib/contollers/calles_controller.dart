@@ -115,9 +115,7 @@ class CallesController {
     try {
       final response = await http.put(
         Uri.parse('${_authService.apiURL}/Calles/${calle.idCalle}'),
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: calle.toJson(),
       );
 

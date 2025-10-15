@@ -170,6 +170,30 @@ class EntradasController {
       return false;
     }
   }
+
+  // Entrada List
+  Future<List<EntradaLista>> listEntradaOptimizado() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${_authService.apiURL}/Entradas'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData
+            .map((entradas) => EntradaLista.fromMap(entradas))
+            .toList();
+      } else {
+        print(
+            'Error listEntradaOptimizado | Ife | EntradasController: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error listEntradaOptimizado | Try | EntradasController: $e');
+      return [];
+    }
+  }
 }
 
 class Entradas {
@@ -352,6 +376,183 @@ class Entradas {
         entrada_Costo.hashCode ^
         entrada_Fecha.hashCode ^
         entrada_ImgB64Factura.hashCode ^
+        entrada_Referencia.hashCode ^
+        entrada_Comentario.hashCode ^
+        entrada_NumeroFactura.hashCode ^
+        idProducto.hashCode ^
+        id_User.hashCode ^
+        entrada_Estado.hashCode ^
+        id_Almacen.hashCode ^
+        id_Proveedor.hashCode ^
+        id_Junta.hashCode ^
+        idEntidad.hashCode;
+  }
+}
+
+class EntradaLista {
+  int? id_Entradas;
+  String? entrada_CodFolio;
+  double? entrada_Unidades;
+  double? entrada_Costo;
+  String? entrada_Fecha;
+  String? entrada_Referencia;
+  String? entrada_Comentario;
+  int? entrada_NumeroFactura;
+  int? idProducto;
+  int? id_User;
+  bool? entrada_Estado;
+  int? id_Almacen;
+  int? id_Proveedor;
+  int? id_Junta;
+  int? idEntidad;
+  EntradaLista({
+    this.id_Entradas,
+    this.entrada_CodFolio,
+    this.entrada_Unidades,
+    this.entrada_Costo,
+    this.entrada_Fecha,
+    this.entrada_Referencia,
+    this.entrada_Comentario,
+    this.entrada_NumeroFactura,
+    this.idProducto,
+    this.id_User,
+    this.entrada_Estado,
+    this.id_Almacen,
+    this.id_Proveedor,
+    this.id_Junta,
+    this.idEntidad,
+  });
+
+  EntradaLista copyWith({
+    int? id_Entradas,
+    String? entrada_CodFolio,
+    double? entrada_Unidades,
+    double? entrada_Costo,
+    String? entrada_Fecha,
+    String? entrada_Referencia,
+    String? entrada_Comentario,
+    int? entrada_NumeroFactura,
+    int? idProducto,
+    int? id_User,
+    bool? entrada_Estado,
+    int? id_Almacen,
+    int? id_Proveedor,
+    int? id_Junta,
+    int? idEntidad,
+  }) {
+    return EntradaLista(
+      id_Entradas: id_Entradas ?? this.id_Entradas,
+      entrada_CodFolio: entrada_CodFolio ?? this.entrada_CodFolio,
+      entrada_Unidades: entrada_Unidades ?? this.entrada_Unidades,
+      entrada_Costo: entrada_Costo ?? this.entrada_Costo,
+      entrada_Fecha: entrada_Fecha ?? this.entrada_Fecha,
+      entrada_Referencia: entrada_Referencia ?? this.entrada_Referencia,
+      entrada_Comentario: entrada_Comentario ?? this.entrada_Comentario,
+      entrada_NumeroFactura:
+          entrada_NumeroFactura ?? this.entrada_NumeroFactura,
+      idProducto: idProducto ?? this.idProducto,
+      id_User: id_User ?? this.id_User,
+      entrada_Estado: entrada_Estado ?? this.entrada_Estado,
+      id_Almacen: id_Almacen ?? this.id_Almacen,
+      id_Proveedor: id_Proveedor ?? this.id_Proveedor,
+      id_Junta: id_Junta ?? this.id_Junta,
+      idEntidad: idEntidad ?? this.idEntidad,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id_Entradas': id_Entradas,
+      'entrada_CodFolio': entrada_CodFolio,
+      'entrada_Unidades': entrada_Unidades,
+      'entrada_Costo': entrada_Costo,
+      'entrada_Fecha': entrada_Fecha,
+      'entrada_Referencia': entrada_Referencia,
+      'entrada_Comentario': entrada_Comentario,
+      'entrada_NumeroFactura': entrada_NumeroFactura,
+      'idProducto': idProducto,
+      'id_User': id_User,
+      'entrada_Estado': entrada_Estado,
+      'id_Almacen': id_Almacen,
+      'id_Proveedor': id_Proveedor,
+      'id_Junta': id_Junta,
+      'idEntidad': idEntidad,
+    };
+  }
+
+  factory EntradaLista.fromMap(Map<String, dynamic> map) {
+    return EntradaLista(
+      id_Entradas:
+          map['id_Entradas'] != null ? map['id_Entradas'] as int : null,
+      entrada_CodFolio: map['entrada_CodFolio'] != null
+          ? map['entrada_CodFolio'] as String
+          : null,
+      entrada_Unidades: map['entrada_Unidades'] != null
+          ? map['entrada_Unidades'] as double
+          : null,
+      entrada_Costo:
+          map['entrada_Costo'] != null ? map['entrada_Costo'] as double : null,
+      entrada_Fecha:
+          map['entrada_Fecha'] != null ? map['entrada_Fecha'] as String : null,
+      entrada_Referencia: map['entrada_Referencia'] != null
+          ? map['entrada_Referencia'] as String
+          : null,
+      entrada_Comentario: map['entrada_Comentario'] != null
+          ? map['entrada_Comentario'] as String
+          : null,
+      entrada_NumeroFactura: map['entrada_NumeroFactura'] != null
+          ? map['entrada_NumeroFactura'] as int
+          : null,
+      idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
+      id_User: map['id_User'] != null ? map['id_User'] as int : null,
+      entrada_Estado:
+          map['entrada_Estado'] != null ? map['entrada_Estado'] as bool : null,
+      id_Almacen: map['id_Almacen'] != null ? map['id_Almacen'] as int : null,
+      id_Proveedor:
+          map['id_Proveedor'] != null ? map['id_Proveedor'] as int : null,
+      id_Junta: map['id_Junta'] != null ? map['id_Junta'] as int : null,
+      idEntidad: map['idEntidad'] != null ? map['idEntidad'] as int : null,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory EntradaLista.fromJson(String source) =>
+      EntradaLista.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  @override
+  String toString() {
+    return 'EntradaLista(id_Entradas: $id_Entradas, entrada_CodFolio: $entrada_CodFolio, entrada_Unidades: $entrada_Unidades, entrada_Costo: $entrada_Costo, entrada_Fecha: $entrada_Fecha, entrada_Referencia: $entrada_Referencia, entrada_Comentario: $entrada_Comentario, entrada_NumeroFactura: $entrada_NumeroFactura, idProducto: $idProducto, id_User: $id_User, entrada_Estado: $entrada_Estado, id_Almacen: $id_Almacen, id_Proveedor: $id_Proveedor, id_Junta: $id_Junta, idEntidad: $idEntidad)';
+  }
+
+  @override
+  bool operator ==(covariant EntradaLista other) {
+    if (identical(this, other)) return true;
+
+    return other.id_Entradas == id_Entradas &&
+        other.entrada_CodFolio == entrada_CodFolio &&
+        other.entrada_Unidades == entrada_Unidades &&
+        other.entrada_Costo == entrada_Costo &&
+        other.entrada_Fecha == entrada_Fecha &&
+        other.entrada_Referencia == entrada_Referencia &&
+        other.entrada_Comentario == entrada_Comentario &&
+        other.entrada_NumeroFactura == entrada_NumeroFactura &&
+        other.idProducto == idProducto &&
+        other.id_User == id_User &&
+        other.entrada_Estado == entrada_Estado &&
+        other.id_Almacen == id_Almacen &&
+        other.id_Proveedor == id_Proveedor &&
+        other.id_Junta == id_Junta &&
+        other.idEntidad == idEntidad;
+  }
+
+  @override
+  int get hashCode {
+    return id_Entradas.hashCode ^
+        entrada_CodFolio.hashCode ^
+        entrada_Unidades.hashCode ^
+        entrada_Costo.hashCode ^
+        entrada_Fecha.hashCode ^
         entrada_Referencia.hashCode ^
         entrada_Comentario.hashCode ^
         entrada_NumeroFactura.hashCode ^

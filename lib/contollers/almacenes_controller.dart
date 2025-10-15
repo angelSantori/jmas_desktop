@@ -1,8 +1,5 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class AlmacenesController {
@@ -36,7 +33,7 @@ class AlmacenesController {
   Future<List<Almacenes>> listAlmacenes() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Almacenes'),
+        Uri.parse('${_authService.apiURL}/Almacenes'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
