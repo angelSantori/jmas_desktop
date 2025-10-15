@@ -139,6 +139,7 @@ class CustomTextFielTexto extends StatefulWidget {
   final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
 
   const CustomTextFielTexto({
     super.key,
@@ -149,6 +150,7 @@ class CustomTextFielTexto extends StatefulWidget {
     this.inputFormatters,
     this.enabled = true,
     this.onChanged,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -211,6 +213,7 @@ class _CustomTextFielTextoState extends State<CustomTextFielTexto>
             enabled: widget.enabled,
             inputFormatters: widget.inputFormatters,
             onChanged: widget.onChanged,
+            onFieldSubmitted: widget.onFieldSubmitted,
             decoration: InputDecoration(
               labelText: widget.labelText,
               labelStyle: TextStyle(

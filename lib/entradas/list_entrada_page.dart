@@ -4,6 +4,7 @@ import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
+import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/entradas/details_entrada_page.dart';
 import 'package:jmas_desktop/entradas/excel/excel_entradas.dart';
@@ -32,8 +33,8 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
   //final TextEditingController _motivoController = TextEditingController();
   //final String _fecha = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
-  List<Entradas> _allEntradas = [];
-  List<Entradas> _filteredEntradas = [];
+  List<EntradaLista> _allEntradas = [];
+  List<EntradaLista> _filteredEntradas = [];
 
   DateTime? _startDate;
   DateTime? _endDate;
@@ -72,7 +73,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
       _allEntradas.clear();
       _filteredEntradas.clear();
 
-      final entradas = await _entradasController.listEntradas();
+      final entradas = await _entradasController.listEntradaOptimizado();
       //final productos = await _productosController.listProductos();
       final almacenes = await _almacenesController.listAlmacenes();
       final proveedores = await _proveedoresController.listProveedores();
@@ -618,7 +619,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
     }
 
     //Agrupar entradas por CodFolio
-    Map<String, List<Entradas>> groupEntradas = {};
+    Map<String, List<EntradaLista>> groupEntradas = {};
     for (var entrada in _filteredEntradas) {
       groupEntradas.putIfAbsent(
         entrada.entrada_CodFolio!,
@@ -642,7 +643,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
               .shrink(); // Evita acceder a un índice fuera de rango
         }
         String codFolio = groupEntradas.keys.elementAt(index);
-        List<Entradas> entradas = groupEntradas[codFolio]!;
+        List<EntradaLista> entradas = groupEntradas[codFolio]!;
 
         //Calcular total de unidades y cisti
         double totalUnidades =
@@ -666,7 +667,7 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
-            onTap: () {
+            onTap: () async {
               final proveedor = _proveedor.firstWhere(
                 (prov) => prov.id_Proveedor == entrada.id_Proveedor,
                 orElse: () =>
@@ -684,11 +685,14 @@ class _ListEntradaPageState extends State<ListEntradaPage> {
                 orElse: () => Juntas(id_Junta: 0, junta_Name: 'Desconocido'),
               );
 
+              final todasEntradasFolio =
+                  await EntradasController().getEntradaByCodFolio(codFolio);
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => DetailsEntradaPage(
-                    entradas: entradas,
+                    entradas: todasEntradasFolio,
                     proveedor: proveedor,
                     almacen: almacen,
                     junta: junta,
