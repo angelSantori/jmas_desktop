@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/docs_pdf_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
@@ -22,7 +23,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 Future<bool> validarCamposAntesDeImprimirSalida({
   required BuildContext context,
   required List productosAgregados,
-  TextEditingController? referenciaController,
+  required TextEditingController folioOST,
   required var selectedAlmacen,
   required var padron,
   required var calle,
@@ -33,6 +34,10 @@ Future<bool> validarCamposAntesDeImprimirSalida({
   required var selectedUser,
   required var selectedUserAutoriza,
 }) async {
+  if (folioOST.text.isEmpty) {
+    showAdvertence(context, 'Debe introducir una orden de servicio técnico');
+    return false;
+  }
   if (tipoTrabajo == null) {
     showAdvertence(context, 'Debe seleccionar un tipo de trabajo');
     return false;
@@ -114,6 +119,8 @@ Future<void> generarPdfSalida({
   required String folio,
   required String userName,
   required String idUser,
+  required String folioOST,
+  required String presupuestoFolio,
   required Almacenes alamcenA,
   required Users userAsignado,
   required String tipoTrabajo,
@@ -123,6 +130,7 @@ Future<void> generarPdfSalida({
   required Juntas junta,
   required Users userAutoriza,
   OrdenServicio? ordenServicio,
+  Contratistas? contratista,
   String? comentario,
   required List<Map<String, dynamic>> productos,
 }) async {
@@ -132,7 +140,7 @@ Future<void> generarPdfSalida({
       movimiento: movimiento,
       fecha: fecha,
       folio: folio,
-      //referencia: referencia,
+      presupuestoFolio: presupuestoFolio,
       userName: userName,
       idUser: idUser,
       alamcenA: alamcenA,
@@ -145,6 +153,8 @@ Future<void> generarPdfSalida({
       ordenServicio: ordenServicio,
       userAutoriza: userAutoriza,
       comentario: comentario,
+      folioOST: folioOST,
+      contratista: contratista,
       productos: productos,
     );
 
@@ -187,9 +197,10 @@ Future<Uint8List> _generateAndPrintPdfSalidaBytes({
   required String movimiento,
   required String fecha,
   required String folio,
-  //required String referencia,
+  required String presupuestoFolio,
   required String userName,
   required String idUser,
+  required String folioOST,
   required Almacenes alamcenA,
   required Users userAsignado,
   required String tipoTrabajo,
@@ -199,6 +210,7 @@ Future<Uint8List> _generateAndPrintPdfSalidaBytes({
   required Juntas junta,
   required Users userAutoriza,
   OrdenServicio? ordenServicio,
+  Contratistas? contratista,
   String? comentario,
   required List<Map<String, dynamic>> productos,
 }) async {
@@ -330,11 +342,17 @@ Future<Uint8List> _generateAndPrintPdfSalidaBytes({
                           pw.Text('Fecha: $fecha',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
+                          pw.Text('Presupuesto: $presupuestoFolio',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
                           pw.Text(
                               'Almacen: ${alamcenA.id_Almacen} - ${alamcenA.almacen_Nombre}',
                               style: const pw.TextStyle(fontSize: 9)),
                           pw.SizedBox(height: 3),
                           pw.Text('Tipo de Trabajo: $tipoTrabajo',
+                              style: const pw.TextStyle(fontSize: 9)),
+                          pw.SizedBox(height: 3),
+                          pw.Text('OST: $folioOST',
                               style: const pw.TextStyle(fontSize: 9)),
                           if (ordenServicio?.prioridadOS != null) ...[
                             pw.SizedBox(height: 3),
@@ -365,6 +383,12 @@ Future<Uint8List> _generateAndPrintPdfSalidaBytes({
                           pw.Text(
                               'Autoriza: ${userAutoriza.id_User} - ${userAutoriza.user_Name}',
                               style: const pw.TextStyle(fontSize: 9)),
+                          if (contratista != null) ...[
+                            pw.SizedBox(height: 3),
+                            pw.Text(
+                                'Contratista: ${contratista.idContratista} - ${contratista.contratistaNombre}',
+                                style: const pw.TextStyle(fontSize: 9)),
+                          ],
                         ],
                       ),
                     ],

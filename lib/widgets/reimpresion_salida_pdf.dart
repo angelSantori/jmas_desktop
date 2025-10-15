@@ -2,6 +2,7 @@ import 'dart:html' as html;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/orden_servicio_controller.dart';
 import 'package:pdf/pdf.dart';
@@ -20,6 +21,7 @@ class ReimpresionSalidaPdf {
     required String fecha,
     required String folio,
     required String userName,
+    required String folioOST,
     required String idUser,
     required Almacenes almacen,
     required Users userAsignado,
@@ -30,6 +32,7 @@ class ReimpresionSalidaPdf {
     required Juntas junta,
     required Users userAutoriza,
     OrdenServicio? ordenServicio,
+    Contratistas? contratista,
     String? comentario,
     required List<Map<String, dynamic>> productos,
     required bool mostrarEstado,
@@ -229,6 +232,9 @@ class ReimpresionSalidaPdf {
                               pw.SizedBox(height: 3),
                               pw.Text('Tipo de Trabajo: $tipoTrabajo',
                                   style: const pw.TextStyle(fontSize: 9)),
+                              pw.SizedBox(height: 3),
+                              pw.Text('OST: $folioOST',
+                                  style: const pw.TextStyle(fontSize: 9)),
                               if (ordenServicio?.prioridadOS != null) ...[
                                 pw.SizedBox(height: 3),
                                 pw.Text(
@@ -258,6 +264,12 @@ class ReimpresionSalidaPdf {
                               pw.Text(
                                   'Autoriza: ${userAutoriza.id_User} - ${userAutoriza.user_Name}',
                                   style: const pw.TextStyle(fontSize: 9)),
+                              if (contratista!.idContratista != 0) ...[
+                                pw.SizedBox(height: 3),
+                                pw.Text(
+                                    'Contratista: ${contratista.idContratista} - ${contratista.contratistaNombre}',
+                                    style: const pw.TextStyle(fontSize: 9)),
+                              ],
                             ],
                           ),
                         ],
