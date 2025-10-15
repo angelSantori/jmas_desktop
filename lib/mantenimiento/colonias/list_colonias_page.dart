@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/colonias/edit_colonias_page.dart';
 import 'package:jmas_desktop/contollers/colonias_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/permission_widget.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListColoniasPage extends StatefulWidget {
   const ListColoniasPage({super.key});
@@ -17,14 +17,19 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
 
   List<Colonias> _allColonias = [];
   List<Colonias> _filteredColonias = [];
-
-  bool _isLoading = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadData();
     _searchController.addListener(_filterColonias);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -36,7 +41,6 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
       setState(() {
         _allColonias = colonias;
         _filteredColonias = colonias;
-
         _isLoading = false;
       });
     } catch (e) {
@@ -59,11 +63,159 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
     });
   }
 
+  Future<void> _showAddDialog() async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Agregar Colonia',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre de la colonia',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre de la colonia obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.map_rounded,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final nuevaColonia = Colonias(
+        idColonia: 0,
+        nombreColonia: nombreController.text,
+      );
+
+      final success = await _coloniasController.addColonia(nuevaColonia);
+      if (success) {
+        showOk(context, 'Nueva colonia agregada correctamente');
+        _loadData();
+      } else {
+        showError(context, 'Error al agregar la nueva colonia');
+      }
+    }
+  }
+
+  Future<void> _showEditDialog(Colonias colonia) async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController(text: colonia.nombreColonia);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Editar Colonia',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre de la colonia',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre de la colonia obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.map_rounded,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final coloniaEditada = colonia.copyWith(
+        idColonia: colonia.idColonia,
+        nombreColonia: nombreController.text,
+      );
+
+      final success = await _coloniasController.editColonia(coloniaEditada);
+
+      if (success) {
+        showOk(context, 'Colonia actualizada correctamente');
+        _loadData();
+      } else {
+        showError(context, 'Error al actualizar la colonia');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista de Colonias'),
+        title: const Text(
+          'Lista de Colonias',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        elevation: 2,
+        backgroundColor: Colors.indigo.shade900,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -72,10 +224,27 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: CustomTextFielTexto(
-                controller: _searchController,
-                labelText: 'Buscar colonia por nombre',
-                prefixIcon: Icons.search,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomTextFielTexto(
+                    controller: _searchController,
+                    labelText: 'Buscar colonia por nombre',
+                    prefixIcon: Icons.search,
+                  ),
+                  const SizedBox(width: 20),
+                  PermissionWidget(
+                    permission: 'manageColonia',
+                    child: IconButton(
+                        onPressed: _showAddDialog,
+                        tooltip: 'Agregar Colonia Nueva',
+                        iconSize: 30,
+                        icon: Icon(
+                          Icons.add_box,
+                          color: Colors.blue.shade900,
+                        )),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 30),
@@ -83,11 +252,15 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
               child: _isLoading
                   ? Center(
                       child: CircularProgressIndicator(
-                          color: Colors.blue.shade900))
+                        color: Colors.indigo.shade900,
+                      ),
+                    )
                   : _filteredColonias.isEmpty
                       ? const Center(
                           child: Text(
-                              'No hay colonias que coincidan con la búsqueda'))
+                            'No hay colonias que coincidan con la búsqueda',
+                          ),
+                        )
                       : ListView.separated(
                           padding: const EdgeInsets.all(8),
                           itemCount: _filteredColonias.length,
@@ -142,12 +315,11 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
                                         children: [
                                           //Nombre
                                           Text(
-                                            colonias.nombreColonia ??
-                                                'No disponible',
+                                            '${colonias.idColonia} - ${colonias.nombreColonia ?? 'Sin Nombre'}',
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.blue.shade900,
+                                              color: Colors.indigo.shade900,
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -162,7 +334,7 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
                                       ),
                                     ),
                                     PermissionWidget(
-                                      permission: 'edit',
+                                      permission: 'manageColonia',
                                       child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
@@ -176,19 +348,8 @@ class _ListColoniasPageState extends State<ListColoniasPage> {
                                             size: 20,
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditColoniasPage(
-                                                      colonia: colonias),
-                                            ),
-                                          );
-                                          if (result == true) {
-                                            _loadData();
-                                          }
-                                        },
+                                        onPressed: () =>
+                                            _showEditDialog(colonias),
                                       ),
                                     ),
                                   ],

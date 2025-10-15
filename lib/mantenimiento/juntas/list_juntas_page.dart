@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
-import 'package:jmas_desktop/juntas/edit_junta_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/permission_widget.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListJuntasPage extends StatefulWidget {
   const ListJuntasPage({super.key});
@@ -17,14 +17,19 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
 
   List<Juntas> _allJuntas = [];
   List<Juntas> _filteredJuntas = [];
-
-  bool _isLoading = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadData();
     _searchController.addListener(_filterJuntas);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -38,7 +43,6 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
       setState(() {
         _allJuntas = juntas;
         _filteredJuntas = juntas;
-
         _isLoading = false;
       });
     } catch (e) {
@@ -67,24 +71,239 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
     });
   }
 
+  Future<void> _showAddDialog() async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController();
+    final telefonoController = TextEditingController();
+    final encargadoController = TextEditingController();
+    final cuentaController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Agregar Junta',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre de la junta',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre de la junta obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.factory,
+              ),
+              const SizedBox(height: 12),
+              CustomTextFielTexto(
+                controller: telefonoController,
+                labelText: 'Teléfono',
+                prefixIcon: Icons.phone,
+              ),
+              const SizedBox(height: 12),
+              CustomTextFielTexto(
+                controller: encargadoController,
+                labelText: 'Encargado',
+                prefixIcon: Icons.person,
+              ),
+              const SizedBox(height: 12),
+              CustomTextFielTexto(
+                controller: cuentaController,
+                labelText: 'Cuenta',
+                prefixIcon: Icons.numbers,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final nuevaJunta = Juntas(
+        id_Junta: 0,
+        junta_Name: nombreController.text,
+        junta_Telefono: telefonoController.text,
+        junta_Encargado: encargadoController.text,
+        junta_Cuenta: cuentaController.text,
+      );
+
+      final success = await _juntasController.addJunta(nuevaJunta);
+      if (success) {
+        showOk(context, 'Nueva junta agregada correctamente');
+        _loadData();
+      } else {
+        showError(context, 'Error al agregar la nueva junta');
+      }
+    }
+  }
+
+  Future<void> _showEditDialog(Juntas junta) async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController(text: junta.junta_Name);
+    final telefonoController =
+        TextEditingController(text: junta.junta_Telefono);
+    final encargadoController =
+        TextEditingController(text: junta.junta_Encargado);
+    final cuentaController = TextEditingController(text: junta.junta_Cuenta);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Editar Junta',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre de la junta',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre de la junta obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.factory,
+              ),
+              const SizedBox(height: 12),
+              CustomTextFielTexto(
+                controller: telefonoController,
+                labelText: 'Teléfono',
+                prefixIcon: Icons.phone,
+              ),
+              const SizedBox(height: 12),
+              CustomTextFielTexto(
+                controller: encargadoController,
+                labelText: 'Encargado',
+                prefixIcon: Icons.person,
+              ),
+              const SizedBox(height: 12),
+              CustomTextFielTexto(
+                controller: cuentaController,
+                labelText: 'Cuenta',
+                prefixIcon: Icons.numbers,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final juntaEditada = junta.copyWith(
+        id_Junta: junta.id_Junta,
+        junta_Name: nombreController.text,
+        junta_Telefono: telefonoController.text,
+        junta_Encargado: encargadoController.text,
+        junta_Cuenta: cuentaController.text,
+      );
+
+      final success = await _juntasController.editJunta(juntaEditada);
+
+      if (success) {
+        showOk(context, 'Junta actualizada correctamente');
+        _loadData();
+      } else {
+        showError(context, 'Error al actualizar la junta');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista de Juntas'),
+        title: const Text(
+          'Lista de Juntas',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
+        elevation: 2,
+        backgroundColor: Colors.indigo.shade900,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Column(
           children: [
+            const SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: CustomTextFielTexto(
-                controller: _searchController,
-                labelText:
-                    'Buscar junta por Nombre, Contacto, Encargado o Cuenta',
-                prefixIcon: Icons.search,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomTextFielTexto(
+                    controller: _searchController,
+                    labelText:
+                        'Buscar por Nombre, Contacto, Encargado o Cuenta',
+                    prefixIcon: Icons.search,
+                  ),
+                  const SizedBox(width: 20),
+                  PermissionWidget(
+                    permission: 'manageJunta',
+                    child: IconButton(
+                        onPressed: _showAddDialog,
+                        tooltip: 'Agregar Junta Nueva',
+                        iconSize: 30,
+                        icon: Icon(
+                          Icons.add_box,
+                          color: Colors.blue.shade900,
+                        )),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 30),
@@ -92,12 +311,14 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
               child: _isLoading
                   ? Center(
                       child: CircularProgressIndicator(
-                      color: Colors.blue.shade900,
-                    ))
+                        color: Colors.indigo.shade900,
+                      ),
+                    )
                   : _filteredJuntas.isEmpty
                       ? const Center(
                           child: Text(
-                              'No hay juntas que coincidan con la búsqueda.'),
+                            'No hay juntas que coincidan con la búsqueda',
+                          ),
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(8),
@@ -151,13 +372,13 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          //Npmbre
+                                          //Nombre
                                           Text(
-                                            junta.junta_Name ?? '',
+                                            '${junta.id_Junta} - ${junta.junta_Name ?? 'Sin Nombre'}',
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.blue.shade900,
+                                              color: Colors.indigo.shade900,
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -169,6 +390,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                                 size: 16,
                                                 color: Colors.grey,
                                               ),
+                                              const SizedBox(width: 4),
                                               Text(
                                                 (junta.junta_Telefono == null ||
                                                         junta.junta_Telefono!
@@ -211,7 +433,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                             ],
                                           ),
                                           const SizedBox(height: 4),
-                                          //Encargado
+                                          //Cuenta
                                           Row(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -241,7 +463,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                       ),
                                     ),
                                     PermissionWidget(
-                                      permission: 'edit',
+                                      permission: 'manageJunta',
                                       child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
@@ -255,18 +477,7 @@ class _ListJuntasPageState extends State<ListJuntasPage> {
                                             size: 20,
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditJuntaPage(junta: junta),
-                                            ),
-                                          );
-                                          if (result == true) {
-                                            _loadData();
-                                          }
-                                        },
+                                        onPressed: () => _showEditDialog(junta),
                                       ),
                                     ),
                                   ],

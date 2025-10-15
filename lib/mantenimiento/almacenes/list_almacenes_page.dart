@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/almacenes_controller.dart';
-import 'package:jmas_desktop/almacenes/edit_almacen_page.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/permission_widget.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListAlmacenesPage extends StatefulWidget {
   const ListAlmacenesPage({super.key});
@@ -17,7 +17,6 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
 
   List<Almacenes> _allAlmacenes = [];
   List<Almacenes> _filteredAlmacenes = [];
-
   bool _isLoading = true;
 
   @override
@@ -25,6 +24,12 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
     super.initState();
     _loadAlmacenes();
     _searchController.addListener(_filterAlmacenes);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAlmacenes() async {
@@ -56,36 +61,204 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
     });
   }
 
+  Future<void> _showAddDialog() async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Agregar Almacén',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre del almacén',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre del almacén obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.store_mall_directory,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final nuevoAlmacen = Almacenes(
+        id_Almacen: 0,
+        almacen_Nombre: nombreController.text,
+      );
+
+      final success = await _almacenesController.addAlmacen(nuevoAlmacen);
+      if (success) {
+        showOk(context, 'Nuevo almacén agregado correctamente');
+        _loadAlmacenes();
+      } else {
+        showError(context, 'Error al agregar el nuevo almacén');
+      }
+    }
+  }
+
+  Future<void> _showEditDialog(Almacenes almacen) async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController =
+        TextEditingController(text: almacen.almacen_Nombre);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Editar Almacén',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre del almacén',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre del almacén obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.store_mall_directory,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final almacenEditado = almacen.copyWith(
+        id_Almacen: almacen.id_Almacen,
+        almacen_Nombre: nombreController.text,
+      );
+
+      final success = await _almacenesController.editAlmacen(almacenEditado);
+
+      if (success) {
+        showOk(context, 'Almacén actualizado correctamente');
+        _loadAlmacenes();
+      } else {
+        showError(context, 'Error al actualizar el almacén');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista de Almacenes'),
+        title: const Text(
+          'Lista de Almacenes',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
+        elevation: 2,
+        backgroundColor: Colors.indigo.shade900,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Column(
           children: [
+            const SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: CustomTextFielTexto(
-                controller: _searchController,
-                labelText: 'Buscar Almacén',
-                prefixIcon: Icons.search,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomTextFielTexto(
+                    controller: _searchController,
+                    labelText: 'Buscar Almacén',
+                    prefixIcon: Icons.search,
+                  ),
+                  const SizedBox(width: 20),
+                  PermissionWidget(
+                    permission: 'manageAlmacen',
+                    child: IconButton(
+                        onPressed: _showAddDialog,
+                        tooltip: 'Agregar Almacén Nuevo',
+                        iconSize: 30,
+                        icon: Icon(
+                          Icons.add_box,
+                          color: Colors.blue.shade900,
+                        )),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             Expanded(
               child: _isLoading
                   ? Center(
                       child: CircularProgressIndicator(
-                      color: Colors.blue.shade900,
-                    ))
+                        color: Colors.indigo.shade900,
+                      ),
+                    )
                   : _filteredAlmacenes.isEmpty
                       ? const Center(
                           child: Text(
-                              'No hay almacenes que coincidan con la búsqueda'),
+                            'No hay almacenes que coincidan con la búsqueda',
+                          ),
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(8),
@@ -141,11 +314,19 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            almacen.almacen_Nombre ?? '',
+                                            '${almacen.id_Almacen} - ${almacen.almacen_Nombre ?? 'Sin Nombre'}',
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.blue.shade900,
+                                              color: Colors.indigo.shade900,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'ID: ${almacen.id_Almacen ?? 'No disponible'}',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
                                             ),
                                           ),
                                         ],
@@ -153,7 +334,7 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                                     ),
                                     //Espacio para editar
                                     PermissionWidget(
-                                      permission: 'edit',
+                                      permission: 'manageAlmacen',
                                       child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
@@ -167,19 +348,8 @@ class _ListAlmacenesPageState extends State<ListAlmacenesPage> {
                                             size: 20,
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditAlmacenPage(
-                                                      almacen: almacen),
-                                            ),
-                                          );
-                                          if (result == true) {
-                                            _loadAlmacenes();
-                                          }
-                                        },
+                                        onPressed: () =>
+                                            _showEditDialog(almacen),
                                       ),
                                     ),
                                   ],

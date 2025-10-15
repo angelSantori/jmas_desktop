@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:jmas_desktop/calles/edit_calles_page.dart';
 import 'package:jmas_desktop/contollers/calles_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/permission_widget.dart';
+import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class ListCallesPage extends StatefulWidget {
   const ListCallesPage({super.key});
@@ -17,14 +17,19 @@ class _ListCallesPageState extends State<ListCallesPage> {
 
   List<Calles> _allCalles = [];
   List<Calles> _filteredCalles = [];
-
-  bool _isLoading = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadData();
     _searchText.addListener(_filterCalles);
+  }
+
+  @override
+  void dispose() {
+    _searchText.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -35,7 +40,6 @@ class _ListCallesPageState extends State<ListCallesPage> {
       setState(() {
         _allCalles = calles;
         _filteredCalles = calles;
-
         _isLoading = false;
       });
     } catch (e) {
@@ -57,11 +61,159 @@ class _ListCallesPageState extends State<ListCallesPage> {
     });
   }
 
+  Future<void> _showAddDialog() async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Agregar Calle',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre de la calle',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre de la calle obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.straighten_sharp,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final nuevaCalle = Calles(
+        idCalle: 0,
+        calleNombre: nombreController.text,
+      );
+
+      final success = await _callesController.addCalles(nuevaCalle);
+      if (success) {
+        showOk(context, 'Nueva calle agregada correctamente');
+        _loadData();
+      } else {
+        showError(context, 'Error al agregar la nueva calle');
+      }
+    }
+  }
+
+  Future<void> _showEditDialog(Calles calle) async {
+    final formKey = GlobalKey<FormState>();
+    final nombreController = TextEditingController(text: calle.calleNombre);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Editar Calle',
+          textAlign: TextAlign.center,
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextFielTexto(
+                controller: nombreController,
+                labelText: 'Nombre de la calle',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nombre de la calle obligatorio';
+                  }
+                  return null;
+                },
+                prefixIcon: Icons.straighten_sharp,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo.shade900,
+              elevation: 2,
+            ),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, true);
+              }
+            },
+            child: const Text(
+              'Guardar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final calleEditada = calle.copyWith(
+        idCalle: calle.idCalle,
+        calleNombre: nombreController.text,
+      );
+
+      final success = await _callesController.editCalles(calleEditada);
+
+      if (success) {
+        showOk(context, 'Calle actualizada correctamente');
+        _loadData();
+      } else {
+        showError(context, 'Error al actualizar la calle');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista Calles'),
+        title: const Text(
+          'Lista de Calles',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        elevation: 2,
+        backgroundColor: Colors.indigo.shade900,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -70,10 +222,27 @@ class _ListCallesPageState extends State<ListCallesPage> {
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: CustomTextFielTexto(
-                controller: _searchText,
-                labelText: 'Buscar calle por nombre',
-                prefixIcon: Icons.search,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomTextFielTexto(
+                    controller: _searchText,
+                    labelText: 'Buscar calle por nombre',
+                    prefixIcon: Icons.search,
+                  ),
+                  const SizedBox(width: 20),
+                  PermissionWidget(
+                    permission: 'manageCalle',
+                    child: IconButton(
+                        onPressed: _showAddDialog,
+                        tooltip: 'Agregar Calle Nueva',
+                        iconSize: 30,
+                        icon: Icon(
+                          Icons.add_box,
+                          color: Colors.blue.shade900,
+                        )),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 30),
@@ -81,11 +250,14 @@ class _ListCallesPageState extends State<ListCallesPage> {
               child: _isLoading
                   ? Center(
                       child: CircularProgressIndicator(
-                          color: Colors.blue.shade900))
+                        color: Colors.indigo.shade900,
+                      ),
+                    )
                   : _filteredCalles.isEmpty
                       ? const Center(
                           child: Text(
-                              'No hay calles que coincidan con la búsqueda.'),
+                            'No hay calles que coincidan con la búsqueda',
+                          ),
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(8),
@@ -141,12 +313,11 @@ class _ListCallesPageState extends State<ListCallesPage> {
                                         children: [
                                           //Nombre
                                           Text(
-                                            calles.calleNombre ??
-                                                'No disponible',
+                                            '${calles.idCalle} - ${calles.calleNombre ?? 'Sin Nombre'}',
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.blue.shade900,
+                                              color: Colors.indigo.shade900,
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -161,7 +332,7 @@ class _ListCallesPageState extends State<ListCallesPage> {
                                       ),
                                     ),
                                     PermissionWidget(
-                                      permission: 'edit',
+                                      permission: 'manageCalle',
                                       child: IconButton(
                                         icon: Container(
                                           padding: const EdgeInsets.all(6),
@@ -175,18 +346,8 @@ class _ListCallesPageState extends State<ListCallesPage> {
                                             size: 20,
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  EditCallesPage(calle: calles),
-                                            ),
-                                          );
-                                          if (result == true) {
-                                            _loadData();
-                                          }
-                                        },
+                                        onPressed: () =>
+                                            _showEditDialog(calles),
                                       ),
                                     ),
                                   ],
