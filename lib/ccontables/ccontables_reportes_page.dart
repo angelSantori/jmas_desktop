@@ -10,9 +10,11 @@ import 'package:jmas_desktop/ccontables/excel/salidas_rurales.dart';
 import 'package:jmas_desktop/ccontables/widgets_ccontables.dart';
 //import 'package:jmas_desktop/contollers/capturaInvIni_controller.dart';
 import 'package:jmas_desktop/contollers/ccontables_controller.dart';
+import 'package:jmas_desktop/contollers/contratistas_controller.dart';
 import 'package:jmas_desktop/contollers/entradas_controller.dart';
 import 'package:jmas_desktop/contollers/juntas_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
+import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/contollers/salidas_controller.dart';
 import 'package:jmas_desktop/widgets/formularios.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -32,6 +34,9 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
   final CcontablesController _ccontablesController = CcontablesController();
   final EntradasController _entradasController = EntradasController();
   final SalidasController _salidasController = SalidasController();
+  final ProveedoresController _proveedoresController = ProveedoresController();
+  final ContratistasController _contratistasController =
+      ContratistasController();
   // final CapturainviniController _capturainviniController =
   //     CapturainviniController();
 
@@ -132,6 +137,7 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
           selectedMonth: _selectedMonth,
           juntasEspecialesRecibidas: _juntasEspeciales,
           juntas: _juntas,
+          proveedoresController: _proveedoresController,
           productosController: _productosController,
           entradasController: _entradasController,
           ccontablesController: _ccontablesController,
@@ -153,6 +159,7 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
           productosController: _productosController,
           salidasController: _salidasController,
           ccontablesController: _ccontablesController,
+          contratistasController: _contratistasController,
           context: context);
     } catch (e) {
       print('_generateExcelSalidasEspeciales | ccontablesReportes: $e');
@@ -191,6 +198,7 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
           productosController: _productosController,
           salidasController: _salidasController,
           ccontablesController: _ccontablesController,
+          contratistasController: _contratistasController,
           context: context);
     } catch (e) {
       print('_generateExcelSalidasRurales | ccontablesReportes: $e');
@@ -230,6 +238,7 @@ class _CcontablesReportesPageState extends State<CcontablesReportesPage>
           productosController: _productosController,
           salidasController: _salidasController,
           ccontablesController: _ccontablesController,
+          contratistasController: _contratistasController,
           context: context);
     } catch (e) {
       print('_generateExcelServicios | ccontablesReportes: $e');
