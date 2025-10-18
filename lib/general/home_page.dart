@@ -33,14 +33,12 @@ import 'package:jmas_desktop/presupuestos/list_presupuestos.dart';
 import 'package:jmas_desktop/productos/add_producto_page.dart';
 import 'package:jmas_desktop/productos/list_producto_page.dart';
 import 'package:jmas_desktop/mantenimiento/proveedores/list_proveedor_page.dart';
-import 'package:jmas_desktop/roles/add_role_page.dart';
 import 'package:jmas_desktop/roles/admin_role_page.dart';
 import 'package:jmas_desktop/salidas/add_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_cancelacioens_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/universal/consulta_universal_page.dart';
-import 'package:jmas_desktop/users/add_user_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -333,10 +331,8 @@ class _HomePageState extends State<HomePage>
       'listAjusteMas': () => ListAjusteMasPage(userRole: userRole),
 
       //Users
-      'addUser': () => const AddUserPage(),
       'listUser': () => const ListUserPage(),
       'adminRole': () => const AdminRolePage(),
-      'addRole': () => const AddRolePage(),
 
       //Entradas
       'addEntrada': () => AddEntradaPage(userName: userName, idUser: idUser),
@@ -1009,14 +1005,6 @@ class _HomePageState extends State<HomePage>
                                       ),
                                       onTap: () => _navigateTo('listUser'),
                                     ),
-                                    CustomListTile(
-                                      title: 'Agregar Usuario',
-                                      icon: const Icon(
-                                        Icons.add_reaction_outlined,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('addUser'),
-                                    ),
                                     PermissionWidget(
                                       permission: 'manage_roles',
                                       child: CustomListTile(
@@ -1026,17 +1014,6 @@ class _HomePageState extends State<HomePage>
                                           color: Colors.white,
                                         ),
                                         onTap: () => _navigateTo('adminRole'),
-                                      ),
-                                    ),
-                                    PermissionWidget(
-                                      permission: 'manage_roles',
-                                      child: CustomListTile(
-                                        title: 'Agregar Rol',
-                                        icon: const Icon(
-                                          Icons.plus_one,
-                                          color: Colors.white,
-                                        ),
-                                        onTap: () => _navigateTo('addRole'),
                                       ),
                                     ),
                                   ],
