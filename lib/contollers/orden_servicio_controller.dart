@@ -11,7 +11,7 @@ class OrdenServicioController {
   Future<List<OrdenServicio>> listOrdenServicio() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/OrdenServicios'),
+        Uri.parse('${_authService.apiURL}/OrdenServicios'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
@@ -33,7 +33,7 @@ class OrdenServicioController {
   Future<List<OrdenServicio>> listOTXFolio(String folio) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/OrdenServicios/ByFolio/$folio'),
+        Uri.parse('${_authService.apiURL}/OrdenServicios/ByFolio/$folio'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
@@ -79,7 +79,7 @@ class OrdenServicioController {
   Future<OrdenServicio?> getOrdenServicioXId(int idOT) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/OrdenServicios/$idOT'),
+        Uri.parse('${_authService.apiURL}/OrdenServicios/$idOT'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
       if (response.statusCode == 200) {

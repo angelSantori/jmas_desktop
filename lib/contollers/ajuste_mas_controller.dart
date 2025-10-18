@@ -8,7 +8,7 @@ class AjusteMasController {
   Future<List<AjusteMas>> listAjustesMas() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/AjustesMas'),
+        Uri.parse('${_authService.apiURL}/AjustesMas'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

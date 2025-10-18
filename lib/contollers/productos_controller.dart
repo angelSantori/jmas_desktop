@@ -35,7 +35,7 @@ class ProductosController {
   Future<Productos?> getProductoById(int idProdcuto) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Productos/$idProdcuto'),
+        Uri.parse('${_authService.apiURL}/Productos/$idProdcuto'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -63,7 +63,7 @@ class ProductosController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Productos/BuscarPorNombre?nombre=$query'),
+            '${_authService.apiURL}/Productos/BuscarPorNombre?nombre=$query'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -87,7 +87,7 @@ class ProductosController {
   Future<List<Productos>> listProductos() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Productos'),
+        Uri.parse('${_authService.apiURL}/Productos'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -134,7 +134,7 @@ class ProductosController {
   Future<List<Productos>> getProductosConDeficit() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Productos/ConDeficit'),
+        Uri.parse('${_authService.apiURL}/Productos/ConDeficit'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -160,7 +160,7 @@ class ProductosController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Productos/PorRango?idInicial=$idInicial&idFinal=$idFinal'),
+            '${_authService.apiURL}/Productos/PorRango?idInicial=$idInicial&idFinal=$idFinal'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

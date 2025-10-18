@@ -13,7 +13,7 @@ class ColoniasController {
 
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Colonias'),
+        Uri.parse('${_authService.apiURL}/Colonias'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -39,7 +39,7 @@ class ColoniasController {
   Future<Colonias?> getColoniaById(int idColonia) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Colonias/$idColonia'),
+        Uri.parse('${_authService.apiURL}/Colonias/$idColonia'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -67,7 +67,7 @@ class ColoniasController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Colonias/BuscarPorNombre?nombreColonia=$nombreColonia'),
+            '${_authService.apiURL}/Colonias/BuscarPorNombre?nombreColonia=$nombreColonia'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

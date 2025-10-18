@@ -31,7 +31,7 @@ class ProveedoresController {
   Future<Proveedores?> getProveedorById(int idProveedor) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Proveedores/$idProveedor'),
+        Uri.parse('${_authService.apiURL}/Proveedores/$idProveedor'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -60,7 +60,7 @@ class ProveedoresController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Proveedores/ProveedorPorNombre?nombreProveedor=$nombreProveedor'),
+            '${_authService.apiURL}/Proveedores/ProveedorPorNombre?nombreProveedor=$nombreProveedor'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -85,7 +85,7 @@ class ProveedoresController {
   Future<List<Proveedores>> listProveedores() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Proveedores'),
+        Uri.parse('${_authService.apiURL}/Proveedores'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

@@ -14,7 +14,7 @@ class PadronController {
     }
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Padrons'),
+        Uri.parse('${_authService.apiURL}/Padrons'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -39,7 +39,7 @@ class PadronController {
   Future<Padron?> getPadronById(int idPadron) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Padrons/$idPadron'),
+        Uri.parse('${_authService.apiURL}/Padrons/$idPadron'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -88,7 +88,7 @@ class PadronController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Padrons/BuscarPorNombre?nombre=$nombre'),
+            '${_authService.apiURL}/Padrons/BuscarPorNombre?nombre=$nombre'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -112,7 +112,7 @@ class PadronController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Padrons/BuscarPorDireccion?direccion=$direccion'),
+            '${_authService.apiURL}/Padrons/BuscarPorDireccion?direccion=$direccion'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -136,7 +136,7 @@ class PadronController {
   Future<List<Padron>> getBuscar(String termino) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Padrons/Buscar?termino=$termino'),
+        Uri.parse('${_authService.apiURL}/Padrons/Buscar?termino=$termino'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

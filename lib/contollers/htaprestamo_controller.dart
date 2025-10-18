@@ -13,7 +13,7 @@ class HtaprestamoController {
   Future<List<HtaPrestamo>> listHtaPrest() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/htaPrestamos'),
+        Uri.parse('${_authService.apiURL}/htaPrestamos'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

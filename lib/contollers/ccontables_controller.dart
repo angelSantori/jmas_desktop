@@ -9,7 +9,7 @@ class CcontablesController {
   Future<List<CContables>> listCcontables() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/CContables'),
+        Uri.parse('${_authService.apiURL}/CContables'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -35,7 +35,7 @@ class CcontablesController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/CContables/ByProducto/$productoId'),
+            '${_authService.apiURL}/CContables/ByProducto/$productoId'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -83,7 +83,7 @@ class CcontablesController {
   Future<List<int>> getProductosSinCuenta() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/CContables/ProductosSinCuenta'),
+        Uri.parse('${_authService.apiURL}/CContables/ProductosSinCuenta'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

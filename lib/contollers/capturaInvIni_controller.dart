@@ -40,7 +40,7 @@ class CapturainviniController {
     }
     try {
       final response = await http.get(
-          Uri.parse('${_authService.apiNubeURL}/CapturaInvInis'),
+          Uri.parse('${_authService.apiURL}/CapturaInvInis'),
           headers: {
             'Content-Type': 'application/json; charset=UTF-8',
           });
@@ -64,7 +64,7 @@ class CapturainviniController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/CapturaInvInis/ByProducto/$productoId'),
+            '${_authService.apiURL}/CapturaInvInis/ByProducto/$productoId'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -112,7 +112,7 @@ class CapturainviniController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/CapturaInvInis/ByMonth/$month/$year'),
+            '${_authService.apiURL}/CapturaInvInis/ByMonth/$month/$year'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

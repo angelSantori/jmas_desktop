@@ -9,7 +9,7 @@ class ConsultasController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Productos/ConsultaUniversal/$idProducto'),
+            '${_authService.apiURL}/Productos/ConsultaUniversal/$idProducto'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

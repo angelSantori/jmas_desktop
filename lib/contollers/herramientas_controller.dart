@@ -13,7 +13,7 @@ class HerramientasController {
 
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Herramientas'),
+        Uri.parse('${_authService.apiURL}/Herramientas'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -39,7 +39,7 @@ class HerramientasController {
   Future<Herramientas?> getHtaXId(int idHta) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/Herramientas/$idHta'),
+        Uri.parse('${_authService.apiURL}/Herramientas/$idHta'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -68,7 +68,7 @@ class HerramientasController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Herramientas/BuscarPorNombre?nombreHta=$hatNombre'),
+            '${_authService.apiURL}/Herramientas/BuscarPorNombre?nombreHta=$hatNombre'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -92,7 +92,7 @@ class HerramientasController {
     try {
       final response = await http.get(
         Uri.parse(
-            '${_authService.apiNubeURL}/Herramientas/HtaPorEstado?estado=$htaEstado'),
+            '${_authService.apiURL}/Herramientas/HtaPorEstado?estado=$htaEstado'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },

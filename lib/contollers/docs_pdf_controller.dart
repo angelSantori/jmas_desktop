@@ -10,7 +10,7 @@ class DocsPdfController {
   Future<List<DocsPdfs>> listDocPdf() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/DocumentPdfs'),
+        Uri.parse('${_authService.apiURL}/DocumentPdfs'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -36,7 +36,7 @@ class DocsPdfController {
   Future<List<Map<String, dynamic>>> listPdfDocuments() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiNubeURL}/DocumentPdfs'),
+        Uri.parse('${_authService.apiURL}/DocumentPdfs'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
