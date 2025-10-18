@@ -308,13 +308,12 @@ class _AdminRolePageState extends State<AdminRolePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: CustomTextFielTexto(
-                      controller: _searchController,
-                      labelText: 'Buscar rol por nombre o descripción',
-                      prefixIcon: Icons.search,
-                    ),
+                  CustomTextFielTexto(
+                    controller: _searchController,
+                    labelText: 'Buscar rol por nombre o descripción',
+                    prefixIcon: Icons.search,
                   ),
                   const SizedBox(width: 16),
                   IconButton(
