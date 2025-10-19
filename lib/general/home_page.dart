@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/ajustes_plus/list_ajuste_mas_page.dart';
+import 'package:jmas_desktop/lecturas/lista_lecturas.dart';
 import 'package:jmas_desktop/mantenimiento/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/mantenimiento/calles/list_calles_page.dart';
 import 'package:jmas_desktop/cancelaciones/list_cancelados_page.dart';
@@ -401,6 +402,9 @@ class _HomePageState extends State<HomePage>
       //Cuentas contables
       'listCC': () => const ListCcontablesPage(),
       'generadorCC': () => const CcontablesReportesPage(),
+
+      //Lecturas
+      'listLecturas': () => const ListLecturasScreen(),
 
       //'mapa': () => const MapaLecturasPage(),
       // 'addAjusteMenos': () => const AddAjusteMenosPage(),
@@ -1020,6 +1024,15 @@ class _HomePageState extends State<HomePage>
                                 ),
                               ],
                             ),
+                          ),
+
+                          CustomListTile(
+                            title: 'Lecturas',
+                            icon: const Icon(
+                              Icons.add_chart,
+                              color: Colors.white,
+                            ),
+                            onTap: () => _navigateTo('listLecturas'),
                           ),
                         ],
                       ),
