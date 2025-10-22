@@ -171,10 +171,29 @@ class _ListProductoPageState extends State<ListProductoPage> {
 
       // Configuración y generación del PDF...
       final pdf = pw.Document();
-      const dpi = 400;
-      const labelWidthInches = 0.787;
-      const labelHeightInches = 0.528;
-      const qrSizeInches = labelHeightInches * 0.85;
+      // Nueva configuración: 2 pulgadas de largo x 1 pulgada de ancho
+      const labelWidthInInches = 1.0; // Ancho: 1 pulgada
+      const labelHeightInInches = 2.0; // Alto: 2 pulgadas
+      const dpi = 400; // Resolución de la impresora
+
+      // Tamaño del QR (usamos 60% del lado más corto para dejar espacio)
+      const qrSizeInInches = labelWidthInInches * 0.4;
+
+      // Tamaño de página en puntos (1 pulgada = 72 puntos en PDF)
+      const pageWidth = labelWidthInInches * 72;
+      const pageHeight = labelHeightInInches * 72;
+
+      // Calcular posiciones
+      const qrWidth = qrSizeInInches * 120;
+      const qrHeight = qrSizeInInches * 120;
+
+      // Posición del QR (centrado verticalmente en la parte izquierda)
+      const qrPosX = (labelWidthInInches * 72 * 0.2) - (qrWidth / 5);
+      const qrPosY = (pageHeight - qrHeight) / 8;
+
+      // Posición del texto (parte derecha)
+      const textPosX = qrWidth + 10;
+      const textPosY = pageHeight * 0.01;
 
       for (var producto in productosEnRango) {
         final qrPainter = QrPainter(
@@ -184,7 +203,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
         );
 
         final qrImage = await qrPainter.toImageData(
-          (qrSizeInches * dpi).toDouble(),
+          (qrSizeInInches * dpi).toDouble(),
           format: ui.ImageByteFormat.png,
         );
 
@@ -192,34 +211,63 @@ class _ListProductoPageState extends State<ListProductoPage> {
 
         pdf.addPage(
           pw.Page(
-            pageFormat: PdfPageFormat(
-              labelWidthInches * 72,
-              labelHeightInches * 72,
-              marginAll: 0,
+            pageFormat: const PdfPageFormat(
+              pageHeight,
+              pageWidth,
             ),
+            margin: pw.EdgeInsets.zero,
             build: (pw.Context context) {
               return pw.Stack(
                 children: [
-                  pw.Container(
-                    width: labelWidthInches * 72,
-                    height: labelHeightInches * 72,
-                    color: PdfColors.white,
-                  ),
+                  // QR en la parte izquierda
                   pw.Positioned(
-                    left: ((labelWidthInches * dpi) - (qrSizeInches * dpi)) /
-                        3.3 *
-                        72 /
-                        dpi,
-                    top: ((labelHeightInches * dpi) - (qrSizeInches * dpi)) /
-                        2 *
-                        72 /
-                        dpi,
+                    left: qrPosX,
+                    top: qrPosY,
                     child: pw.Container(
-                      width: qrSizeInches * 72,
-                      height: qrSizeInches * 72,
+                      width: qrWidth,
+                      height: qrHeight,
                       child: pw.Image(
                         pw.MemoryImage(qrImage.buffer.asUint8List()),
                         fit: pw.BoxFit.cover,
+                      ),
+                    ),
+                  ),
+
+                  // Información del producto en la parte derecha
+                  pw.Positioned(
+                    left: textPosX,
+                    top: textPosY,
+                    child: pw.Container(
+                      width: pageWidth,
+                      height: pageHeight * 0.5,
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        children: [
+                          // ID del producto
+                          pw.Text(
+                            '${producto.id_Producto}',
+                            style: pw.TextStyle(
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.black,
+                            ),
+                          ),
+                          pw.SizedBox(height: 5),
+
+                          // Descripción del producto
+                          pw.Text(
+                            _truncateDescription(
+                                producto.prodDescripcion ?? ''),
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              color: PdfColors.black,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                            maxLines: 3,
+                            overflow: pw.TextOverflow.clip,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -235,7 +283,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
 
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdf.save(),
-        name: 'QRs_Productos_${idInicial}_a_${idFinal}',
+        name: 'QRs_Productos_${idInicial}_a_$idFinal',
       );
 
       if (!mounted) return;
@@ -434,23 +482,24 @@ class _ListProductoPageState extends State<ListProductoPage> {
     );
   }
 
-  Future<Uint8List> _generateQrPdf(int productId) async {
+  Future<Uint8List> _generateQrPdf(int productId, String descripcion) async {
     final pdf = pw.Document();
 
-    // Configuración específica para ZDesigner ZT610
-    const labelWidthInInches = 0.787; // Ancho de etiqueta
-    const labelHeightInInches = 0.528; // Alto de etiqueta
-    const dpi = 400; // Resolución de la impresora
+    // Configuración: 2 pulgadas de largo x 1 pulgada de ancho
+    const labelWidthInInches = 1.0; // Ancho: 1 pulgada
+    const labelHeightInInches = 2.0; // Alto: 2 pulgadas
 
-    // Tamaño del QR (usamos 80% del lado más corto para dejar margen)
-    const qrSizeInInches = labelHeightInInches * 0.85;
-    final qrPixelSize = (qrSizeInInches * dpi).toDouble();
+    // Tamaño del QR (40% del ancho de la etiqueta)
+    const qrSizeInInches = labelWidthInInches * 0.4;
+    final qrPixelSize =
+        (qrSizeInInches * 400).toDouble(); // Para generar QR nítido
 
     // Generar imagen QR
     final qrPainter = QrPainter(
       data: productId.toString(),
       version: QrVersions.auto,
       gapless: true,
+      errorCorrectionLevel: QrErrorCorrectLevel.M,
     );
 
     // Crear imagen del QR
@@ -462,36 +511,83 @@ class _ListProductoPageState extends State<ListProductoPage> {
     const pageWidth = labelWidthInInches * 72;
     const pageHeight = labelHeightInInches * 72;
 
-    // Calcular posición centrada
-    final qrWidth = qrSizeInInches * 72;
-    final qrHeight = qrSizeInInches * 72;
-    final posX = (pageWidth - qrWidth) / 3.3;
-    final posY = (pageHeight - qrHeight) / 2;
+    // Tamaño del QR en puntos PDF
+    const qrWidth = qrSizeInInches * 120;
+    const qrHeight = qrSizeInInches * 120;
 
-    // Crear PDF con tamaño exacto
+    // Posición del QR (centrado verticalmente en la parte izquierda)
+    const qrPosX = (labelWidthInInches * 72 * 0.2) - (qrWidth / 5);
+    const qrPosY = (pageHeight - qrHeight) / 8;
+
+    // Posición del texto (parte derecha con márgenes)
+    const textPosX = qrWidth + 10;
+    const textPosY = pageHeight * 0.1;
+
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat(pageWidth, pageHeight),
+        pageFormat:
+            const PdfPageFormat(pageHeight, pageWidth), // Nota: Alto x Ancho
         margin: pw.EdgeInsets.zero,
         build: (pw.Context context) {
           return pw.Stack(
             children: [
-              // Fondo blanco
-              pw.Container(
-                width: pageWidth,
-                height: pageHeight,
-                color: PdfColors.white,
-              ),
-              // QR posicionado exactamente en el centro
+              // QR en la parte izquierda
               pw.Positioned(
-                left: posX,
-                top: posY,
+                left: qrPosX,
+                top: qrPosY,
                 child: pw.Container(
                   width: qrWidth,
                   height: qrHeight,
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.black, width: 0.5),
+                  ),
                   child: pw.Image(
                     pw.MemoryImage(qrImage.buffer.asUint8List()),
-                    fit: pw.BoxFit.cover,
+                    fit: pw.BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              // Información del producto en la parte derecha
+              pw.Positioned(
+                left: textPosX,
+                top: textPosY,
+                child: pw.Container(
+                  width: pageWidth,
+                  height: pageHeight * 0.8,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    mainAxisAlignment: pw.MainAxisAlignment.start,
+                    children: [
+                      // ID del producto
+                      pw.Container(
+                        margin: const pw.EdgeInsets.only(bottom: 4),
+                        child: pw.Text(
+                          '$productId',
+                          style: pw.TextStyle(
+                            fontSize: 12,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.black,
+                          ),
+                        ),
+                      ),
+
+                      // Descripción del producto
+                      pw.Container(
+                        width: pageWidth,
+                        child: pw.Text(
+                          _truncateDescription(descripcion),
+                          style: pw.TextStyle(
+                            fontSize: 8,
+                            color: PdfColors.black,
+                            fontWeight: pw.FontWeight.bold,
+                            //height: 1.2,
+                          ),
+                          maxLines: 5,
+                          overflow: pw.TextOverflow.clip,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -504,9 +600,28 @@ class _ListProductoPageState extends State<ListProductoPage> {
     return pdf.save();
   }
 
-  Future<void> _showPrintDialog(int productId) async {
+  String _truncateDescription(String descripcion) {
+    if (descripcion.isEmpty) return 'Sin Descripción';
+
+    const maxChars = 45;
+    if (descripcion.length <= maxChars) {
+      return descripcion;
+    }
+
+    // Encontrar el último espacio antes del límite para no cortar palabras
+    final truncated = descripcion.substring(0, maxChars);
+    final lastSpace = truncated.lastIndexOf(' ');
+
+    if (lastSpace > 0) {
+      return '${truncated.substring(0, lastSpace)}...';
+    }
+
+    return '$truncated...';
+  }
+
+  Future<void> _showPrintDialog(int productId, String descripcion) async {
     try {
-      final pdfBytes = await _generateQrPdf(productId);
+      final pdfBytes = await _generateQrPdf(productId, descripcion);
 
       // Esperar un breve momento antes de mostrar el diálogo
       await Future.delayed(const Duration(milliseconds: 300));
@@ -861,7 +976,9 @@ class _ListProductoPageState extends State<ListProductoPage> {
                                               ),
                                               tooltip: 'Generar etiqueta QR',
                                               onPressed: () => _showPrintDialog(
-                                                  producto.id_Producto!),
+                                                  producto.id_Producto ?? 0,
+                                                  producto.prodDescripcion ??
+                                                      'N/A'),
                                             ),
                                           ],
                                         ),
