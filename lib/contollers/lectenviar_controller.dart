@@ -8,7 +8,7 @@ class LecturaEnviarController {
   Future<List<LELista>> listLectEnviar() async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/LectEnviars'),
+        Uri.parse('${_authService.apiNubeURL}/LectEnviars'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
@@ -30,7 +30,7 @@ class LecturaEnviarController {
   Future<LecturaEnviar?> getLectEnviarById(int idLectEnviar) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/LectEnviars/$idLectEnviar'),
+        Uri.parse('${_authService.apiNubeURL}/LectEnviars/$idLectEnviar'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 
@@ -52,7 +52,7 @@ class LecturaEnviarController {
   Future<List<LELista>> getLectEnviarByLeId(int leId) async {
     try {
       final response = await http.get(
-        Uri.parse('${_authService.apiURL}/LectEnviars/leId/$leId'),
+        Uri.parse('${_authService.apiNubeURL}/LectEnviars/leId/$leId'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
       );
 

@@ -417,6 +417,15 @@ class _DetailsLecturaDialogState extends State<DetailsLecturaDialog> {
                                           widget.lectura.leLecturaActual
                                               .toString(),
                                           isImportant: true),
+                                    if (widget.lectura.leLecturaActual !=
+                                            null &&
+                                        widget.lectura.leLecturaAnterior !=
+                                            null)
+                                      _buildInfoRow(
+                                          Icons.water_damage_outlined,
+                                          'Consumo Total',
+                                          '${widget.lectura.leLecturaActual! - widget.lectura.leLecturaAnterior!}',
+                                          isImportant: true)
                                   ],
                                 ),
 
