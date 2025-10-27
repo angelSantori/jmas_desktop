@@ -73,6 +73,8 @@ class AuthService {
         return user!.role!.canManageColonias ?? false;
       case 'manageAlmacen':
         return user!.role!.canManageAlmacenes ?? false;
+      case 'seeDesarrollo':
+        return user!.role!.canSeeDesarrollo ?? false;
       default:
         return false;
     }

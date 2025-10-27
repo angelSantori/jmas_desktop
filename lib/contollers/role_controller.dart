@@ -99,6 +99,7 @@ class Role {
   bool? canManageCalles;
   bool? canManageColonias;
   bool? canManageAlmacenes;
+  bool? canSeeDesarrollo;
   Role({
     this.idRole,
     this.roleNombre,
@@ -117,6 +118,7 @@ class Role {
     this.canManageCalles,
     this.canManageColonias,
     this.canManageAlmacenes,
+    this.canSeeDesarrollo,
   });
 
   Role copyWith({
@@ -137,6 +139,7 @@ class Role {
     bool? canManageCalles,
     bool? canManageColonias,
     bool? canManageAlmacenes,
+    bool? canSeeDesarrollo,
   }) {
     return Role(
       idRole: idRole ?? this.idRole,
@@ -157,6 +160,7 @@ class Role {
       canManageCalles: canManageCalles ?? this.canManageCalles,
       canManageColonias: canManageColonias ?? this.canManageColonias,
       canManageAlmacenes: canManageAlmacenes ?? this.canManageAlmacenes,
+      canSeeDesarrollo: canSeeDesarrollo ?? this.canSeeDesarrollo,
     );
   }
 
@@ -179,6 +183,7 @@ class Role {
       'canManageCalles': canManageCalles,
       'canManageColonias': canManageColonias,
       'canManageAlmacenes': canManageAlmacenes,
+      'canSeeDesarrollo': canSeeDesarrollo,
     };
   }
 
@@ -217,6 +222,9 @@ class Role {
       canManageAlmacenes: map['canManageAlmacenes'] != null
           ? map['canManageAlmacenes'] as bool
           : null,
+      canSeeDesarrollo: map['canSeeDesarrollo'] != null
+          ? map['canSeeDesarrollo'] as bool
+          : null,
     );
   }
 
@@ -227,7 +235,7 @@ class Role {
 
   @override
   String toString() {
-    return 'Role(idRole: $idRole, roleNombre: $roleNombre, roleDescr: $roleDescr, canView: $canView, canAdd: $canAdd, canEdit: $canEdit, canDelete: $canDelete, canManageUsers: $canManageUsers, canManageRoles: $canManageRoles, canEvaluar: $canEvaluar, canCContables: $canCContables, canManageJuntas: $canManageJuntas, canManageProveedores: $canManageProveedores, canManageContratistas: $canManageContratistas, canManageCalles: $canManageCalles, canManageColonias: $canManageColonias, canManageAlmacenes: $canManageAlmacenes)';
+    return 'Role(idRole: $idRole, roleNombre: $roleNombre, roleDescr: $roleDescr, canView: $canView, canAdd: $canAdd, canEdit: $canEdit, canDelete: $canDelete, canManageUsers: $canManageUsers, canManageRoles: $canManageRoles, canEvaluar: $canEvaluar, canCContables: $canCContables, canManageJuntas: $canManageJuntas, canManageProveedores: $canManageProveedores, canManageContratistas: $canManageContratistas, canManageCalles: $canManageCalles, canManageColonias: $canManageColonias, canManageAlmacenes: $canManageAlmacenes, canSeeDesarrollo: $canSeeDesarrollo)';
   }
 
   @override
@@ -250,7 +258,8 @@ class Role {
         other.canManageContratistas == canManageContratistas &&
         other.canManageCalles == canManageCalles &&
         other.canManageColonias == canManageColonias &&
-        other.canManageAlmacenes == canManageAlmacenes;
+        other.canManageAlmacenes == canManageAlmacenes &&
+        other.canSeeDesarrollo == canSeeDesarrollo;
   }
 
   @override
@@ -271,6 +280,7 @@ class Role {
         canManageContratistas.hashCode ^
         canManageCalles.hashCode ^
         canManageColonias.hashCode ^
-        canManageAlmacenes.hashCode;
+        canManageAlmacenes.hashCode ^
+        canSeeDesarrollo.hashCode;
   }
 }

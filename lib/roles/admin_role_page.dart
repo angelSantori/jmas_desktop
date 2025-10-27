@@ -223,6 +223,11 @@ class _AdminRolePageState extends State<AdminRolePage> {
           role.canManageRoles ?? false,
           Icons.admin_panel_settings,
           (value) => _updateRole(role.copyWith(canManageRoles: value))),
+      PermissionItem(
+          'Ver Desarrollo',
+          role.canSeeDesarrollo ?? false,
+          Icons.developer_board,
+          (value) => _updateRole(role.copyWith(canSeeDesarrollo: value)))
     ];
 
     final systemPermissions = [
