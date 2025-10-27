@@ -39,6 +39,8 @@ import 'package:jmas_desktop/salidas/add_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_cancelacioens_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
+import 'package:jmas_desktop/solicitudes/add_solicitud_compra.dart';
+import 'package:jmas_desktop/solicitudes/list_solicitudes.dart';
 import 'package:jmas_desktop/universal/consulta_universal_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
@@ -390,6 +392,14 @@ class _HomePageState extends State<HomePage>
           AddOrdenCompraPage(idUser: idUser, userName: userName),
       'listOrdenCompra': () => ListOrdenCompraPage(userRole: userRole),
 
+      'addSolicitudCompra': () =>
+          AddSolicitudCompra(idUser: idUser, userName: userName),
+      'listSolicitudCompra': () => ListSolicitudesPage(
+            userName: userName,
+            userRole: userRole,
+            idUser: idUser!,
+          ),
+
       //X
       'home': () => const Center(
               child: Text(
@@ -523,7 +533,7 @@ class _HomePageState extends State<HomePage>
                           ),
                         const SizedBox(height: 10),
                         const Text(
-                          'v. 21102025',
+                          'v. 24102025',
                           style: TextStyle(
                               color: Colors.grey, fontWeight: FontWeight.bold),
                         ),
@@ -882,32 +892,6 @@ class _HomePageState extends State<HomePage>
                                 ],
                               ),
 
-                              //Orden de compra
-                              SubCustomExpansionTile(
-                                  title: 'Compras',
-                                  icon: const Icon(Icons.bedroom_baby_rounded),
-                                  children: [
-                                    CustomListTile(
-                                      title: 'Orden Compra',
-                                      icon: const Icon(
-                                        Icons.stroller_rounded,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () =>
-                                          _navigateTo('addOrdenCompra'),
-                                    ),
-                                    CustomListTile(
-                                      title: 'Lista Compras',
-                                      icon: const Icon(
-                                        Icons.stroller,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo(
-                                        'listOrdenCompra',
-                                      ),
-                                    )
-                                  ]),
-
                               PermissionWidget(
                                 permission: 'add',
                                 child: SubCustomExpansionTile(
@@ -1022,6 +1006,65 @@ class _HomePageState extends State<HomePage>
                                     ),
                                   ],
                                 ),
+                              ],
+                            ),
+                          ),
+
+                          PermissionWidget(
+                            permission: 'seeDesarrollo',
+                            child: CustomExpansionTile(
+                              title: 'Compras',
+                              icon: const Icon(Icons.monetization_on),
+                              children: [
+                                SubCustomExpansionTile(
+                                  title: 'Solicitud',
+                                  icon: const Icon(Icons.pause_presentation),
+                                  children: [
+                                    CustomListTile(
+                                      title: '1) Solicitud',
+                                      icon: const Icon(
+                                        Icons.numbers,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () =>
+                                          _navigateTo('addSolicitudCompra'),
+                                    ),
+                                    CustomListTile(
+                                      title: '2) Lista Solicitudes',
+                                      icon: const Icon(
+                                        Icons.numbers,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () =>
+                                          _navigateTo('listSolicitudCompra'),
+                                    ),
+                                  ],
+                                ),
+                                SubCustomExpansionTile(
+                                    title: 'Compras',
+                                    icon:
+                                        const Icon(Icons.bedroom_baby_rounded),
+                                    children: [
+                                      CustomListTile(
+                                        title: 'Orden Compra',
+                                        icon: const Icon(
+                                          Icons.stroller_rounded,
+                                          color: Colors.white,
+                                        ),
+                                        onTap: () =>
+                                            _navigateTo('addOrdenCompra'),
+                                      ),
+                                      CustomListTile(
+                                        title: 'Lista Compras',
+                                        icon: const Icon(
+                                          Icons.stroller,
+                                          color: Colors.white,
+                                        ),
+                                        onTap: () => _navigateTo(
+                                          'listOrdenCompra',
+                                        ),
+                                      )
+                                    ]),
                               ],
                             ),
                           ),

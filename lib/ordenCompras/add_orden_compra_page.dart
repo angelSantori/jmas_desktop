@@ -864,7 +864,7 @@ class _AddOrdenCompraPageState extends State<AddOrdenCompraPage> {
                                       Text(
                                           '2. Original y copia de factura de acuerdo a la orden de compra con fecha del mes en curso'),
                                       Text(
-                                          '3. Solo se reciben facturas para pago del mes en curso hasta del día 25'),
+                                          '3. Sólo se reciben facturas para pago del mes en curso hasta del día 25 (excepto en Diciembre que es hasta el día 15)'),
                                     ],
                                   ),
                                 ),
