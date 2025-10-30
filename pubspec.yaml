@@ -32,6 +32,8 @@ dependencies:
   fl_chart: ^1.0.0 #Graficas
   file_saver: ^0.3.1 #Guardar
   flutter_typeahead: ^5.2.0 #Autocomplete
+  url_launcher: ^6.3.2 #URL
+  csv: ^6.0.0 #CSV
 
 dev_dependencies:
   flutter_test:
