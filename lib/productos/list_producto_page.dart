@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:jmas_desktop/contollers/ccontables_controller.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/proveedores_controller.dart';
 import 'package:jmas_desktop/productos/details_producto_page.dart';
@@ -195,7 +196,14 @@ class _ListProductoPageState extends State<ListProductoPage> {
       const textPosX = qrWidth + 10;
       const textPosY = pageHeight * 0.01;
 
+      // Dentro del bucle for (var producto in productosEnRango)
       for (var producto in productosEnRango) {
+        // Obtener la cuenta contable del producto
+        final ccController = CcontablesController();
+        final cuentas =
+            await ccController.listCCxProducto(producto.id_Producto!);
+        final ccProducto = cuentas.isNotEmpty ? cuentas.first.ccProducto : null;
+
         final qrPainter = QrPainter(
           data: producto.id_Producto.toString(),
           version: QrVersions.auto,
@@ -248,7 +256,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                           pw.Text(
                             '${producto.id_Producto}',
                             style: pw.TextStyle(
-                              fontSize: 10,
+                              fontSize: 12,
                               fontWeight: pw.FontWeight.bold,
                               color: PdfColors.black,
                             ),
@@ -260,12 +268,27 @@ class _ListProductoPageState extends State<ListProductoPage> {
                             _truncateDescription(
                                 producto.prodDescripcion ?? ''),
                             style: pw.TextStyle(
-                              fontSize: 8,
+                              fontSize: 6,
                               color: PdfColors.black,
                               fontWeight: pw.FontWeight.bold,
                             ),
                             maxLines: 3,
                             overflow: pw.TextOverflow.clip,
+                          ),
+
+                          // Cuenta contable en la base
+                          pw.Container(
+                            margin: const pw.EdgeInsets.only(top: 2),
+                            child: pw.Text(
+                              ccProducto?.isNotEmpty == true
+                                  ? 'Cuenta: $ccProducto'
+                                  : 'Sin cuenta contable',
+                              style: pw.TextStyle(
+                                fontSize: 2,
+                                color: PdfColors.black,
+                                fontWeight: pw.FontWeight.normal,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -482,7 +505,8 @@ class _ListProductoPageState extends State<ListProductoPage> {
     );
   }
 
-  Future<Uint8List> _generateQrPdf(int productId, String descripcion) async {
+  Future<Uint8List> _generateQrPdf(
+      int productId, String descripcion, String? ccProducto) async {
     final pdf = pw.Document();
 
     // Configuración: 2 pulgadas de largo x 1 pulgada de ancho
@@ -525,8 +549,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
 
     pdf.addPage(
       pw.Page(
-        pageFormat:
-            const PdfPageFormat(pageHeight, pageWidth), // Nota: Alto x Ancho
+        pageFormat: const PdfPageFormat(pageHeight, pageWidth),
         margin: pw.EdgeInsets.zero,
         build: (pw.Context context) {
           return pw.Stack(
@@ -565,7 +588,7 @@ class _ListProductoPageState extends State<ListProductoPage> {
                         child: pw.Text(
                           '$productId',
                           style: pw.TextStyle(
-                            fontSize: 12,
+                            fontSize: 22,
                             fontWeight: pw.FontWeight.bold,
                             color: PdfColors.black,
                           ),
@@ -578,13 +601,27 @@ class _ListProductoPageState extends State<ListProductoPage> {
                         child: pw.Text(
                           _truncateDescription(descripcion),
                           style: pw.TextStyle(
-                            fontSize: 8,
+                            fontSize: 6,
                             color: PdfColors.black,
                             fontWeight: pw.FontWeight.bold,
-                            //height: 1.2,
                           ),
                           maxLines: 5,
                           overflow: pw.TextOverflow.clip,
+                        ),
+                      ),
+
+                      // Cuenta contable en la base
+                      pw.Container(
+                        margin: const pw.EdgeInsets.only(top: 2),
+                        child: pw.Text(
+                          ccProducto?.isNotEmpty == true
+                              ? '$ccProducto'
+                              : 'Sin cuenta contable',
+                          style: pw.TextStyle(
+                            fontSize: 6,
+                            color: PdfColors.black,
+                            fontWeight: pw.FontWeight.normal,
+                          ),
                         ),
                       ),
                     ],
@@ -621,7 +658,12 @@ class _ListProductoPageState extends State<ListProductoPage> {
 
   Future<void> _showPrintDialog(int productId, String descripcion) async {
     try {
-      final pdfBytes = await _generateQrPdf(productId, descripcion);
+      // Obtener la cuenta contable del producto
+      final ccController = CcontablesController();
+      final cuentas = await ccController.listCCxProducto(productId);
+      final ccProducto = cuentas.isNotEmpty ? cuentas.first.ccProducto : null;
+
+      final pdfBytes = await _generateQrPdf(productId, descripcion, ccProducto);
 
       // Esperar un breve momento antes de mostrar el diálogo
       await Future.delayed(const Duration(milliseconds: 300));
