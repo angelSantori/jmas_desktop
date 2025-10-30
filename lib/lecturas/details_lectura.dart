@@ -1,5 +1,7 @@
 import 'dart:convert';
-
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:jmas_desktop/contollers/lectenviar_controller.dart';
 import 'package:jmas_desktop/contollers/problemas_lectura_controller.dart';
@@ -63,8 +65,56 @@ class _DetailsLecturaDialogState extends State<DetailsLecturaDialog> {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
+  // Función para abrir Google Maps
+  Future<void> _openGoogleMaps(String? ubicacion) async {
+    if (ubicacion == null || ubicacion.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay ubicación disponible'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final coords = ubicacion.split(',');
+    if (coords.length != 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Formato de ubicación inválido'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final url = 'https://www.google.com/maps/search/?api=1&query=$ubicacion';
+
+    // Solución específica para web
+    if (kIsWeb) {
+      html.window.open(url, '_blank');
+    } else {
+      // Código original para móvil/desktop
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(
+          Uri.parse(url),
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo abrir Google Maps'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildInfoRow(IconData icon, String label, String value,
-      {bool isImportant = false}) {
+      {bool isImportant = false,
+      bool isClickable = false,
+      VoidCallback? onTap}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -89,12 +139,20 @@ class _DetailsLecturaDialogState extends State<DetailsLecturaDialog> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 16,
-                    color: isImportant ? Colors.blue.shade900 : Colors.black,
+                GestureDetector(
+                  onTap: isClickable ? onTap : null,
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 16,
+                      color: isImportant ? Colors.blue.shade900 : Colors.black,
+                      decoration: isClickable
+                          ? TextDecoration.underline
+                          : TextDecoration.none,
+                      decorationColor:
+                          isClickable ? Colors.blue : Colors.transparent,
+                    ),
                   ),
                 ),
               ],
@@ -105,10 +163,74 @@ class _DetailsLecturaDialogState extends State<DetailsLecturaDialog> {
     );
   }
 
+  Widget _buildLocationSection() {
+    final ubicacion = _lecturaCompleta?.leUbicacion;
+    final hasLocation = ubicacion != null && ubicacion.isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: hasLocation ? Colors.blue.shade50 : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: hasLocation ? Colors.blue.shade200 : Colors.grey.shade300,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.location_on,
+            color: hasLocation ? Colors.blue.shade700 : Colors.grey,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ubicación GPS',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: hasLocation
+                        ? Colors.blue.shade900
+                        : Colors.grey.shade700,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  hasLocation ? ubicacion : 'Ubicación no disponible',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: hasLocation
+                        ? Colors.blue.shade800
+                        : Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (hasLocation)
+            ElevatedButton.icon(
+              onPressed: () => _openGoogleMaps(ubicacion),
+              icon: const Icon(Icons.map, size: 16),
+              label: const Text('Abrir en Maps'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade600,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPhotoThumbnail() {
     final fotoBase64 = _lecturaCompleta?.leFotoBase64;
 
-    // Verificar si es nulo o está vacío
     if (fotoBase64 == null || fotoBase64.isEmpty) {
       return Container(
         width: 120,
@@ -183,7 +305,6 @@ class _DetailsLecturaDialogState extends State<DetailsLecturaDialog> {
   void _showFullScreenPhoto() {
     final fotoBase64 = _lecturaCompleta?.leFotoBase64;
 
-    // Verificar si es nulo o está vacío
     if (fotoBase64 == null || fotoBase64.isEmpty) return;
 
     showDialog(
@@ -553,6 +674,9 @@ class _DetailsLecturaDialogState extends State<DetailsLecturaDialog> {
                                         ),
                                       ],
                                     ),
+                                    const SizedBox(height: 20),
+                                    //GPS
+                                    _buildLocationSection()
                                   ],
                                 ),
                               ],
