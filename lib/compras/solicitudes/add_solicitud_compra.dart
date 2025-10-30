@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/contollers/productos_controller.dart';
 import 'package:jmas_desktop/contollers/solicitud_compras_controller.dart';
+import 'package:jmas_desktop/contollers/users_controller.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
 import 'package:jmas_desktop/widgets/buscar_producto.dart';
+import 'package:jmas_desktop/widgets/formularios/custom_autocomplete_field.dart';
 import 'package:jmas_desktop/widgets/formularios/custom_field_texto.dart';
 import 'package:jmas_desktop/widgets/generales.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
@@ -23,6 +25,7 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
   final SolicitudComprasController _solicitudComprasController =
       SolicitudComprasController();
   final ProductosController _productosController = ProductosController();
+  final UsersController _usersController = UsersController();
 
   final _formKey = GlobalKey<FormState>();
 
@@ -38,10 +41,13 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
 
   String? idUserSolicita;
   String? _selectedEstado = 'Tramite';
+  Users? _selectedUser;
 
   List<Map<String, dynamic>> _productosAgregados = [];
+  List<Users> _usersList = [];
 
   bool _isLoading = false;
+  bool _usuarioSeleccionado = false;
   bool _objetivoCompletado = false;
   bool _especificacionesCompletado = false;
   bool _observacionesCompletado = false;
@@ -52,6 +58,7 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
   void initState() {
     super.initState();
     _getUserId();
+    _loadUsers();
   }
 
   Future<void> _getUserId() async {
@@ -59,22 +66,72 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
     idUserSolicita = decodeToken?['Id_User'] ?? '0';
   }
 
-  void _validarCampo(String campo, TextEditingController controller) {
-    if (controller.text.trim().isNotEmpty) {
+  Future<void> _loadUsers() async {
+    try {
+      final users = await _usersController.listUsers();
       setState(() {
-        switch (campo) {
-          case 'objetivo':
-            _objetivoCompletado = true;
-            break;
-          case 'especificaciones':
-            _especificacionesCompletado = true;
-            break;
-          case 'observaciones':
-            _observacionesCompletado = true;
-            break;
-        }
+        _usersList = users;
       });
+    } catch (e) {
+      print('Error al cargar usuarios: $e');
     }
+  }
+
+  void _onUsuarioSeleccionado(Users? user) {
+    setState(() {
+      _selectedUser = user;
+      _usuarioSeleccionado = user != null;
+      // Resetear los campos siguientes si se cambia el usuario
+      if (!_usuarioSeleccionado) {
+        _objetivoCompletado = false;
+        _especificacionesCompletado = false;
+        _observacionesCompletado = false;
+        _objetivoController.clear();
+        _especificacionesController.clear();
+        _observacionesController.clear();
+        _productosAgregados.clear();
+        _selectedProducto = null;
+      }
+    });
+  }
+
+  void _onObjetivoCambiado(String value) {
+    setState(() {
+      _objetivoCompletado = value.trim().isNotEmpty;
+      // Resetear campos siguientes si se borra el objetivo
+      if (!_objetivoCompletado) {
+        _especificacionesCompletado = false;
+        _observacionesCompletado = false;
+        _especificacionesController.clear();
+        _observacionesController.clear();
+        _productosAgregados.clear();
+        _selectedProducto = null;
+      }
+    });
+  }
+
+  void _onEspecificacionesCambiado(String value) {
+    setState(() {
+      _especificacionesCompletado = value.trim().isNotEmpty;
+      // Resetear campo siguiente si se borran las especificaciones
+      if (!_especificacionesCompletado) {
+        _observacionesCompletado = false;
+        _observacionesController.clear();
+        _productosAgregados.clear();
+        _selectedProducto = null;
+      }
+    });
+  }
+
+  void _onObservacionesCambiado(String value) {
+    setState(() {
+      _observacionesCompletado = value.trim().isNotEmpty;
+      // Limpiar productos si se borran las observaciones
+      if (!_observacionesCompletado) {
+        _productosAgregados.clear();
+        _selectedProducto = null;
+      }
+    });
   }
 
   void _agregarProducto() {
@@ -113,6 +170,11 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
   }
 
   Future<void> _guardarSolicitud() async {
+    if (_selectedUser == null) {
+      showAdvertence(context, 'Debe seleccionar un usuario que solicita.');
+      return;
+    }
+
     if (_productosAgregados.isEmpty) {
       showAdvertence(context,
           'Debe agregar productos antes de guardar la solicitud de compra.');
@@ -162,7 +224,7 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
   SolicitudCompras _crearSolicitudCompra(Map<String, dynamic> producto) {
     return SolicitudCompras(
       idSolicitudCompra: 0,
-      scFolio: '', // Se generará automáticamente en el backend
+      scFolio: '',
       scEstado: _selectedEstado!,
       scFecha: DateTime.now(),
       scObjetivo: _objetivoController.text,
@@ -171,9 +233,9 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
       idProducto: producto['id'] ?? 0,
       scCantidadProductos: producto['cantidad'] ?? 0,
       scTotalCostoProductos: producto['precio'] ?? 0,
-      idUserSolicita: int.parse(idUserSolicita!),
-      idUserValida: null, // Se asignará en otra pantalla
-      idUserAutoriza: null, // Se asignará en otra pantalla
+      idUserSolicita: _selectedUser!.id_User!,
+      idUserValida: null,
+      idUserAutoriza: null,
     );
   }
 
@@ -181,7 +243,9 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
     _formKey.currentState!.reset();
     _productosAgregados.clear();
     setState(() {
+      _selectedUser = null;
       _selectedProducto = null;
+      _usuarioSeleccionado = false;
       _objetivoCompletado = false;
       _especificacionesCompletado = false;
       _observacionesCompletado = false;
@@ -192,6 +256,33 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
       _idProductoController.clear();
       _cantidadController.clear();
     });
+  }
+
+  Widget _buildMensajeInformativo(String mensaje, Color color, IconData icon) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              mensaje,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -212,23 +303,56 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
                   children: [
                     // Cabecera
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Expanded(
-                            child: buildCabeceraItem(
-                                'Fecha', _fechaController.text)),
+                          child:
+                              buildCabeceraItem('Fecha', _fechaController.text),
+                        ),
+                        // Campo para buscar usuario (SIEMPRE DISPONIBLE)
                         Expanded(
-                            child: buildCabeceraItem(
-                                'Solicita', widget.userName!)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Solicita*',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade900,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              CustomAutocompleteField<Users>(
+                                value: _selectedUser,
+                                labelText: 'Buscar usuario...',
+                                items: _usersList,
+                                onChanged: _onUsuarioSeleccionado,
+                                itemLabelBuilder: (Users user) =>
+                                    user.user_Name ?? 'Sin nombre',
+                                itemValueBuilder: (Users user) =>
+                                    user.id_User?.toString() ?? '0',
+                                prefixIcon: Icons.person_search,
+                                validator: (value) {
+                                  if (_selectedUser == null) {
+                                    return 'Debe seleccionar un usuario';
+                                  }
+                                  return null;
+                                },
+                                showClearButton: true,
+                              ),
+                            ],
+                          ),
+                        ),
                         Expanded(
-                            child:
-                                buildCabeceraItem('Estado', _selectedEstado!)),
+                          child: buildCabeceraItem('Estado', _selectedEstado!),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 30),
 
-                    // Campo Objetivo
+                    // Campo Objetivo (se habilita después de seleccionar usuario)
                     Row(
                       children: [
                         Expanded(
@@ -236,20 +360,19 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
                             controller: _objetivoController,
                             labelText: 'Objetivo de la solicitud*',
                             prefixIcon: Icons.flag,
+                            enabled: _usuarioSeleccionado,
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (_usuarioSeleccionado &&
+                                  (value == null || value.isEmpty)) {
                                 return 'El objetivo es obligatorio';
                               }
                               return null;
                             },
-                            onChanged: (value) {
-                              _validarCampo('objetivo', _objetivoController);
-                            },
+                            onChanged: _onObjetivoCambiado,
                           ),
                         ),
                         const SizedBox(width: 20),
-
-                        // Campo Especificaciones
+                        // Campo Especificaciones (se habilita después de completar objetivo)
                         Expanded(
                           child: CustomTextFielTexto(
                             controller: _especificacionesController,
@@ -263,15 +386,11 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
                               }
                               return null;
                             },
-                            onChanged: (value) {
-                              _validarCampo('especificaciones',
-                                  _especificacionesController);
-                            },
+                            onChanged: _onEspecificacionesCambiado,
                           ),
                         ),
                         const SizedBox(width: 20),
-
-                        // Campo Observaciones
+                        // Campo Observaciones (se habilita después de completar especificaciones)
                         Expanded(
                           child: CustomTextFielTexto(
                             controller: _observacionesController,
@@ -285,17 +404,42 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
                               }
                               return null;
                             },
-                            onChanged: (value) {
-                              _validarCampo(
-                                  'observaciones', _observacionesController);
-                            },
+                            onChanged: _onObservacionesCambiado,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
 
-                    // Selección de productos (solo disponible cuando todos los campos anteriores están completos)
+                    // Mensajes informativos según el estado
+                    if (!_usuarioSeleccionado) ...[
+                      _buildMensajeInformativo(
+                        'Seleccione un usuario que solicita para habilitar el campo objetivo',
+                        Colors.blue,
+                        Icons.info,
+                      ),
+                    ] else if (!_objetivoCompletado) ...[
+                      _buildMensajeInformativo(
+                        'Complete el objetivo para habilitar las especificaciones',
+                        Colors.blue,
+                        Icons.info,
+                      ),
+                    ] else if (!_especificacionesCompletado) ...[
+                      _buildMensajeInformativo(
+                        'Complete las especificaciones para habilitar las observaciones',
+                        Colors.blue,
+                        Icons.info,
+                      ),
+                    ] else if (!_observacionesCompletado) ...[
+                      _buildMensajeInformativo(
+                        'Complete las observaciones para habilitar la selección de productos',
+                        Colors.blue,
+                        Icons.info,
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+
+                    // Selección de productos (solo disponible cuando TODOS los campos anteriores están completos)
                     if (_observacionesCompletado) ...[
                       BuscarProductoWidget(
                         idProductoController: _idProductoController,
@@ -313,20 +457,35 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
                       const SizedBox(height: 20),
 
                       // Tabla de productos agregados
-                      buildProductosAgregadosGeneral(
-                        _productosAgregados,
-                        eliminarProductoSolicitud,
-                        mostrarEliminar: true,
-                        tipoOperacion: 'solicitud',
-                      ),
-                      const SizedBox(height: 30),
+                      if (_productosAgregados.isNotEmpty) ...[
+                        buildProductosAgregadosGeneral(
+                          _productosAgregados,
+                          eliminarProductoSolicitud,
+                          mostrarEliminar: true,
+                          tipoOperacion: 'solicitud',
+                        ),
+                        const SizedBox(height: 20),
+                      ],
 
-                      // Botón de guardar
+                      // Mensaje cuando no hay productos agregados
+                      if (_productosAgregados.isEmpty) ...[
+                        _buildMensajeInformativo(
+                          'Agregue al menos un producto para poder guardar la solicitud',
+                          Colors.orange,
+                          Icons.warning,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
+                      // Botones de guardar y limpiar
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton(
-                            onPressed: _isLoading ? null : _guardarSolicitud,
+                            onPressed:
+                                (_isLoading || _productosAgregados.isEmpty)
+                                    ? null
+                                    : _guardarSolicitud,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue.shade900,
                               elevation: 8,
@@ -383,32 +542,6 @@ class _AddSolicitudCompraState extends State<AddSolicitudCompra> {
                             ),
                           ),
                         ],
-                      ),
-                    ] else ...[
-                      // Mensaje informativo
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info, color: Colors.blue.shade800),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Complete los campos anteriores para habilitar la selección de productos',
-                                style: TextStyle(
-                                  color: Colors.blue.shade800,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                     const SizedBox(height: 20),

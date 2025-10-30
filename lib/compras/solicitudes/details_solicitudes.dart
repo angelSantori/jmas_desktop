@@ -5,9 +5,9 @@ import 'package:jmas_desktop/contollers/solicitud_autorizaciones_controller.dart
 import 'package:jmas_desktop/contollers/solicitud_compras_controller.dart';
 import 'package:jmas_desktop/contollers/solicitud_validaciones_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
-import 'package:jmas_desktop/solicitudes/widgets/dialog/autorizacion_dialog.dart';
-import 'package:jmas_desktop/solicitudes/widgets/dialog/validacion_dialog.dart';
-import 'package:jmas_desktop/solicitudes/widgets/pdf_solicitud_compra.dart';
+import 'package:jmas_desktop/compras/solicitudes/widgets/dialog/autorizacion_dialog.dart';
+import 'package:jmas_desktop/compras/solicitudes/widgets/dialog/validacion_dialog.dart';
+import 'package:jmas_desktop/compras/solicitudes/widgets/pdf_solicitud_compra.dart';
 import 'package:jmas_desktop/widgets/mensajes.dart';
 
 class DetailsSolicitudPage extends StatefulWidget {

@@ -5,11 +5,11 @@ import 'package:jmas_desktop/contollers/solicitud_autorizaciones_controller.dart
 import 'package:jmas_desktop/contollers/solicitud_compras_controller.dart';
 import 'package:jmas_desktop/contollers/solicitud_validaciones_controller.dart';
 import 'package:jmas_desktop/contollers/users_controller.dart';
-import 'package:jmas_desktop/solicitudes/details_solicitudes.dart';
+import 'package:jmas_desktop/compras/solicitudes/details_solicitudes.dart';
 import 'package:jmas_desktop/widgets/formularios/custom_autocomplete_field.dart';
 import 'package:jmas_desktop/widgets/formularios/custom_lista_desplegable.dart';
 
-import '../widgets/formularios/custom_field_texto.dart';
+import '../../widgets/formularios/custom_field_texto.dart';
 
 class ListSolicitudesPage extends StatefulWidget {
   final String idUser;
