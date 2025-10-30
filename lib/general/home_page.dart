@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:jmas_desktop/ajustes_plus/add_ajuste_mas_page.dart';
 import 'package:jmas_desktop/ajustes_plus/list_ajuste_mas_page.dart';
+import 'package:jmas_desktop/lecturas/add_lecturas.dart';
 import 'package:jmas_desktop/lecturas/lista_lecturas.dart';
 import 'package:jmas_desktop/mantenimiento/almacenes/list_almacenes_page.dart';
 import 'package:jmas_desktop/mantenimiento/calles/list_calles_page.dart';
@@ -25,8 +26,8 @@ import 'package:jmas_desktop/htaPrest/add_htaprest_page.dart';
 import 'package:jmas_desktop/htaPrest/list_htaprest_page.dart';
 import 'package:jmas_desktop/mantenimiento/contratistas/list_contratistas_page.dart';
 import 'package:jmas_desktop/mantenimiento/juntas/list_juntas_page.dart';
-import 'package:jmas_desktop/ordenCompras/add_orden_compra_page.dart';
-import 'package:jmas_desktop/ordenCompras/list_orden_compra_page.dart';
+import 'package:jmas_desktop/compras/ordenCompras/add_orden_compra_page.dart';
+import 'package:jmas_desktop/compras/ordenCompras/list_orden_compra_page.dart';
 import 'package:jmas_desktop/mantenimiento/padron/list_padron_page.dart';
 import 'package:jmas_desktop/pdfs/pdf_list_page.dart';
 import 'package:jmas_desktop/presupuestos/add_presupuesto.dart';
@@ -39,8 +40,8 @@ import 'package:jmas_desktop/salidas/add_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_cancelacioens_salida_page.dart';
 import 'package:jmas_desktop/salidas/list_salida_page.dart';
 import 'package:jmas_desktop/service/auth_service.dart';
-import 'package:jmas_desktop/solicitudes/add_solicitud_compra.dart';
-import 'package:jmas_desktop/solicitudes/list_solicitudes.dart';
+import 'package:jmas_desktop/compras/solicitudes/add_solicitud_compra.dart';
+import 'package:jmas_desktop/compras/solicitudes/list_solicitudes.dart';
 import 'package:jmas_desktop/universal/consulta_universal_page.dart';
 import 'package:jmas_desktop/users/list_user_page.dart';
 import 'package:jmas_desktop/widgets/componentes.dart';
@@ -415,6 +416,7 @@ class _HomePageState extends State<HomePage>
 
       //Lecturas
       'listLecturas': () => const ListLecturasScreen(),
+      'addLecturas': () => const AddLecturasEnviarScreen(),
 
       //'mapa': () => const MapaLecturasPage(),
       // 'addAjusteMenos': () => const AddAjusteMenosPage(),
@@ -533,7 +535,7 @@ class _HomePageState extends State<HomePage>
                           ),
                         const SizedBox(height: 10),
                         const Text(
-                          'v. 24102025',
+                          'v. 28102025',
                           style: TextStyle(
                               color: Colors.grey, fontWeight: FontWeight.bold),
                         ),
@@ -972,45 +974,6 @@ class _HomePageState extends State<HomePage>
                           ),
 
                           PermissionWidget(
-                            permission: 'manage_users',
-                            child: CustomExpansionTile(
-                              title: 'Configuración',
-                              icon: const Icon(Icons.settings),
-                              children: [
-                                //Usuarios
-                                SubCustomExpansionTile(
-                                  title: 'Usuarios',
-                                  icon: const Icon(
-                                    Icons.person_pin,
-                                    color: Colors.white,
-                                  ),
-                                  children: [
-                                    CustomListTile(
-                                      title: 'Lista Usuarios',
-                                      icon: const Icon(
-                                        Icons.format_list_numbered_outlined,
-                                        color: Colors.white,
-                                      ),
-                                      onTap: () => _navigateTo('listUser'),
-                                    ),
-                                    PermissionWidget(
-                                      permission: 'manage_roles',
-                                      child: CustomListTile(
-                                        title: 'Admin Roles',
-                                        icon: const Icon(
-                                          Icons.rocket_launch_sharp,
-                                          color: Colors.white,
-                                        ),
-                                        onTap: () => _navigateTo('adminRole'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          PermissionWidget(
                             permission: 'seeDesarrollo',
                             child: CustomExpansionTile(
                               title: 'Compras',
@@ -1069,13 +1032,68 @@ class _HomePageState extends State<HomePage>
                             ),
                           ),
 
-                          CustomListTile(
-                            title: 'Lecturas',
-                            icon: const Icon(
-                              Icons.add_chart,
-                              color: Colors.white,
+                          PermissionWidget(
+                            permission: 'seeDesarrollo',
+                            child: CustomExpansionTile(
+                                title: 'Lecturas',
+                                icon: Icon(Icons.coffee_rounded),
+                                children: [
+                                  CustomListTile(
+                                    title: 'Agregar Lecturas',
+                                    icon: const Icon(
+                                      Icons.add_card_sharp,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () => _navigateTo('addLecturas'),
+                                  ),
+                                  CustomListTile(
+                                    title: 'Lecturas',
+                                    icon: const Icon(
+                                      Icons.add_chart,
+                                      color: Colors.white,
+                                    ),
+                                    onTap: () => _navigateTo('listLecturas'),
+                                  ),
+                                ]),
+                          ),
+
+                          PermissionWidget(
+                            permission: 'manage_users',
+                            child: CustomExpansionTile(
+                              title: 'Configuración',
+                              icon: const Icon(Icons.settings),
+                              children: [
+                                //Usuarios
+                                SubCustomExpansionTile(
+                                  title: 'Usuarios',
+                                  icon: const Icon(
+                                    Icons.person_pin,
+                                    color: Colors.white,
+                                  ),
+                                  children: [
+                                    CustomListTile(
+                                      title: 'Lista Usuarios',
+                                      icon: const Icon(
+                                        Icons.format_list_numbered_outlined,
+                                        color: Colors.white,
+                                      ),
+                                      onTap: () => _navigateTo('listUser'),
+                                    ),
+                                    PermissionWidget(
+                                      permission: 'manage_roles',
+                                      child: CustomListTile(
+                                        title: 'Admin Roles',
+                                        icon: const Icon(
+                                          Icons.rocket_launch_sharp,
+                                          color: Colors.white,
+                                        ),
+                                        onTap: () => _navigateTo('adminRole'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            onTap: () => _navigateTo('listLecturas'),
                           ),
                         ],
                       ),
