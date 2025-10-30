@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'package:jmas_desktop/service/auth_service.dart';
 
 class CcontablesController {
@@ -34,8 +36,7 @@ class CcontablesController {
   Future<List<CContables>> listCCxProducto(int productoId) async {
     try {
       final response = await http.get(
-        Uri.parse(
-            '${_authService.apiURL}/CContables/ByProducto/$productoId'),
+        Uri.parse('${_authService.apiURL}/CContables/ByProducto/$productoId'),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -137,6 +138,7 @@ class CContables {
   int? cC_SCTA;
   String? cC_Detalle;
   BigInt? cC_CVEPROD;
+  String? ccProducto;
   int? idProducto;
   CContables({
     this.id_CConTable,
@@ -144,6 +146,7 @@ class CContables {
     this.cC_SCTA,
     this.cC_Detalle,
     this.cC_CVEPROD,
+    this.ccProducto,
     this.idProducto,
   });
 
@@ -153,6 +156,7 @@ class CContables {
     int? cC_SCTA,
     String? cC_Detalle,
     BigInt? cC_CVEPROD,
+    String? ccProducto,
     int? idProducto,
   }) {
     return CContables(
@@ -161,6 +165,7 @@ class CContables {
       cC_SCTA: cC_SCTA ?? this.cC_SCTA,
       cC_Detalle: cC_Detalle ?? this.cC_Detalle,
       cC_CVEPROD: cC_CVEPROD ?? this.cC_CVEPROD,
+      ccProducto: ccProducto ?? this.ccProducto,
       idProducto: idProducto ?? this.idProducto,
     );
   }
@@ -172,6 +177,7 @@ class CContables {
       'cC_SCTA': cC_SCTA,
       'cC_Detalle': cC_Detalle,
       'cC_CVEPROD': cC_CVEPROD?.toString(),
+      'ccProducto': ccProducto,
       'idProducto': idProducto,
     };
   }
@@ -191,6 +197,8 @@ class CContables {
               : BigInt.parse(map['cC_CVEPROD']
                   as String)) // Si es String, conviértelo a BigInt
           : null,
+      ccProducto:
+          map['ccProducto'] != null ? map['ccProducto'] as String : null,
       idProducto: map['idProducto'] != null ? map['idProducto'] as int : null,
     );
   }
@@ -202,7 +210,7 @@ class CContables {
 
   @override
   String toString() {
-    return 'CContables(id_CConTable: $id_CConTable, cC_Cuenta: $cC_Cuenta, cC_SCTA: $cC_SCTA, cC_Detalle: $cC_Detalle, cC_CVEPROD: $cC_CVEPROD, idProducto: $idProducto)';
+    return 'CContables(id_CConTable: $id_CConTable, cC_Cuenta: $cC_Cuenta, cC_SCTA: $cC_SCTA, cC_Detalle: $cC_Detalle, cC_CVEPROD: $cC_CVEPROD, ccProducto: $ccProducto, idProducto: $idProducto)';
   }
 
   @override
@@ -214,6 +222,7 @@ class CContables {
         other.cC_SCTA == cC_SCTA &&
         other.cC_Detalle == cC_Detalle &&
         other.cC_CVEPROD == cC_CVEPROD &&
+        other.ccProducto == ccProducto &&
         other.idProducto == idProducto;
   }
 
@@ -224,6 +233,7 @@ class CContables {
         cC_SCTA.hashCode ^
         cC_Detalle.hashCode ^
         cC_CVEPROD.hashCode ^
+        ccProducto.hashCode ^
         idProducto.hashCode;
   }
 }
